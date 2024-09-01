@@ -1,0 +1,88 @@
+/* ProductItem.css */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-height: 415px; /* Adjust height to fit the content properly */
+    position: relative;
+}
+
+.card-img-top {
+    width: 100%;
+    height: auto; /* Adjust height to auto */
+    max-height: 180px; /* Set a maximum height to ensure the image fits within the card */
+    object-fit: contain; /* Ensure the entire image is visible */
+    display: block; /* Ensure block display */
+}
+
+.card-body {
+    padding: 8px; /* Reduced padding */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribute space evenly */
+    flex: 1; /* Allow the body to expand and contract */
+}
+
+.card-title {
+    font-size: 1em; /* Smaller font size */
+    margin-bottom: 8px; /* Reduced margin below title */
+}
+
+.card-title a {
+    color: #333;
+    text-decoration: none;
+}
+
+.card-title a:hover {
+    text-decoration: underline;
+}
+
+.card-text {
+    font-size: 0.9em; /* Smaller font size for text */
+    margin: 8px 0; /* Adjust margins for better spacing */
+}
+
+/* Scoped button styles */
+.product-card .btn {
+    font-size: 0.9em; /* Smaller font size for the button */
+    padding: 6px 12px; /* Adjust padding for the button */
+    margin-top: 8px; /* Reduced margin for the button */
+    background-color: #fa9c23; /* Set the button background color */
+    border-color: #fa9c23; /* Set the button border color */
+    color: #fff; /* Ensure the text color is white for better readability */
+}
+
+.product-card .btn:hover {
+    background-color: #e58c20; /* Slightly darker shade on hover */
+    border-color: #e58c20; /* Match the border color on hover */
+}
+
+@media (max-width: 768px) {
+    .product-card {
+        max-height: 350px; /* Adjust height for smaller screens */
+    }
+
+    .card-body {
+        padding: 6px; /* Further reduced padding */
+    }
+    
+    .card-title {
+        font-size: 0.9em; /* Smaller font size for titles on smaller screens */
+    }
+
+    .card-text {
+        font-size: 0.8em; /* Smaller font size for text on smaller screens */
+    }
+
+    /* Scoped button styles for smaller screens */
+    .product-card .btn {
+        font-size: 0.8em; /* Smaller font size for buttons on smaller screens */
+        padding: 5px 10px; /* Adjust padding for buttons */
+    }
+}

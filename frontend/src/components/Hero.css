@@ -1,0 +1,160 @@
+/* src/components/Hero.css */
+.hero-section {
+    position: relative;
+    overflow: hidden;
+    height: 400px; /* Default height */
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1); /* Slightly transparent background */
+    border-radius: 10px; /* Rounded corners */
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    -webkit-backdrop-filter: blur(10px); /* Frosted glass effect for Safari */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  }
+  
+  /* Orange gradient diagonal line at the top-left */
+  .hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300px; /* Adjust width as needed */
+    height: 300px; /* Adjust height as needed */
+    background: linear-gradient(to bottom right, #ff8c00, #ff4500); /* Orange gradient */
+    transform: skewY(-45deg); /* Creates the diagonal effect */
+    transform-origin: top left; /* Origin for skewing */
+    z-index: 1; /* Ensure it is behind other content */
+  }
+  
+  /* Ensure content is above the diagonal line */
+  .hero-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    position: relative;
+    z-index: 2; /* Ensure content is above the diagonal line */
+  }
+  
+  /* Image container */
+  .hero-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    position: relative;
+  }
+  
+  /* Responsive image styling */
+  .hero-item img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover; /* Ensures the image covers the container */
+    display: block;
+  }
+  
+  /* Overlay for product information */
+  .hero-overlay {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 250px; /* Adjust width as needed */
+    background: rgba(255, 255, 255, 0.2); /* Slightly transparent white background for the glass effect */
+    border-radius: 10px; /* Rounded corners */
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    -webkit-backdrop-filter: blur(10px); /* Frosted glass effect for Safari */
+    color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    z-index: 2; /* Ensure it is above the images */
+    transform: translateY(-50%); /* Center vertically */
+  }
+  
+  /* Price styling */
+  .hero-overlay .price {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #000; /* Black color for price */
+  }
+  
+  /* Button styling */
+  .hero-overlay .btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #ff8c00; /* Button color */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .hero-overlay .btn:hover {
+    background-color: #ff4500; /* Darker button color on hover */
+  }
+  
+  /* Loading, error, and no products styles */
+  .hero-loading, .hero-error, .hero-no-products {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+  }
+  
+  .hero-loading {
+    color: #666;
+  }
+  
+  .hero-error {
+    color: red;
+  }
+  
+  .hero-no-products {
+    color: #999;
+  }
+  
+  /* Specific styles for different screen sizes */
+  @media (max-width: 768px) {
+    .hero-section {
+      height: 300px; /* Adjust height for tablets and smaller devices */
+    }
+  
+    .hero-section::before {
+      width: 200px; /* Adjust width for tablets */
+      height: 200px; /* Adjust height for tablets */
+    }
+    
+    .hero-item img {
+      max-height: 80%; /* Ensure images fit well in smaller containers */
+    }
+  
+    .hero-overlay {
+      width: 200px;
+      padding: 15px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .hero-section {
+      height: 200px; /* Further adjust height for mobile devices */
+      border-radius: 8px; /* Slightly smaller border radius */
+    }
+  
+    .hero-section::before {
+      width: 150px; /* Adjust width for mobile devices */
+      height: 150px; /* Adjust height for mobile devices */
+    }
+  
+    .hero-item img {
+      max-height: 70%; /* Ensure images fit well on very small screens */
+    }
+  
+    .hero-overlay {
+      width: 150px;
+      padding: 10px;
+      font-size: 0.9em;
+    }
+  }
+  
