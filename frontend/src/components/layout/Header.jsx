@@ -4,7 +4,7 @@ import { useGetMeQuery } from "../../redux/api/userApi";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { useLazyLogoutQuery } from "../../redux/api/authApi";
-
+import AddressDisplay from "../AdditionalFunctions/AddressDisplay";
 
 const Header = () => {
 
@@ -35,8 +35,9 @@ const { cartItems } = useSelector((state) => state.cart);
             </a>
           </div>
         </div>
-        <div className="col-12 col-md-6 mt-2 mt-md-0">
-         <Search />
+        <div className="col-12 col-md-6 mt-2 mt-md-0 d-flex align-items-center">
+       <AddressDisplay style={{ marginRight: "20px !important" }} />  &amp;
+         <Search /> 
         </div>
         <div className="col-12 col-md-3 mt-4 mt-md-0 text-center">
           <a href="/cart" style={{ textDecoration: "none" }}>
