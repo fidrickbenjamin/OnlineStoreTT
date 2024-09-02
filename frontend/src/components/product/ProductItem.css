@@ -65,7 +65,7 @@
 
 @media (max-width: 768px) {
     .product-card {
-        max-height: 350px; /* Adjust height for smaller screens */
+        max-height: 450px; /* Increase height for better visibility on smaller screens */
     }
 
     .card-body {
@@ -86,3 +86,5 @@
         padding: 5px 10px; /* Adjust padding for buttons */
     }
 }
+
+/* ensuring deployment */
