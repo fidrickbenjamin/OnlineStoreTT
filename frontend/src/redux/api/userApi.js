@@ -1,5 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setIsAuthenticated, setLoading, setUser } from "../features/userSlice";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+
  
 
 
@@ -113,6 +115,30 @@ export const userApi = createApi ({
 
     }), 
 });
+
+export const updateAddress = createAsyncThunk(
+    "user/updateAddress",
+    async (addressData, { rejectWithValue }) => {
+        try {
+            const response = await fetch("/api/v2/me/update", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ shippingInfo: addressData }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update address");
+            }
+
+            const data = await response.json();
+            return data.user;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
 
 export const {  useGetMeQuery, 
                 useUpdateProfileMutation, 

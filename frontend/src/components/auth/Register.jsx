@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useRegisterMutation } from "../../redux/api/authApi";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import MetaData from "../layout/MetaData";
+import { countries } from "countries-list";
+import { saveShippingInfo } from "../../redux/features/cartSlice";
 
 const Register = () => {
     const [user, setUser] = useState({
@@ -20,10 +22,13 @@ const Register = () => {
     const { name, email, password, address, city, zipCode, phoneNo, country } = user;
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { isAuthenticated } = useSelector((state) => state.auth);
+    const { shippingInfo } = useSelector((state) => state.cart);
+
+    const countriesList = Object.values(countries);
 
     const [register, { isLoading, error }] = useRegisterMutation();
-
-    const { isAuthenticated } = useSelector((state) => state.auth);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -32,23 +37,41 @@ const Register = () => {
         if (error) {
             toast.error(error?.data?.message);
         }
-    }, [error, isAuthenticated]);
 
-    const submitHandler = (e) => {
+        if (shippingInfo) {
+            setUser((prevUser) => ({
+                ...prevUser,
+                address: shippingInfo.address,
+                city: shippingInfo.city,
+                zipCode: shippingInfo.zipCode,
+                phoneNo: shippingInfo.phoneNo,
+                country: shippingInfo.country,
+            }));
+        }
+    }, [error, isAuthenticated, shippingInfo]);
+
+    const submitHandler = async (e) => {
         e.preventDefault();
-
+    
         const signUpData = {
             name,
             email,
             password,
-            address,
-            city,
-            zipCode,
-            phoneNo,
-            country
+            shippingInfo: {
+                address,
+                city,
+                zipCode,
+                phoneNo,
+                country,
+            },
         };
-
-        register(signUpData);
+    
+        const result = await register(signUpData);
+    
+        if (result?.data) {
+            localStorage.setItem("user", JSON.stringify(result.data.user));
+            navigate("/"); // Redirect or handle successful registration
+        }
     };
 
     const onChange = (e) => {
@@ -169,14 +192,19 @@ const Register = () => {
                             <label htmlFor="country_field" className="form-label">
                                 Country
                             </label>
-                            <input
-                                type="text"
+                            <select
                                 id="country_field"
-                                className="form-control"
+                                className="form-select"
                                 name="country"
                                 value={country}
                                 onChange={onChange}
-                            />
+                            >
+                                {countriesList.map((country) => (
+                                    <option key={country.name} value={country.name}>
+                                        {country.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         <button

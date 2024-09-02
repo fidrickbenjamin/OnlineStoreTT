@@ -10,10 +10,10 @@ import {  delete_file, upload_file } from "../utils/cloudinary.js"
 // Register user => /api/v2/register
 
 export const registerUser = catchAsyncErrors (async (req, res, next) => {
-    const { name , email, password } = req.body;
+    const { name , email, password, shippingInfo } = req.body;
 
     const user = await User.create({
-        name, email, password
+        name, email, password, shippingInfo,
     });
 
 
@@ -22,6 +22,20 @@ export const registerUser = catchAsyncErrors (async (req, res, next) => {
 
    sendToken(user, 201, res);
 });
+
+const register = async (userData) => {
+    const response = await fetch('/api/v2/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+    });
+
+    return response.json();
+};
+
+
 
 
 // Login user => /api/v2/login
@@ -278,3 +292,22 @@ export const updateUser = catchAsyncErrors(async (req, res, next) => {
           success: true, 
       });
   });
+
+
+  // Update user profile => /api/v2/me/update
+export const updateUserProfile = catchAsyncErrors(async (req, res, next) => {
+    const newUserData = {
+        shippingInfo: req.body.shippingInfo,
+    };
+
+    const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+        new: true,
+        runValidators: true,
+        useFindAndModify: false,
+    });
+
+    res.status(200).json({
+        success: true,
+        user,
+    });
+});
