@@ -2,7 +2,8 @@ import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
 import Order from "../models/order.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import Product from "../models/product.js";
-
+import nodemailer from "nodemailer";
+import Admin from "../models/user.js"; 
 
 // Create New Order => /api/v2/orders/new
 
@@ -242,3 +243,54 @@ getSalesData();
      });
 
 });
+
+
+
+// Configure nodemailer
+const transporter = nodemailer.createTransport({
+   service: 'gmail', // or another email service
+   auth: {
+       user: 'your-email@example.com',
+       pass: 'your-email-password',
+   },
+});
+
+// Cancel Order
+export const cancelOrder = catchAsyncErrors(async (req, res, next) => {
+   try {
+       const orderId = req.params.id;
+       const order = await Order.findById(orderId);
+
+       if (!order) {
+           return next(new ErrorHandler("Order not found", 404));
+       }
+
+       if (order.orderStatus === 'Delivered') {
+           return next(new ErrorHandler("Order already delivered", 400));
+       }
+
+       // Notify admins
+       const admins = await Admin.find(); // Fetch all admin users
+       const emailPromises = admins.map(admin => {
+           return transporter.sendMail({
+               from: 'your-email@example.com',
+               to: admin.email,
+               subject: 'Order Cancellation Request',
+               text: `Order ID ${orderId} has been requested for cancellation.`,
+           });
+       });
+
+       await Promise.all(emailPromises);
+
+       // Update order status to 'Cancel Requested' or similar
+       order.orderStatus = 'Cancel Requested';
+       await order.save();
+
+       res.status(200).json({
+           message: 'Cancellation request sent to admins',
+       });
+   } catch (error) {
+       next(new ErrorHandler(error.message, 500));
+   }
+});
+
