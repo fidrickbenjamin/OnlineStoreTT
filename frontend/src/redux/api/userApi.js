@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setIsAuthenticated, setLoading, setUser } from "../features/userSlice";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
+
  
 
 
@@ -30,6 +31,21 @@ export const userApi = createApi ({
           },
           providesTags: ["User"],
       }),
+
+
+       // Add getUserDetails for the current logged-in user
+       getUserDetails: builder.query({
+        query: () => `/me/details`, // Adjust to match your backend route
+        providesTags: ["User"],
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+            try {
+                const { data } = await queryFulfilled;
+                dispatch(setUser(data)); // Dispatch action to store user details in Redux store
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }),
 
       updateProfile: builder.mutation({
         query(body) {

@@ -1,27 +1,42 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import UserLayout from "../layout/UserLayout";
 import { useSelector, useDispatch } from "react-redux";
 import MetaData from "../layout/MetaData";
-import { updateAddress } from "../../redux/api/userApi"; // Assume you have an API function to update the address
 import toast from "react-hot-toast";
+import { useGetUserDetailsQuery, useUpdateProfileMutation } from "../../redux/api/userApi"; // Import the hooks
 
 const Profile = () => {
-    const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
+    const { user } = useSelector((state) => state.auth);
+
+    // Fetch user details
+    const { data: userDetails, isLoading } = useGetUserDetailsQuery(user?.id); // Ensure user ID is passed
+    const [updateProfile] = useUpdateProfileMutation();
 
     // State for the address fields
-    const [address, setAddress] = useState(user?.shippingInfo?.address || "");
-    const [city, setCity] = useState(user?.shippingInfo?.city || "");
-    const [zipCode, setZipCode] = useState(user?.shippingInfo?.zipCode || "");
-    const [phoneNo, setPhoneNo] = useState(user?.shippingInfo?.phoneNo || "");
-    const [country, setCountry] = useState(user?.shippingInfo?.country || "");
+    const [address, setAddress] = useState("");
+    const [city, setCity] = useState("");
+    const [zipCode, setZipCode] = useState("");
+    const [phoneNo, setPhoneNo] = useState("");
+    const [country, setCountry] = useState("");
+
+    // Populate fields when userDetails are loaded
+    useEffect(() => {
+        if (userDetails) {
+            setAddress(userDetails.shippingInfo?.address || "");
+            setCity(userDetails.shippingInfo?.city || "");
+            setZipCode(userDetails.shippingInfo?.zipCode || "");
+            setPhoneNo(userDetails.shippingInfo?.phoneNo || "");
+            setCountry(userDetails.shippingInfo?.country || "");
+        }
+    }, [userDetails]);
 
     const handleAddressUpdate = async (e) => {
         e.preventDefault();
-        
         const updatedInfo = { address, city, zipCode, phoneNo, country };
+
         try {
-            await dispatch(updateAddress(updatedInfo));
+            await updateProfile(updatedInfo).unwrap();
             toast.success("Address updated successfully!");
         } catch (error) {
             toast.error("Failed to update address.");
@@ -52,68 +67,7 @@ const Profile = () => {
                     <h4>Joined On</h4>
                     <p>{user?.createdAt?.substring(0, 10)}</p>
 
-                    {/* Address Information */}
-                    <h4>Address Information</h4>
-                    <form onSubmit={handleAddressUpdate}>
-                        <div className="mb-3">
-                            <label htmlFor="address_field" className="form-label">Address</label>
-                            <input
-                                type="text"
-                                id="address_field"
-                                className="form-control"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="city_field" className="form-label">City</label>
-                            <input
-                                type="text"
-                                id="city_field"
-                                className="form-control"
-                                value={city}
-                                onChange={(e) => setCity(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="zip_code_field" className="form-label">Zip Code</label>
-                            <input
-                                type="text"
-                                id="zip_code_field"
-                                className="form-control"
-                                value={zipCode}
-                                onChange={(e) => setZipCode(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="phone_field" className="form-label">Phone No</label>
-                            <input
-                                type="text"
-                                id="phone_field"
-                                className="form-control"
-                                value={phoneNo}
-                                onChange={(e) => setPhoneNo(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="country_field" className="form-label">Country</label>
-                            <input
-                                type="text"
-                                id="country_field"
-                                className="form-control"
-                                value={country}
-                                onChange={(e) => setCountry(e.target.value)}
-                            />
-                        </div>
-
-                        <button type="submit" className="btn btn-primary w-100">
-                            Update Address
-                        </button>
-                    </form>
+                   
                 </div>
             </div>
         </UserLayout>
