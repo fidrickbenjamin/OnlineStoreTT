@@ -3,37 +3,20 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const AddressDisplay = () => {
-    const { user } = useSelector((state) => state.auth);
-    const { shippingInfo } = useSelector((state) => state.cart);
+    const { user } = useSelector((state) => state.auth); // Get user details from Redux store
     const [address, setAddress] = useState("");
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user) {
-            if (shippingInfo) {
-                const fullAddress = `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.zipCode}, ${shippingInfo.country}`;
-                setAddress(fullAddress);
-            } else {
-                setAddress("");
-            }
-        } else {
-            setAddress("Login to enter your address info");
+        if (user && user.shippingInfo) {
+            // If the user is logged in and shipping info is available, construct the full address
+            const fullAddress = `${user.shippingInfo.address}, ${user.shippingInfo.city}, ${user.shippingInfo.zipCode}, ${user.shippingInfo.country}`;
+            setAddress(fullAddress);
+        } else if (!user) {
+            setAddress("Please enter your address info");
         }
-    }, [user, shippingInfo]);
-
-    const handleAddressChange = (e) => {
-        setAddress(e.target.value);
-    };
-
-    const saveAddress = async () => {
-        if (user && address !== "Enter your address info here" && address !== "Login to enter your address info") {
-            // Logic to save the address to the user's account
-            console.log("Saving address:", address);
-            // Example: dispatch action to save the address via an API call
-            // dispatch(saveUserAddress(address));
-        }
-    };
+    }, [user]);
 
     const handleLoginClick = () => {
         navigate("/login");
@@ -42,16 +25,16 @@ const AddressDisplay = () => {
     return (
         <div className="address-display">
             {user ? (
+                // Display the address if the user is logged in
                 <input
                     type="text"
                     value={address}
-                    onChange={handleAddressChange}
-                    onBlur={saveAddress}
-                    placeholder="Click to add your address"
+                    readOnly
                     className="form-control"
                     style={{ maxWidth: "200px" }}  // Adjust width as needed
                 />
             ) : (
+                // Show a login button if the user is not logged in
                 <button
                     onClick={handleLoginClick}
                     className="btn btn-primary"

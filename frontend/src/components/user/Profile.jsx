@@ -1,47 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import UserLayout from "../layout/UserLayout";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import MetaData from "../layout/MetaData";
-import toast from "react-hot-toast";
-import { useGetUserDetailsQuery, useUpdateProfileMutation } from "../../redux/api/userApi"; // Import the hooks
+import Select from 'react-select'; // If you choose to use react-select
+import countryList from 'react-select-country-list'; // For country selection
 
 const Profile = () => {
-    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
-
-    // Fetch user details
-    const { data: userDetails, isLoading } = useGetUserDetailsQuery(user?.id); // Ensure user ID is passed
-    const [updateProfile] = useUpdateProfileMutation();
-
-    // State for the address fields
-    const [address, setAddress] = useState("");
-    const [city, setCity] = useState("");
-    const [zipCode, setZipCode] = useState("");
-    const [phoneNo, setPhoneNo] = useState("");
-    const [country, setCountry] = useState("");
-
-    // Populate fields when userDetails are loaded
-    useEffect(() => {
-        if (userDetails) {
-            setAddress(userDetails.shippingInfo?.address || "");
-            setCity(userDetails.shippingInfo?.city || "");
-            setZipCode(userDetails.shippingInfo?.zipCode || "");
-            setPhoneNo(userDetails.shippingInfo?.phoneNo || "");
-            setCountry(userDetails.shippingInfo?.country || "");
-        }
-    }, [userDetails]);
-
-    const handleAddressUpdate = async (e) => {
-        e.preventDefault();
-        const updatedInfo = { address, city, zipCode, phoneNo, country };
-
-        try {
-            await updateProfile(updatedInfo).unwrap();
-            toast.success("Address updated successfully!");
-        } catch (error) {
-            toast.error("Failed to update address.");
-        }
-    };
 
     return (
         <UserLayout>
@@ -67,7 +32,20 @@ const Profile = () => {
                     <h4>Joined On</h4>
                     <p>{user?.createdAt?.substring(0, 10)}</p>
 
-                   
+                    {/* Address Information */}
+                    <h4>Address Information</h4>
+                    <div className="address-info-profile">
+                        <p><strong>Address:</strong> {user?.shippingInfo?.address || "N/A"}</p>
+                        <p><strong>City:</strong> {user?.shippingInfo?.city || "N/A"}</p>
+                        <p><strong>Zip Code:</strong> {user?.shippingInfo?.zipCode || "N/A"}</p>
+                        <p><strong>Phone No:</strong> {user?.shippingInfo?.phoneNo || "N/A"}</p>
+                        <p><strong>Country:</strong> {user?.shippingInfo?.country || "N/A"}</p>
+                    </div>
+
+                    {/* You can remove the form for updating address here */}
+                    {/* <form onSubmit={handleAddressUpdate}>
+                        ... Your form fields ...
+                    </form> */}
                 </div>
             </div>
         </UserLayout>

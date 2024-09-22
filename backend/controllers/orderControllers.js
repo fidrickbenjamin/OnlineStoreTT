@@ -4,48 +4,34 @@ import ErrorHandler from "../utils/errorHandler.js";
 import Product from "../models/product.js";
 import nodemailer from "nodemailer";
 import Admin from "../models/user.js"; 
-import User from "../models/user.js";
 
 // Create New Order => /api/v2/orders/new
-export const newOrder = catchAsyncErrors(async (req, res, next) => {
-   const {
-       orderItems,
-       itemsPrice,
-       taxAmount,
-       shippingAmount,
-       totalAmount,
-       paymentMethod,
-       paymentInfo,
-   } = req.body;
 
-   // Retrieve the user's shipping info from their profile
-   const user = await User.findById(req.user._id);
+export const newOrder = catchAsyncErrors(async (req, res, next)=> {
+   const { 
+    orderItems,
+    shippingInfo,
+    itemsPrice,
+    taxAmount,
+    shippingAmount,
+    totalAmount,
+    paymentMethod,
+    paymentInfo,
+   }  = req.body;
 
-   if (!user) {
-       return next(new ErrorHandler("User not found", 404));
-   }
-
-   const { shippingInfo } = user;  // Destructure shippingInfo from the user
-
-   if (!shippingInfo || !shippingInfo.address || !shippingInfo.city || !shippingInfo.phoneNo) {
-       return next(new ErrorHandler("Shipping information is incomplete", 400));
-   }
-
-   // Create the order with the user's shipping info
-   const order = await Order.create({
-       orderItems,
-       shippingInfo, // Use the shippingInfo from the user profile
-       itemsPrice,
-       taxAmount,
-       shippingAmount,
-       totalAmount,
-       paymentMethod,
-       paymentInfo,
-       user: req.user._id,
+   const order = await Order.create ({
+    orderItems,
+    shippingInfo,
+    itemsPrice,
+    taxAmount,
+    shippingAmount,
+    totalAmount,
+    paymentMethod,
+    paymentInfo,
+    user: req.user._id,
    });
-
    res.status(200).json({
-       order,
+    order,
    });
 });
 

@@ -18,6 +18,12 @@ const UserLayout = ({children}) => {
         },
 
         {
+            name:"Shipping Address",
+            url: "/me/address",
+            icon: "fas fa-shipping-fast",
+        },
+
+        {
             name: "Upload Avatar",
             url: "/me/upload_avatar",
             icon: "fas fa-user-circle",

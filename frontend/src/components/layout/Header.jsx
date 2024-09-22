@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useLazyLogoutQuery } from "../../redux/api/authApi";
 import AddressDisplay from "../AdditionalFunctions/AddressDisplay";
 
+
 const Header = () => {
 
   const navigate = useNavigate();
@@ -76,6 +77,7 @@ const { cartItems } = useSelector((state) => state.cart);
                    <Link className="dropdown-item" to="/me/orders">  {" "} Orders {" "} </Link>
        
                    <Link className="dropdown-item" to="/me/profile">  {" "} Profile {" "} </Link>
+                  
        
                    <Link className="dropdown-item text-danger" to="/login" onClick={logoutHandler}>  {" "} Logout {" "} </Link>
                  </div>

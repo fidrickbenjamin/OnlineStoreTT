@@ -297,7 +297,7 @@ export const updateUser = catchAsyncErrors(async (req, res, next) => {
   // Update user profile => /api/v2/me/update
 export const updateUserProfile = catchAsyncErrors(async (req, res, next) => {
     const newUserData = {
-        shippingInfo: req.body.shippingInfo,
+        shippingInfo: req?.body?.shippingInfo,
     };
 
     const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
@@ -311,3 +311,20 @@ export const updateUserProfile = catchAsyncErrors(async (req, res, next) => {
         user,
     });
 });
+
+export const updateShippingInfo = async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { shippingInfo: req.body }, // Assuming req.body contains shippingInfo
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({
+            success: true,
+            data: user?.shippingInfo,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Unable to update shipping info" });
+    }
+};

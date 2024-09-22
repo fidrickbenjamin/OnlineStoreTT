@@ -19,6 +19,8 @@ import PaymentMethod from "../Cart/PaymentMethod";
 import MyOrders from "../order/MyOrders";
 import OrderDetails from "../order/OrderDetails";
 import Invoice from "../invoice/Invoice";
+import ShippingAddress from "../user/ShippingAddress";
+
 
 const userRoutes = () => {
 
@@ -43,6 +45,7 @@ const userRoutes = () => {
       <Route path="/me/update_profile" element={<ProtectedRoute> <UpdateProfile /> </ProtectedRoute>} />
       <Route path="/me/upload_avatar" element={<ProtectedRoute> <UploadAvatar /> </ProtectedRoute>} />
       <Route path="/me/update_password" element={<ProtectedRoute> <UpdatePassword /> </ProtectedRoute>} />
+      <Route path="/me/address" element={<ProtectedRoute> <ShippingAddress /> </ProtectedRoute>} />
 
       <Route path="/cart" element={<Cart />} />
       <Route path="/shipping" element={<ProtectedRoute> <Shipping /> </ProtectedRoute>} />
@@ -51,6 +54,8 @@ const userRoutes = () => {
       <Route path="/me/orders" element={<ProtectedRoute> <MyOrders /> </ProtectedRoute>} />
       <Route path="/me/order/:id" element={<ProtectedRoute> <OrderDetails /> </ProtectedRoute>} />
       <Route path="/invoice/order/:id" element={<ProtectedRoute> <Invoice /> </ProtectedRoute>} />
+     
+     
       
 
         </>
