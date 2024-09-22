@@ -131,7 +131,8 @@ const Register = () => {
                             />
                         </div>
 
-                        {/* Address Fields */}
+                        {/* Address Fields update
+                         */}
                         <div className="mb-3">
                             <label htmlFor="address_field" className="form-label">
                                 Address
