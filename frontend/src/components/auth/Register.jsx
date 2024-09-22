@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { useUpdateProfileMutation } from "../../redux/api/userApi";
-import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useRegisterMutation } from "../../redux/api/authApi";
 import toast from "react-hot-toast";
-import UserLayout from "../layout/UserLayout";
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import MetaData from "../layout/MetaData";
 import { countries } from "countries-list";
+import { saveShippingInfo } from "../../redux/features/cartSlice";
 
-const UpdateProfile = () => { 
+const Register = () => {
     const [user, setUser] = useState({
         name: "",
         email: "",
+        password: "",
         address: "",
         city: "",
         zipCode: "",
@@ -18,51 +19,59 @@ const UpdateProfile = () => {
         country: ""
     });
 
-    const { name, email, address, city, zipCode, phoneNo, country } = user;
+    const { name, email, password, address, city, zipCode, phoneNo, country } = user;
 
     const navigate = useNavigate();
-    const [updateProfile, { isLoading, error, isSuccess }] = useUpdateProfileMutation();
-    const { user: currentUser } = useSelector((state) => state.auth);
-    
+    const dispatch = useDispatch();
+    const { isAuthenticated } = useSelector((state) => state.auth);
+    const { shippingInfo } = useSelector((state) => state.cart);
+
     const countriesList = Object.values(countries);
 
+    const [register, { isLoading, error }] = useRegisterMutation();
+
     useEffect(() => {
-        if (currentUser) {
-            setUser({
-                name: currentUser?.name,
-                email: currentUser?.email,
-                address: currentUser?.shippingAddresses[0]?.address || "", // Assuming you want the first address
-                city: currentUser?.shippingAddresses[0]?.city || "",
-                zipCode: currentUser?.shippingAddresses[0]?.zipCode || "",
-                phoneNo: currentUser?.shippingAddresses[0]?.phoneNo || "",
-                country: currentUser?.shippingAddresses[0]?.country || "",
-            });
+        if (isAuthenticated) {
+            navigate("/");
         }
         if (error) {
             toast.error(error?.data?.message);
         }
-        if (isSuccess) {
-            toast.success("User Updated");
-            navigate("/me/profile");
+
+        if (shippingInfo) {
+            setUser((prevUser) => ({
+                ...prevUser,
+                address: shippingInfo.address,
+                city: shippingInfo.city,
+                zipCode: shippingInfo.zipCode,
+                phoneNo: shippingInfo.phoneNo,
+                country: shippingInfo.country,
+            }));
         }
-    }, [currentUser, error, isSuccess]);
+    }, [error, isAuthenticated, shippingInfo]);
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault();
-
-        const userData = {
+    
+        const signUpData = {
             name,
             email,
-            shippingAddresses: [{
+            password,
+            shippingInfo: {
                 address,
                 city,
                 zipCode,
                 phoneNo,
                 country,
-            }],
+            },
         };
-
-        updateProfile(userData);
+    
+        const result = await register(signUpData);
+    
+        if (result?.data) {
+            localStorage.setItem("user", JSON.stringify(result.data.user));
+            navigate("/"); // Redirect or handle successful registration
+        }
     };
 
     const onChange = (e) => {
@@ -70,15 +79,20 @@ const UpdateProfile = () => {
     };
 
     return (
-        <UserLayout> 
-            <MetaData title={"Update Profile "} />
+        <>
+            <MetaData title={"Register"} />
             <div className="row wrapper">
-                <div className="col-10 col-lg-8">
-                    <form className="shadow rounded bg-body" onSubmit={submitHandler}>
-                        <h2 className="mb-4">Update Profile</h2>
+                <div className="col-10 col-lg-5">
+                    <form
+                        className="shadow rounded bg-body"
+                        onSubmit={submitHandler}
+                    >
+                        <h2 className="mb-4">Register</h2>
 
                         <div className="mb-3">
-                            <label htmlFor="name_field" className="form-label"> Name </label>
+                            <label htmlFor="name_field" className="form-label">
+                                Name
+                            </label>
                             <input
                                 type="text"
                                 id="name_field"
@@ -90,7 +104,9 @@ const UpdateProfile = () => {
                         </div>
 
                         <div className="mb-3">
-                            <label htmlFor="email_field" className="form-label"> Email </label>
+                            <label htmlFor="email_field" className="form-label">
+                                Email
+                            </label>
                             <input
                                 type="email"
                                 id="email_field"
@@ -101,11 +117,25 @@ const UpdateProfile = () => {
                             />
                         </div>
 
-                        {/* Shipping Info Fields */}
-                        <h3 className="mb-4">Shipping Information</h3>
-
                         <div className="mb-3">
-                            <label htmlFor="address_field" className="form-label"> Address </label>
+                            <label htmlFor="password_field" className="form-label">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                id="password_field"
+                                className="form-control"
+                                name="password"
+                                value={password}
+                                onChange={onChange}
+                            />
+                        </div>
+
+                        {/* Address Fields */}
+                        <div className="mb-3">
+                            <label htmlFor="address_field" className="form-label">
+                                Address
+                            </label>
                             <input
                                 type="text"
                                 id="address_field"
@@ -117,7 +147,9 @@ const UpdateProfile = () => {
                         </div>
 
                         <div className="mb-3">
-                            <label htmlFor="city_field" className="form-label"> City </label>
+                            <label htmlFor="city_field" className="form-label">
+                                City
+                            </label>
                             <input
                                 type="text"
                                 id="city_field"
@@ -129,7 +161,9 @@ const UpdateProfile = () => {
                         </div>
 
                         <div className="mb-3">
-                            <label htmlFor="zip_code_field" className="form-label"> Zip Code </label>
+                            <label htmlFor="zip_code_field" className="form-label">
+                                Zip Code
+                            </label>
                             <input
                                 type="text"
                                 id="zip_code_field"
@@ -141,7 +175,9 @@ const UpdateProfile = () => {
                         </div>
 
                         <div className="mb-3">
-                            <label htmlFor="phone_field" className="form-label"> Phone No </label>
+                            <label htmlFor="phone_field" className="form-label">
+                                Phone No
+                            </label>
                             <input
                                 type="text"
                                 id="phone_field"
@@ -153,7 +189,9 @@ const UpdateProfile = () => {
                         </div>
 
                         <div className="mb-3">
-                            <label htmlFor="country_field" className="form-label"> Country </label>
+                            <label htmlFor="country_field" className="form-label">
+                                Country
+                            </label>
                             <select
                                 id="country_field"
                                 className="form-select"
@@ -169,14 +207,19 @@ const UpdateProfile = () => {
                             </select>
                         </div>
 
-                        <button type="submit" className="btn update-btn w-100" disabled={isLoading}>
-                            {isLoading ? "Updating..." : "Update"}
+                        <button
+                            id="register_button"
+                            type="submit"
+                            className="btn w-100 py-2"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Creating..." : "REGISTER"}
                         </button>
                     </form>
                 </div>
             </div>
-        </UserLayout>
+        </>
     );
 };
 
-export default UpdateProfile;
+export default Register;
