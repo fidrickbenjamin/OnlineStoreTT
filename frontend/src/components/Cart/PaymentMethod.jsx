@@ -12,28 +12,24 @@ const PaymentMethod = () => {
 
   const navigate = useNavigate();
 
-  // Corrected the typo from state.car to state.cart
   const { shippingInfo = {}, cartItems = [] } = useSelector((state) => state.cart);
 
-  const [createNewOrder, { error, isSuccess }] = 
-  
-  useCreateNewOrderMutation();
-  
- const [stripeCheckoutSession, { data: checkoutData, error: checkoutError, isLoading  }] =
-  useStripeCheckoutSessionMutation();
+  const [createNewOrder, { error, isSuccess }] = useCreateNewOrderMutation();
+  const [stripeCheckoutSession, { data: checkoutData, error: checkoutError, isLoading }] =
+    useStripeCheckoutSessionMutation();
 
-useEffect(() => {
-  if(checkoutData) {
-    window.location.href = checkoutData?.url;
-  }
+  // Redirect if checkout session data is received
+  useEffect(() => {
+    if (checkoutData) {
+      window.location.href = checkoutData?.url;
+    }
 
-  if(checkoutError) {
-    toast.error(checkoutError?.data?.message);
-  }
+    if (checkoutError) {
+      toast.error(checkoutError?.data?.message);
+    }
+  }, [checkoutData, checkoutError]);
 
-}, [checkoutData, checkoutError]);
-
-
+  // Handle order creation success or failure
   useEffect(() => {
     if (error) {
       toast.error(error?.data?.message);
@@ -45,81 +41,50 @@ useEffect(() => {
     }
   }, [error, isSuccess, navigate]);
 
+  // Submit handler for payment form
   const submitHandler = (e) => {
     e.preventDefault();
 
+    // Check if cart is empty
     if (!cartItems.length) {
       toast.error("Cart is empty");
       return;
     }
 
+    // Validate shipping information
+    if (
+      !shippingInfo.address ||
+      !shippingInfo.city ||
+      !shippingInfo.zipCode ||
+      !shippingInfo.phoneNo ||
+      !shippingInfo.country
+    ) {
+      toast.error("Please complete your shipping information before proceeding.");
+      navigate("/shipping"); // Redirect to the shipping page if shippingInfo is incomplete
+      return;
+    }
+
+    // Calculate order prices
     const { itemsPrice, shippingPrice, taxPrice, totalPrice } = calculateOrderCost(cartItems);
 
-    if (method === "COD") {
-      // Create COD Order
-      const orderData = {
-        shippingInfo,
-        orderItems: cartItems,
-        itemsPrice,
-        shippingAmount: shippingPrice,
-        taxAmount: taxPrice,
-        totalAmount: totalPrice,
-        paymentInfo: {
-          status: "Not Paid",
-        },
-        paymentMethod: "COD",
-      };
+    // Create order data object
+    const orderData = {
+      shippingInfo,
+      orderItems: cartItems,
+      itemsPrice,
+      shippingAmount: shippingPrice,
+      taxAmount: taxPrice,
+      totalAmount: totalPrice,
+      paymentInfo: {
+        status: method === "COD" || method === "CASH" ? "Not Paid" : "Paid",
+      },
+      paymentMethod: method,
+    };
+
+    // Process the order based on the selected payment method
+    if (method === "COD" || method === "CASH" || method === "NBD") {
       createNewOrder(orderData);
-    }
-
-    if (method === "CASH") {
-      // Create CASH Order
-      const orderData = {
-        shippingInfo,
-        orderItems: cartItems,
-        itemsPrice,
-        shippingAmount: shippingPrice,
-        taxAmount: taxPrice,
-        totalAmount: totalPrice,
-        paymentInfo: {
-          status: "Paid",
-        },
-        paymentMethod: "CASH",
-      };
-      createNewOrder(orderData);
-    }
-
-    if (method === "NBD") {
-      // Create NBD Order
-      const orderData = {
-        shippingInfo,
-        orderItems: cartItems,
-        itemsPrice,
-        shippingAmount: shippingPrice,
-        taxAmount: taxPrice,
-        totalAmount: totalPrice,
-        paymentInfo: {
-          status: "Paid",
-        },
-        paymentMethod: "NBD",
-      }
-      ;
-      createNewOrder(orderData);
-    }
-
-
-    if (method === "Card") {
-      // Stripe Checkout
-      const orderData = {
-        shippingInfo,
-        orderItems: cartItems,
-        itemsPrice,
-        shippingAmount: shippingPrice,
-        taxAmount: taxPrice,
-        totalAmount: totalPrice,
-        
-      };
-
+    } else if (method === "Card") {
       stripeCheckoutSession(orderData);
     }
   };
@@ -148,16 +113,17 @@ useEffect(() => {
                 Cash on Delivery
               </label>
             </div>
+
             <div className="form-check">
               <input
                 className="form-check-input"
                 type="radio"
                 name="payment_mode"
-                id="codradio"
+                id="cashradio"
                 value="CASH"
                 onChange={(e) => setMethod("CASH")}
               />
-              <label className="form-check-label" htmlFor="codradio">
+              <label className="form-check-label" htmlFor="cashradio">
                 Cash Payment
               </label>
             </div>
@@ -167,15 +133,14 @@ useEffect(() => {
                 className="form-check-input"
                 type="radio"
                 name="payment_mode"
-                id="codradio"
+                id="nbdradio"
                 value="NBD"
                 onChange={(e) => setMethod("NBD")}
               />
-              <label className="form-check-label" htmlFor="codradio">
+              <label className="form-check-label" htmlFor="nbdradio">
                 Mobanking
               </label>
             </div>
-
 
             <div className="form-check">
               <input
@@ -191,7 +156,12 @@ useEffect(() => {
               </label>
             </div>
 
-            <button id="shipping_btn" type="submit" className="btn py-2 w-100" disabled={isLoading}>
+            <button
+              id="shipping_btn"
+              type="submit"
+              className="btn py-2 w-100"
+              disabled={isLoading}
+            >
               CONTINUE
             </button>
           </form>
