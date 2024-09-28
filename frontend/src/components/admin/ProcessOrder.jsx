@@ -185,7 +185,7 @@ const ProcessOrder = () => {
 
     <h4 className="mt-5 mb-3">Order Invoice</h4>
     <Link to={`/invoice/order/${order?._id}`} className="btn btn-success w-100">
-        <i className="fa fa-print"></i> Generate Invoice
+    <i className="bi bi-printer"></i> Generate Invoice
     </Link>
 </div>
 

@@ -10,6 +10,8 @@ import { Toaster } from "react-hot-toast";
 import userUserRoutes from "./components/routes/userRoutes";
 import userAdminRoutes from "./components/routes/adminRoutes";
 import NotFound from "./components/layout/NotFound";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
  
 
 

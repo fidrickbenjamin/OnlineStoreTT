@@ -68,9 +68,9 @@ const ListProducts = () => {
                 name: `${product?.name?.substring(0,20)}...`,
                 stock: product?.stock,
                 actions: <> 
-                <Link to={ `/admin/products/${product?._id}`} className="btn btn-outline-primary">  <i className="fa fa-pencil"></i>  </Link>
-                <Link to={ `/admin/products/${product?._id}/upload_images`} className="btn btn-outline-success ms-2">  <i className="fa fa-image"></i>  </Link>
-                <button  className="btn btn-outline-danger ms-2" onClick={() => deleteProductHandler(product?._id)} disabled={isDeleteLoading}>  <i className="fa fa-trash"></i>  </button>
+                <Link to={ `/admin/products/${product?._id}`} className="btn btn-outline-primary">  <i class="bi bi-pencil-square"></i>  </Link>
+                <Link to={ `/admin/products/${product?._id}/upload_images`} className="btn btn-outline-success ms-2">  <i class="bi bi-card-image"></i>  </Link>
+                <button  className="btn btn-outline-danger ms-2" onClick={() => deleteProductHandler(product?._id)} disabled={isDeleteLoading}> <i class="bi bi-trash"></i>  </button>
                 </>
             })
           })

@@ -173,7 +173,7 @@ const UploadImages = () => {
                         disabled={isLoading || isDeleteLoading}
                         onClick={() => deleteImage(img?.public_id)}
                       >
-                        <i className="fa fa-trash"></i>
+                        <i class="bi bi-trash"></i>
                       </button>
                     </div>
                   </div>  

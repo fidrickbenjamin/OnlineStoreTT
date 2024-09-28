@@ -69,13 +69,13 @@ const ListOrders = () => {
                 paymentStatus: order?.paymentInfo?.status?.toUpperCase(),
                 orderStatus: order?.orderStatus,
                 actions: ( <> 
-                <Link to={ `/admin/orders/${order?._id}`} className="btn btn-outline-primary">  <i className="fa fa-pencil"></i>  </Link>
+                <Link to={ `/admin/orders/${order?._id}`} className="btn btn-outline-primary">  <i class="bi bi-pencil-square"></i>  </Link>
                 <button  className="btn btn-outline-danger ms-2" 
                 onClick={() => deleteOrderHandler(order?._id)} 
                 disabled={isDeleteLoading}
                 >  
                 
-                <i className="fa fa-trash"></i>  </button>
+                <i class="bi bi-trash"></i>  </button>
                 </> )
             })
           })

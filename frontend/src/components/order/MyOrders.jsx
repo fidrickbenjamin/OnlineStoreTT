@@ -67,17 +67,17 @@ const MyOrders = () => {
                 actions: (
                     <>
                         <Link to={`/me/order/${order?._id}`} className="btn btn-primary">
-                            <i className="fa fa-eye"></i>
+                        <i class="bi bi-eye"></i>
                         </Link>
                         <Link to={`/invoice/order/${order?._id}`} className="btn btn-success ms-2">
-                            <i className="fa fa-print"></i>
+                        <i class="bi bi-printer"></i>
                         </Link>
                         <button
                             className="btn btn-danger ms-2"
                             onClick={() => cancelOrderHandler(order?._id)}
                             disabled={order?.orderStatus === 'Delivered'}
                         >
-                            <i className="fa fa-times"></i> Cancel Order
+                            <i class="bi bi-x-lg"></i> Cancel Order
                         </button>
                     </>
                 ),

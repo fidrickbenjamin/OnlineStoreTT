@@ -22,7 +22,7 @@ const SideMenu = ({menuItems}) => {
                     onClick={() => handleMenuItemClick(menuItem.url)}
                     aria-current={ activeMenuItem.includes(menuItem.url) ? "true" : "false" }
                     >
-                    <i className={`${menuItem.icon} fa-fw pe-2`}></i> {menuItem.name}
+                    <i className={`${menuItem.icon} bi bi-arrow-right-square-fill`}></i> {menuItem.name}
                     </Link>
 
 

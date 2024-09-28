@@ -30,7 +30,7 @@ const Search = () => {
                     onChange={(e) => setKeyword(e.target.value)}
                 />
                 <button id="search_btn" className="btn" type="submit">
-                    <i className="fa fa-search" aria-hidden="true"></i>
+                    <i className="bi bi-search"  aria-hidden="true"></i>    
                 </button>
             </div>
         </form>

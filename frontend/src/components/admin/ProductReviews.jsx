@@ -90,7 +90,7 @@ const setReviews = () => {
            disabled={isDeleteLoading}
           >  
           
-          <i className="fa fa-trash"></i>  </button>
+          <i class="bi bi-trash"></i>  </button>
           </> ),
       });
     });
