@@ -40,7 +40,7 @@ const Header = () => {
         </div>
       </div>
       <div className="col-12 col-md-6 mt-2 mt-md-0 d-flex align-items-center">
-        <AddressDisplay style={{ marginRight: "20px !important" }} /> &amp;
+        <AddressDisplay style={{ marginRight: "20px !important" }} />  &nbsp;
         <Search />
       </div>
       <div className="col-12 col-md-3 mt-4 mt-md-0 text-center">

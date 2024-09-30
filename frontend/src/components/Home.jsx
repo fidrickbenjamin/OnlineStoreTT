@@ -44,7 +44,7 @@ const Home = () => {
 
     return (
       <> 
-      <MetaData title={"Buy Best Products Online - Online Store TT "} />
+      <MetaData title={"Tactical Trends Online Store"} />
      <Hero />
       <div className="row">
         {keyword && (
