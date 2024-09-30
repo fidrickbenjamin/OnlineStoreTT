@@ -614,3 +614,20 @@ footer {
   border-radius: 5px;
   background-color: #f9f9f9;
 }
+
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .navbar-brand {
+    justify-content: center; /* Center the logo on mobile */
+  }
+}
