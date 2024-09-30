@@ -8,31 +8,31 @@ const UserLayout = ({children}) => {
         {
                 name: "Profile",
                 url: "/me/profile",
-                icon: "fas fa-user",
+                icon: "bi bi-person-check-fill",
         },
 
         {
             name:"Update Profile",
             url: "/me/update_profile",
-            icon: "fas fa-user",
+            icon: "bi bi-person-check-fill",
         },
 
         {
             name:"Shipping Address",
             url: "/me/address",
-            icon: "fas fa-shipping-fast",
+            icon: "bi bi-truck",
         },
 
         {
             name: "Upload Avatar",
             url: "/me/upload_avatar",
-            icon: "fas fa-user-circle",
+            icon: "bi bi-person-bounding-box",
         },
 
         {
             name: "Update Password",
             url: "/me/update_password",
-            icon: "fas fa-lock",
+            icon: "bi bi-file-lock2-fill",
         },
     ];
 

@@ -7,37 +7,37 @@ const AdminLayout = ({children}) => {
         {
                 name: "Dashboard",
                 url: "/admin/dashboard",
-                icon: "fas fa-tachometer-alt",
+                icon: "bi bi-speedometer",
         },
 
         {
             name:"New Product",
             url: "/admin/product/new",
-            icon: "fas fa-plus",
+            icon: "bi bi-folder-plus",
         },
 
         {
             name: "Products",
             url: "/admin/products",
-            icon: "fab fa-product-hunt",
+            icon: "bi bi-box-fill",
         },
 
         {
             name: "Orders",
             url: "/admin/orders",
-            icon: "fas fa-receipt",
+            icon: "bi bi-receipt-cutoff",
         },
 
         {
             name: "Users",
             url: "/admin/users",
-            icon: "fas fa-user",
+            icon: "bi bi-person-circle",
         },
 
         {
             name: "Reviews",
             url: "/admin/reviews",
-            icon: "fas fa-star",
+            icon: "bi bi-star-fill",
         },
     ];
 
