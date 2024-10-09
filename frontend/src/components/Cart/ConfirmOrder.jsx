@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { calculateOrderCost } from "../../helpers/helpers";
 import CheckoutSteps from "./CheckoutSteps";
 
+
 const ConfirmOrder = () => {
 
 

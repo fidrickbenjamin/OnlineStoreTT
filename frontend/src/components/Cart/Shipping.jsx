@@ -8,6 +8,7 @@ import CheckoutSteps from "./CheckoutSteps";
 const Shipping = () => {
   const countriesList = Object.values(countries);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth); // Access the user from the Redux store
   const [address, setAddress] = useState("");
@@ -32,7 +33,8 @@ const Shipping = () => {
 
     // We are not dispatching any action to update the user shipping info in Redux
     // This allows users to edit the form but doesn't save it to the Redux store or backend
-
+    const shippingData = { address, city, zipCode, phoneNo, country };
+    localStorage.setItem("shippingInfo", JSON.stringify(shippingData));
     // Optionally, navigate to confirm order page without updating user shipping info
     navigate("/confirm_order");
   };

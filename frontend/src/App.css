@@ -631,3 +631,27 @@ footer {
     justify-content: center; /* Center the logo on mobile */
   }
 }
+
+
+/* Hide arrows for WebKit browsers (Chrome, Safari, Edge) */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Hide arrows for Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* If you want to target only inputs with the "count" class */
+input.count::-webkit-outer-spin-button,
+input.count::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input.count {
+    -moz-appearance: textfield;
+}
