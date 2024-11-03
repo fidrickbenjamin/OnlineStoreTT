@@ -131,7 +131,7 @@ export const stripeWebhook = catchAsyncErrors(
 
                 await order.create(orderData);
 
-                await Cart.findOneAndUpdate({ user }, { items: [] });
+                await Cart.findOneAndUpdate({ user }, { cartItems: [] });
 
                 res.status(200).json ({ success: true });
             }
