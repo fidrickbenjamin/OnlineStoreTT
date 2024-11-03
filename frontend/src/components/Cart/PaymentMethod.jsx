@@ -38,6 +38,7 @@ const PaymentMethod = () => {
     if (isSuccess) {
       navigate("/me/orders?order_success=true");
       toast.success("Order Completed!");
+     
     }
   }, [error, isSuccess, navigate]);
 
