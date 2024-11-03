@@ -1,6 +1,5 @@
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
 import order from "../models/order.js";
-import Cart from "../models/cart.js";
 import Stripe from "stripe";
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -36,7 +35,7 @@ export const stripeCheckoutSession = catchAsyncErrors(
 
         const session = await stripe.checkout.sessions.create({
                 payment_method_types: ["card"],
-                success_url: `${process.env.FRONTEND_URL}me/orders`,
+                success_url: `${process.env.FRONTEND_URL}me/orders?order_success=true`,
                 cancel_url: `${process.env.FRONTEND_URL}`,
                 customer_email: req?.user?.email,
                 client_reference_id: req?.user?._id?.toString(),
@@ -131,7 +130,7 @@ export const stripeWebhook = catchAsyncErrors(
 
                 await order.create(orderData);
 
-                await Cart.findOneAndUpdate({ user }, { cartItems: [] });
+                
 
                 res.status(200).json ({ success: true });
             }
