@@ -1,5 +1,6 @@
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
 import order from "../models/order.js";
+import Cart from "../models/cart.js";
 import Stripe from "stripe";
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -130,6 +131,7 @@ export const stripeWebhook = catchAsyncErrors(
 
                 await order.create(orderData);
 
+                await Cart.findOneAndUpdate({ user }, { items: [] });
 
                 res.status(200).json ({ success: true });
             }
