@@ -19,7 +19,7 @@ const Invoice = () => {
   const { shippingInfo, orderItems, paymentInfo, user, totalAmount, orderStatus, paymentMethod} = order;
 
   
-  const isPaid = paymentInfo?.status === "paid" ? true: false;
+  const isPaid = paymentInfo?.status === "Paid" ? true: false;
 
 
   useEffect(() => {
