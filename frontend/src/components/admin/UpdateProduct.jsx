@@ -189,22 +189,7 @@ const UpdateProduct = () => {
                             />
                         </div>
 
-                        <div className="mb-3">
-                            <label htmlFor="images_field" className="form-label"> Images </label>
-                            <input
-                                type="file"
-                                id="images_field"
-                                className="form-control"
-                                name="images"
-                                onChange={handleImageChange}
-                                multiple
-                            />
-                            <div className="image-preview mt-2">
-                                {previewImages.map((img, idx) => (
-                                    <img key={idx} src={img} alt="Preview" width="100" height="100" className="me-2" />
-                                ))}
-                            </div>
-                        </div>
+                       
 
                         <button type="submit" className="btn w-100 py-2" disabled={isLoading}>
                             {isLoading ? "UPDATING..." : "UPDATE"}
