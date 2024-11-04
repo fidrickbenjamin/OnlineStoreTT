@@ -38,7 +38,7 @@ const Hero = () => {
               alt={randomProducts[currentIndex].name}
             />
             <div className="hero-overlay">
-              <p className="price">${randomProducts[currentIndex].price.toFixed(2)} XCD </p>
+              <p className="price">${randomProducts[currentIndex].price.toFixed(2)} USD </p>
               <a
                 href={`/product/${randomProducts[currentIndex]._id}`} // Ensure this URL matches your route configuration
                 className="btn"

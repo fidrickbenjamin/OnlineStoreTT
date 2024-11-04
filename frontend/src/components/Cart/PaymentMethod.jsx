@@ -201,7 +201,7 @@ const PaymentMethod = () => {
                 onSuccess={handlePaypalSuccess}
                 options={{
                   clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
-                  currency: "XCD",
+                  currency: "USD",
                 }}
               />
             </div>

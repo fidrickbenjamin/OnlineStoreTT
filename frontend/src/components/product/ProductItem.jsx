@@ -26,7 +26,7 @@ const ProductItem = ({ product, columnSize }) => {
             starSpacing="1px"
           />
           <span className="pt-2 ps-2">({product?.numOfReviews})</span>
-          <p className="card-text mt-2">${product?.price?.toFixed(2)} XCD </p>
+          <p className="card-text mt-2">${product?.price?.toFixed(2)} USD </p>
           <Link to={`/product/${product?._id}`} className="btn btn-primary">
             View Details
           </Link>
