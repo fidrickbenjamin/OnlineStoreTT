@@ -114,7 +114,7 @@ const ProductDetails = () => {
                         <span id="no-of-reviews" className="pt-1 ps-2">({product?.numOfReviews} Reviews)</span>
                     </div>
                     <hr />
-                    <p id="product_price">${product?.price?.toFixed(2)}</p>
+                    <p id="product_price">${product?.price?.toFixed(2)} XCD</p>
                     <div className="stockCounter d-inline">
                         <span className="btn btn-danger minus" onClick={decreaseQty}>-</span>
                         <input
