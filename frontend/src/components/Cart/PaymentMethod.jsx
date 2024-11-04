@@ -127,6 +127,8 @@ const PaymentMethod = () => {
           <p><strong>Mobile Id:</strong> 7672858487</p>
           <p><strong>Bank Name:</strong> National Bank of Dominica</p>
           <p>Please ensure you verify all details before proceeding with your payment.</p>
+          <p>   ${totalPrice} USD </p>
+          <p>Order total : ${(totalPrice * 2.67).toFixed(2)} XCD </p>
         </div>
 
         <div className="col-10 col-lg-5">
