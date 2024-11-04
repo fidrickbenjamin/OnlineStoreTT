@@ -94,7 +94,7 @@ const OrderDetails = () => {
               <td>{order?.paymentMethod}</td>
             </tr>
             <tr>
-              <th scope="row">Stripe ID</th>
+              <th scope="row">Tansaction ID</th>
               <td>{paymentInfo?.id || "NONE"}</td>
             </tr>
             <tr>

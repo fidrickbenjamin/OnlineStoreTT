@@ -6,69 +6,55 @@ import { calculateOrderCost } from "../../helpers/helpers";
 import { useCreateNewOrderMutation, useStripeCheckoutSessionMutation } from "../../redux/api/OrderApi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { PayPalButton } from "react-paypal-button-v2";
+import { useStripe } from "@stripe/react-stripe-js";
 
 const PaymentMethod = () => {
   const [method, setMethod] = useState("");
-
+  const [loading, setLoading] = useState(false); // State to manage loading
   const navigate = useNavigate();
-
   const { shippingInfo = {}, cartItems = [] } = useSelector((state) => state.cart);
 
   const [createNewOrder, { error, isSuccess }] = useCreateNewOrderMutation();
-  const [stripeCheckoutSession, { data: checkoutData, error: checkoutError, isLoading }] =
-    useStripeCheckoutSessionMutation();
+  const [stripeCheckoutSession, { data: checkoutData, error: checkoutError, isLoading }] = useStripeCheckoutSessionMutation();
 
-  // Redirect if checkout session data is received
+  const { itemsPrice, shippingPrice, taxPrice, totalPrice } = calculateOrderCost(cartItems);
+
   useEffect(() => {
     if (checkoutData) {
       window.location.href = checkoutData?.url;
     }
-
     if (checkoutError) {
       toast.error(checkoutError?.data?.message);
     }
   }, [checkoutData, checkoutError]);
 
-  // Handle order creation success or failure
   useEffect(() => {
     if (error) {
       toast.error(error?.data?.message);
     }
-
     if (isSuccess) {
       navigate("/me/orders?order_success=true");
       toast.success("Order Completed!");
-     
     }
   }, [error, isSuccess, navigate]);
 
-  // Submit handler for payment form
-  const submitHandler = (e) => {
-    e.preventDefault();
+  const submitHandler = async (e) => {
+    if (e) {
+      e.preventDefault();
+    }
 
-    // Check if cart is empty
     if (!cartItems.length) {
       toast.error("Cart is empty");
       return;
     }
 
-    // Validate shipping information
-    if (
-      !shippingInfo.address ||
-      !shippingInfo.city ||
-      !shippingInfo.zipCode ||
-      !shippingInfo.phoneNo ||
-      !shippingInfo.country
-    ) {
+    if (!shippingInfo.address || !shippingInfo.city || !shippingInfo.zipCode || !shippingInfo.phoneNo || !shippingInfo.country) {
       toast.error("Please complete your shipping information before proceeding.");
-      navigate("/shipping"); // Redirect to the shipping page if shippingInfo is incomplete
+      navigate("/shipping");
       return;
     }
 
-    // Calculate order prices
-    const { itemsPrice, shippingPrice, taxPrice, totalPrice } = calculateOrderCost(cartItems);
-
-    // Create order data object
     const orderData = {
       shippingInfo,
       orderItems: cartItems,
@@ -76,96 +62,173 @@ const PaymentMethod = () => {
       shippingAmount: shippingPrice,
       taxAmount: taxPrice,
       totalAmount: totalPrice,
-      paymentInfo: {
-        status: method === "COD" || method === "CASH" ? "Not Paid" : "Paid",
-      },
+      paymentInfo: { status: method === "COD" || method === "CASH" ? "Not Paid" : "Paid" },
       paymentMethod: method,
     };
 
-    // Process the order based on the selected payment method
-    if (method === "COD" || method === "CASH" || method === "NBD") {
-      createNewOrder(orderData);
-    } else if (method === "Card") {
-      stripeCheckoutSession(orderData);
+    setLoading(true); // Set loading to true when processing starts
+
+    try {
+      if (method === "COD" || method === "CASH" || method === "NBD") {
+        await createNewOrder(orderData).unwrap();
+      } else if (method === "Card") {
+        await stripeCheckoutSession(orderData).unwrap();
+      }
+    } catch (error) {
+      toast.error(error?.data?.message);
+    } finally {
+      setLoading(false); // Reset loading state after processing
     }
+  };
+
+  const handlePaypalSuccess = async (details, data) => {
+    const orderData = {
+      shippingInfo,
+      orderItems: cartItems,
+      itemsPrice,
+      shippingAmount: shippingPrice,
+      taxAmount: taxPrice,
+      totalAmount: totalPrice,
+      paymentInfo: { id: data.orderID, status: "Paid" },
+      paymentMethod: "Card",
+    };
+
+    await createNewOrder(orderData);
+    navigate("/me/orders?order_success=true");
+    toast.success(`Transaction completed by ${details.payer.name.given_name}`);
+  };
+
+  const handleMethodSelectAndSubmit = (selectedMethod) => {
+    setMethod(selectedMethod);
+    if (selectedMethod === "PayPal") {
+      // Directly render PayPal button when PayPal is selected
+      submitHandler(); // Invoke submit handler to create order data
+    } else {
+    const syntheticEvent = {
+      preventDefault: () => {},
+    };
+    submitHandler(syntheticEvent);
+  }
   };
 
   return (
     <>
       <MetaData title={"Payment Method"} />
-
       <CheckoutSteps shipping ConfirmOrder Payment />
 
       <div className="row wrapper">
         <div className="col-10 col-lg-5">
-          <form className="shadow rounded bg-body" onSubmit={submitHandler}>
-            <h2 className="mb-4">Select Payment Method</h2>
+          <div className="shadow rounded bg-body">
+            <h2 className="mb-4 text-center">Select Payment Method</h2>
 
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="payment_mode"
-                id="codradio"
-                value="COD"
-                onChange={(e) => setMethod("COD")}
-              />
-              <label className="form-check-label" htmlFor="codradio">
+            <div className="btn-group-vertical" role="group" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("COD")} disabled={loading}
+              style={{
+                backgroundColor: "#6772e5",
+                color: "#ffffff",
+                padding: "10px 20px",
+                borderRadius: "4px",
+                border: "none",
+                fontSize: "16px",
+                cursor: "pointer",
+                transition: "background-color 0.3s ease",
+                width: "auto"
+              }} >
                 Cash on Delivery
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="payment_mode"
-                id="cashradio"
-                value="CASH"
-                onChange={(e) => setMethod("CASH")}
-              />
-              <label className="form-check-label" htmlFor="cashradio">
+              </button>
+              <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("CASH")} disabled={loading}
+                style={{
+                  backgroundColor: "#FFA500",
+                  color: "#ffffff",
+                  padding: "10px 20px",
+                  borderRadius: "4px",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                  width: "auto"
+                }} >
                 Cash Payment
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="payment_mode"
-                id="nbdradio"
-                value="NBD"
-                onChange={(e) => setMethod("NBD")}
-              />
-              <label className="form-check-label" htmlFor="nbdradio">
+              </button>
+              <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("NBD")} disabled={loading}
+                style={{
+                  backgroundColor: "#008000",
+                  color: "#ffffff",
+                  padding: "10px 20px",
+                  borderRadius: "4px",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                  width: "auto"
+                }}>
                 Mobanking
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="payment_mode"
-                id="cardradio"
-                value="Card"
-                onChange={(e) => setMethod("Card")}
-              />
-              <label className="form-check-label" htmlFor="cardradio">
+              </button>
+             {/*} <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("Card")} disabled={loading}>
                 Card - VISA, MasterCard
-              </label>
+              </button> {*/}
+              <button 
+                type="button" 
+                className="btn btn-stripe mb-2" 
+                onClick={() => handleMethodSelectAndSubmit("Card")} 
+                disabled={loading}
+                style={{
+                  backgroundColor: "#6772e5",
+                  color: "#ffffff",
+                  padding: "10px 20px",
+                  borderRadius: "4px",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                  width: "auto"
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#5469d4"}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#000000"}
+              >
+                Pay with Stripe
+              </button>
+          {/*}    <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("PayPal")} disabled={loading}
+              style={{
+                backgroundColor: "#012169",
+                color: "#ffffff",
+                padding: "10px 20px",
+                borderRadius: "4px",
+                border: "none",
+                fontSize: "16px",
+                cursor: "pointer",
+                transition: "background-color 0.3s ease",
+                width: "auto"
+              }} >
+                PayPal
+              </button> {*/}
+              <PayPalButton
+              onClick={() => handleMethodSelectAndSubmit("PayPal")} disabled={loading}
+                  amount={totalPrice}
+                  onSuccess={handlePaypalSuccess}
+                  options={{
+                    clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
+                    currency: "USD",
+                  }}
+                />
             </div>
 
-            <button
-              id="shipping_btn"
-              type="submit"
-              className="btn py-2 w-100"
-              disabled={isLoading}
-            >
-              CONTINUE
-            </button>
-          </form>
+            {loading && <div className="text-center">Processing...</div>} {/* Loading indicator */}
+
+        {/*}    {method === "PayPal" && (
+              <div className="form-check">
+                <PayPalButton
+                  amount={totalPrice}
+                  onSuccess={handlePaypalSuccess}
+                  options={{
+                    clientId: "AXTD4mxaPsiwqyYqIsZsTAWptnbkpehTbE1vFnCnhJcz6SjbgODtfM4vbiYzbDF5Wyi0-AUS9kIDeLC5",
+                    currency: "USD",
+                  }}
+                />
+              </div>
+            )} {*/}
+
+          </div>
         </div>
       </div>
     </>
