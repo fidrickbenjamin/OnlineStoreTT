@@ -191,7 +191,7 @@ salesData.forEach((entry) => {
 
 
 
-// Generat an array of dates between start and end date
+// Generate an array of dates between start and end date
 const datesBetween = getDatesBetween(startDate, endDate);
 
  
