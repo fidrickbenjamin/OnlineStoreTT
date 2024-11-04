@@ -173,7 +173,7 @@ const PaymentMethod = () => {
                 onClick={() => handleMethodSelectAndSubmit("Card")} 
                 disabled={loading}
                 style={{
-                  backgroundColor: "#6772e5",
+                  backgroundColor: "#000000",
                   color: "#ffffff",
                   padding: "10px 20px",
                   borderRadius: "4px",
@@ -183,8 +183,6 @@ const PaymentMethod = () => {
                   transition: "background-color 0.3s ease",
                   width: "auto"
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#5469d4"}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#000000"}
               >
                 Pay with Stripe
               </button>
