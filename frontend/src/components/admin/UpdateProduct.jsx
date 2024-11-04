@@ -11,6 +11,7 @@ const UpdateProduct = () => {
     const navigate = useNavigate();
     const params = useParams();
 
+    // State for product details
     const [product, setProduct] = useState({
         name: "",
         description: "",
@@ -20,12 +21,11 @@ const UpdateProduct = () => {
         stock: "",
         seller: "",
     });
-    const [images, setImages] = useState([]);
-    const [previewImages, setPreviewImages] = useState([]);
 
     const [updateProduct, { isLoading, error, isSuccess }] = useUpdateProductMutation();
     const { data, isLoading: loadingDetails } = useGetProductDetailsQuery(params.id);
 
+    // Load existing product details into state on component mount
     useEffect(() => {
         if (data?.product) {
             setProduct({
@@ -37,7 +37,6 @@ const UpdateProduct = () => {
                 stock: data.product.stock,
                 seller: data.product.seller,
             });
-            setPreviewImages(data.product.images.map((image) => image.url));
         }
 
         if (error) {
@@ -52,43 +51,26 @@ const UpdateProduct = () => {
 
     const { name, description, price, categoryMain, categorySub, stock, seller } = product;
 
+    // Handle input changes, reset subcategory if main category changes
     const onChange = (e) => {
         const { name, value } = e.target;
 
-        // Reset categorySub when categoryMain changes
-        if (name === "categoryMain") {
-            setProduct({ ...product, categoryMain: value, categorySub: "" });
-        } else {
-            setProduct({ ...product, [name]: value });
-        }
+        setProduct((prevProduct) => ({
+            ...prevProduct,
+            [name]: value,
+            ...(name === "categoryMain" && { categorySub: "" }) // Reset subcategory when main category changes
+        }));
     };
 
-    const handleImageChange = async (e) => {
-        const files = Array.from(e.target.files);
-        const base64Promises = files.map((file) =>
-            new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = (error) => reject(error);
-            })
-        );
-
-        const base64Images = await Promise.all(base64Promises);
-        setImages(base64Images);
-        setPreviewImages(base64Images);
-    };
-
+    // Submit handler for form submission
     const submitHandler = async (e) => {
         e.preventDefault();
 
-        // Create JSON payload with base64-encoded images
         const productData = {
             ...product,
-            images,
+            price: parseFloat(product.price),
         };
 
-        // Call updateProduct mutation
         const response = await updateProduct({ id: params.id, body: productData });
 
         if (response.error) {
@@ -169,7 +151,7 @@ const UpdateProduct = () => {
                                     className="form-select"
                                     id="category_main_field"
                                     name="categoryMain"
-                                    value={categoryMain}
+                                    value={categoryMain || ""} // Default to empty string if undefined
                                     onChange={onChange}
                                     required
                                 >
@@ -188,16 +170,18 @@ const UpdateProduct = () => {
                                     className="form-select"
                                     id="category_sub_field"
                                     name="categorySub"
-                                    value={categorySub}
+                                    value={categorySub || ""} // Default to empty string if undefined
                                     onChange={onChange}
                                     required
+                                    disabled={!categoryMain} // Disable subcategory if main category is not selected
                                 >
                                     <option value="">Select Sub Category</option>
-                                    {PRODUCT_CATEGORIES[categoryMain]?.map((subCategory) => (
-                                        <option key={subCategory} value={subCategory}>
-                                            {subCategory}
-                                        </option>
-                                    ))}
+                                    {categoryMain &&
+                                        PRODUCT_CATEGORIES[categoryMain]?.map((subCategory) => (
+                                            <option key={subCategory} value={subCategory}>
+                                                {subCategory}
+                                            </option>
+                                        ))}
                                 </select>
                             </div>
                         </div>
