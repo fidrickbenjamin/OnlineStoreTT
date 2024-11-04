@@ -15,7 +15,8 @@ const NewProduct = () => {
         name: "",
         description: "",
         price: "",
-        category: "",
+        mainCategory: "",
+        subCategory: "",
         stock: "",
         seller: "",
     });
@@ -33,7 +34,7 @@ const NewProduct = () => {
         }
     }, [error, isSuccess, navigate]);
 
-    const { name, description, price, category, stock, seller } = product;
+    const { name, description, price, mainCategory, subCategory, stock, seller } = product;
 
     const onChange = (e) => {
         setProduct({ ...product, [e.target.name]: e.target.value });
@@ -42,15 +43,15 @@ const NewProduct = () => {
     const submitHandler = (e) => {
         e.preventDefault();
 
-        // Convert price and stock to numbers
         const newProduct = {
             ...product,
+            category: { main: mainCategory, sub: subCategory }, // Set category as object
             price: Number(price),
             stock: Number(stock),
         };
 
-        if (!category) {
-            toast.error("Please select a product category");
+        if (!mainCategory || !subCategory) {
+            toast.error("Please select both main category and subcategory");
             return;
         }
 
@@ -118,40 +119,59 @@ const NewProduct = () => {
                             </div>
                         </div>
 
-                        {/* Category and Seller Inputs */}
-                        <div className="row">
-                            <div className="mb-3 col">
-                                <label htmlFor="category_field" className="form-label"> Category </label>
-                                <select
-                                    className="form-select"
-                                    id="category_field"
-                                    name="category"
-                                    value={category}
-                                    onChange={onChange}
-                                >
-                                    <option value="">Select Category</option>
-                                    {Object.keys(PRODUCT_CATEGORIES).map((mainCategory) => (
-                                        <optgroup key={mainCategory} label={mainCategory}>
-                                            {PRODUCT_CATEGORIES[mainCategory].map((subCategory) => (
-                                                <option key={subCategory} value={subCategory}>
-                                                    {subCategory}
-                                                </option>
-                                            ))}
-                                        </optgroup>
+                        {/* Main Category Input */}
+                        <div className="mb-3">
+                            <label htmlFor="mainCategory_field" className="form-label">Main Category</label>
+                            <select
+                                className="form-select"
+                                id="mainCategory_field"
+                                name="mainCategory"
+                                value={mainCategory}
+                                onChange={(e) => {
+                                    setProduct({ ...product, mainCategory: e.target.value, subCategory: "" });
+                                }}
+                            >
+                                <option value="">Select Main Category</option>
+                                {Object.keys(PRODUCT_CATEGORIES).map((mainCat) => (
+                                    <option key={mainCat} value={mainCat}>
+                                        {mainCat}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Subcategory Input */}
+                        <div className="mb-3">
+                            <label htmlFor="subCategory_field" className="form-label">Subcategory</label>
+                            <select
+                                className="form-select"
+                                id="subCategory_field"
+                                name="subCategory"
+                                value={subCategory}
+                                onChange={onChange}
+                                disabled={!mainCategory}
+                            >
+                                <option value="">Select Subcategory</option>
+                                {mainCategory &&
+                                    PRODUCT_CATEGORIES[mainCategory].map((subCat) => (
+                                        <option key={subCat} value={subCat}>
+                                            {subCat}
+                                        </option>
                                     ))}
-                                </select>
-                            </div>
-                            <div className="mb-3 col">
-                                <label htmlFor="seller_field" className="form-label"> Seller Name </label>
-                                <input
-                                    type="text"
-                                    id="seller_field"
-                                    className="form-control"
-                                    name="seller"
-                                    value={seller}
-                                    onChange={onChange}
-                                />
-                            </div>
+                            </select>
+                        </div>
+
+                        {/* Seller Input */}
+                        <div className="mb-3">
+                            <label htmlFor="seller_field" className="form-label">Seller Name</label>
+                            <input
+                                type="text"
+                                id="seller_field"
+                                className="form-control"
+                                name="seller"
+                                value={seller}
+                                onChange={onChange}
+                            />
                         </div>
 
                         {/* Submit Button */}

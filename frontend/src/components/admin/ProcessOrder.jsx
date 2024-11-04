@@ -173,7 +173,7 @@ const ProcessOrder = () => {
             <option value="COD">COD</option>           
             <option value="CASH">CASH</option>
             <option value="NBD">NBD</option>
-            <option value="Card">STRIPE</option>
+            <option value="Card">CARD</option>
         </select>
     </div>
 

@@ -62,7 +62,8 @@ const PaymentMethod = () => {
       shippingAmount: shippingPrice,
       taxAmount: taxPrice,
       totalAmount: totalPrice,
-      paymentInfo: { status: method === "COD" || method === "CASH" ? "Not Paid" : "Paid" },
+      paymentInfo: { status: method === "COD" || method === "CASH" ? "Not Paid" : method === "NBD" 
+        ? "Verifying" : "Paid" },
       paymentMethod: method,
     };
 
@@ -104,11 +105,11 @@ const PaymentMethod = () => {
       // Directly render PayPal button when PayPal is selected
       submitHandler(); // Invoke submit handler to create order data
     } else {
-    const syntheticEvent = {
-      preventDefault: () => {},
-    };
-    submitHandler(syntheticEvent);
-  }
+      const syntheticEvent = {
+        preventDefault: () => {},
+      };
+      submitHandler(syntheticEvent);
+    }
   };
 
   return (
@@ -116,24 +117,35 @@ const PaymentMethod = () => {
       <MetaData title={"Payment Method"} />
       <CheckoutSteps shipping ConfirmOrder Payment />
 
-      <div className="row wrapper">
+      <div className="row wrapper" style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+
+         {/* Banking Information Box */}
+         <div className="col-10 col-lg-5 shadow rounded bg-light" style={{ padding: "20px", marginBottom: "20px" }}>
+          <h4 className="text-center">Mobanking Information</h4>
+          <p><strong>Account Name:</strong> Fidrick Benjamin</p>
+          <p><strong>Account Number:</strong> 600400420</p>
+          <p><strong>Mobile Id:</strong> 7672858487</p>
+          <p><strong>Bank Name:</strong> National Bank of Dominica</p>
+          <p>Please ensure you verify all details before proceeding with your payment.</p>
+        </div>
+
         <div className="col-10 col-lg-5">
           <div className="shadow rounded bg-body">
             <h2 className="mb-4 text-center">Select Payment Method</h2>
 
             <div className="btn-group-vertical" role="group" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("COD")} disabled={loading}
-              style={{
-                backgroundColor: "#6772e5",
-                color: "#ffffff",
-                padding: "10px 20px",
-                borderRadius: "4px",
-                border: "none",
-                fontSize: "16px",
-                cursor: "pointer",
-                transition: "background-color 0.3s ease",
-                width: "auto"
-              }} >
+                style={{
+                  backgroundColor: "#6772e5",
+                  color: "#ffffff",
+                  padding: "10px 20px",
+                  borderRadius: "4px",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                  width: "auto"
+                }} >
                 Cash on Delivery
               </button>
               <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("CASH")} disabled={loading}
@@ -164,9 +176,6 @@ const PaymentMethod = () => {
                 }}>
                 Mobanking
               </button>
-             {/*} <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("Card")} disabled={loading}>
-                Card - VISA, MasterCard
-              </button> {*/}
               <button 
                 type="button" 
                 className="btn btn-stripe mb-2" 
@@ -186,48 +195,22 @@ const PaymentMethod = () => {
               >
                 Pay with Stripe
               </button>
-          {/*}    <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("PayPal")} disabled={loading}
-              style={{
-                backgroundColor: "#012169",
-                color: "#ffffff",
-                padding: "10px 20px",
-                borderRadius: "4px",
-                border: "none",
-                fontSize: "16px",
-                cursor: "pointer",
-                transition: "background-color 0.3s ease",
-                width: "auto"
-              }} >
-                PayPal
-              </button> {*/}
               <PayPalButton
-              onClick={() => handleMethodSelectAndSubmit("PayPal")} disabled={loading}
-                  amount={totalPrice}
-                  onSuccess={handlePaypalSuccess}
-                  options={{
-                    clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
-                    currency: "USD",
-                  }}
-                />
+                onClick={() => handleMethodSelectAndSubmit("PayPal")} disabled={loading}
+                amount={totalPrice}
+                onSuccess={handlePaypalSuccess}
+                options={{
+                  clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
+                  currency: "USD",
+                }}
+              />
             </div>
 
             {loading && <div className="text-center">Processing...</div>} {/* Loading indicator */}
-
-        {/*}    {method === "PayPal" && (
-              <div className="form-check">
-                <PayPalButton
-                  amount={totalPrice}
-                  onSuccess={handlePaypalSuccess}
-                  options={{
-                    clientId: "AXTD4mxaPsiwqyYqIsZsTAWptnbkpehTbE1vFnCnhJcz6SjbgODtfM4vbiYzbDF5Wyi0-AUS9kIDeLC5",
-                    currency: "USD",
-                  }}
-                />
-              </div>
-            )} {*/}
-
           </div>
         </div>
+
+         
       </div>
     </>
   );
