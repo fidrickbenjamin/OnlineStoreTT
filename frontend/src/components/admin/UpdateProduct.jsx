@@ -24,7 +24,7 @@ const UpdateProduct = () => {
     const [previewImages, setPreviewImages] = useState([]);
 
     const [updateProduct, { isLoading, error, isSuccess }] = useUpdateProductMutation();
-    const { data } = useGetProductDetailsQuery(params?.id);
+    const { data, isLoading: loadingDetails } = useGetProductDetailsQuery(params.id);
 
     useEffect(() => {
         if (data?.product) {
@@ -37,7 +37,7 @@ const UpdateProduct = () => {
                 stock: data.product.stock,
                 seller: data.product.seller,
             });
-            setPreviewImages(data.product.images.map(image => image.url));
+            setPreviewImages(data.product.images.map((image) => image.url));
         }
 
         if (error) {
@@ -48,45 +48,64 @@ const UpdateProduct = () => {
             toast.success("Product Updated");
             navigate("/admin/products");
         }
-    }, [error, isSuccess, navigate, data]);
+    }, [data, error, isSuccess, navigate]);
 
     const { name, description, price, categoryMain, categorySub, stock, seller } = product;
 
     const onChange = (e) => {
-        setProduct({ ...product, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        // Reset categorySub when categoryMain changes
+        if (name === "categoryMain") {
+            setProduct({ ...product, categoryMain: value, categorySub: "" });
+        } else {
+            setProduct({ ...product, [name]: value });
+        }
     };
 
-    const handleImageChange = (e) => {
+    const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
-        setImages(files);
+        const base64Promises = files.map((file) =>
+            new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+            })
+        );
 
-        const filePreviews = files.map((file) => URL.createObjectURL(file));
-        setPreviewImages(filePreviews);
+        const base64Images = await Promise.all(base64Promises);
+        setImages(base64Images);
+        setPreviewImages(base64Images);
     };
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault();
 
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("description", description);
-        formData.append("price", price);
-        formData.append("category.main", categoryMain);
-        formData.append("category.sub", categorySub);
-        formData.append("stock", stock);
-        formData.append("seller", seller);
-        
-        images.forEach((image) => formData.append("images", image));
+        // Create JSON payload with base64-encoded images
+        const productData = {
+            ...product,
+            images,
+        };
 
-        updateProduct({ id: params?.id, body: formData });
+        // Call updateProduct mutation
+        const response = await updateProduct({ id: params.id, body: productData });
+
+        if (response.error) {
+            toast.error(response.error.data.message);
+        }
     };
+
+    if (loadingDetails) {
+        return <Loader />;
+    }
 
     return (
         <AdminLayout>
             <MetaData title={"Update Product"} />
             <div className="row wrapper">
                 <div className="col-10 col-lg-10 mt-5 mt-lg-0">
-                    <form className="shadow rounded bg-body" onSubmit={submitHandler} encType="multipart/form-data">
+                    <form className="shadow rounded bg-body" onSubmit={submitHandler}>
                         <h2 className="mb-4">Update Product</h2>
 
                         <div className="mb-3">
@@ -98,6 +117,7 @@ const UpdateProduct = () => {
                                 name="name"
                                 value={name}
                                 onChange={onChange}
+                                required
                             />
                         </div>
 
@@ -110,6 +130,7 @@ const UpdateProduct = () => {
                                 name="description"
                                 value={description}
                                 onChange={onChange}
+                                required
                             ></textarea>
                         </div>
 
@@ -123,6 +144,7 @@ const UpdateProduct = () => {
                                     name="price"
                                     value={price}
                                     onChange={onChange}
+                                    required
                                 />
                             </div>
 
@@ -135,6 +157,7 @@ const UpdateProduct = () => {
                                     name="stock"
                                     value={stock}
                                     onChange={onChange}
+                                    required
                                 />
                             </div>
                         </div>
@@ -148,6 +171,7 @@ const UpdateProduct = () => {
                                     name="categoryMain"
                                     value={categoryMain}
                                     onChange={onChange}
+                                    required
                                 >
                                     <option value="">Select Main Category</option>
                                     {Object.keys(PRODUCT_CATEGORIES).map((mainCategory) => (
@@ -166,6 +190,7 @@ const UpdateProduct = () => {
                                     name="categorySub"
                                     value={categorySub}
                                     onChange={onChange}
+                                    required
                                 >
                                     <option value="">Select Sub Category</option>
                                     {PRODUCT_CATEGORIES[categoryMain]?.map((subCategory) => (
@@ -186,10 +211,9 @@ const UpdateProduct = () => {
                                 name="seller"
                                 value={seller}
                                 onChange={onChange}
+                                required
                             />
                         </div>
-
-                       
 
                         <button type="submit" className="btn w-100 py-2" disabled={isLoading}>
                             {isLoading ? "UPDATING..." : "UPDATE"}
