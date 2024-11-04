@@ -105,25 +105,29 @@ const defaultCheckHandler = (checkboxType, checkboxValue) => {
         <hr />
         <h5 className="mb-3">Category</h5>
   
-          {PRODUCT_CATEGORIES?.map((category) => (
+         {/* Map over PRODUCT_CATEGORIES object */}
+         {Object.keys(PRODUCT_CATEGORIES).map((category) => (
+                <div key={category}>
+                    <h6>{category}</h6>
 
-<div className="form-check">
-<input
-  className="form-check-input"
-  type="checkbox"
-  name="category"
-  id="check4"
-  value={category}
-  defaultChecked={defaultCheckHandler("category", category)}
-  onClick={(e) => handleClick(e.target)}
-/>
-<label className="form-check-label" for="check4"> {" "}  {category} </label>
-</div>
-
-          ))}
-
-        
-        
+                    {/* Display subcategories for each main category */}
+                    {PRODUCT_CATEGORIES[category].map((subCategory) => (
+                        <div className="form-check" key={subCategory}>
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                name="category"
+                                value={subCategory}
+                                defaultChecked={defaultCheckHandler("category", subCategory)}
+                                onClick={(e) => handleClick(e.target)}
+                            />
+                            <label className="form-check-label">
+                                {subCategory}
+                            </label>
+                        </div>
+                    ))}
+                </div>
+            ))}
   
         <hr />
         <h5 className="mb-3">Ratings</h5>

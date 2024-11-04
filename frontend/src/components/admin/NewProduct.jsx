@@ -10,10 +10,10 @@ import { useCreateProductMutation } from "../../redux/api/productsApi";
 const NewProduct = () => {
     const navigate = useNavigate();
 
-    // 1. **State Initialization**
+    // State Initialization
     const [product, setProduct] = useState({
         name: "",
-        description: "",  // Fixed typo: originally `descripton`
+        description: "",
         price: "",
         category: "",
         stock: "",
@@ -33,34 +33,27 @@ const NewProduct = () => {
         }
     }, [error, isSuccess, navigate]);
 
-    // 2. **Destructuring State**
     const { name, description, price, category, stock, seller } = product;
 
-    // 3. **onChange Handler**
     const onChange = (e) => {
         setProduct({ ...product, [e.target.name]: e.target.value });
     };
 
-    // 4. **submitHandler Function**
     const submitHandler = (e) => {
         e.preventDefault();
 
-        // 5. **Conversion to Numbers**
-        // Convert `price` and `stock` to numbers before submitting
+        // Convert price and stock to numbers
         const newProduct = {
             ...product,
-            price: Number(price),  // Convert price to number to avoid the casting error
-            stock: Number(stock),  // Convert stock to number to ensure correct data type
+            price: Number(price),
+            stock: Number(stock),
         };
 
-        // 6. **Validation for Category**
-        // Check if category is selected
         if (!category) {
-            toast.error("Please enter product category");
-            return;  // Prevent submission if category is not selected
+            toast.error("Please select a product category");
+            return;
         }
 
-        // Pass the updated `newProduct` object to `createProduct`
         createProduct(newProduct);
     };
 
@@ -87,14 +80,12 @@ const NewProduct = () => {
 
                         {/* Product Description Input */}
                         <div className="mb-3">
-                            <label htmlFor="description_field" className="form-label">
-                                Description
-                            </label>
+                            <label htmlFor="description_field" className="form-label"> Description </label>
                             <textarea
                                 className="form-control"
                                 id="description_field"
                                 rows="8"
-                                name="description"  // Fixed name attribute typo
+                                name="description"
                                 value={description}
                                 onChange={onChange}
                             ></textarea>
@@ -139,8 +130,14 @@ const NewProduct = () => {
                                     onChange={onChange}
                                 >
                                     <option value="">Select Category</option>
-                                    {PRODUCT_CATEGORIES?.map((category) => (
-                                        <option key={category} value={category}>{category}</option>
+                                    {Object.keys(PRODUCT_CATEGORIES).map((mainCategory) => (
+                                        <optgroup key={mainCategory} label={mainCategory}>
+                                            {PRODUCT_CATEGORIES[mainCategory].map((subCategory) => (
+                                                <option key={subCategory} value={subCategory}>
+                                                    {subCategory}
+                                                </option>
+                                            ))}
+                                        </optgroup>
                                     ))}
                                 </select>
                             </div>
@@ -159,7 +156,7 @@ const NewProduct = () => {
 
                         {/* Submit Button */}
                         <button type="submit" className="btn w-100 py-2" disabled={isLoading}>
-                            {isLoading ? "CREATING" : "CREATE"}
+                            {isLoading ? "CREATING..." : "CREATE"}
                         </button>
                     </form>
                 </div>

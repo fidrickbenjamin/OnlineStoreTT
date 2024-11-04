@@ -38,12 +38,34 @@ const productSchema = new mongoose.Schema({
 
     ],
     category: {
+      main: {
         type: String,
         required: [true, "Please enter product category"],
-        enum: {
-            values: ["Electronics","Accessories","Laptops","Tablets","Smart Phones","Headphones","Desktops","Gaming Accessories"],
-            message: "Please select the correct category",
+        enum: ["Electronics", "Accessories", "Laptops", "Tablets", "Smart Phones", "Headphones", "Desktops", "Gaming Accessories", "Clothing", "Utilities"]
+      },
+      sub: {
+        type: String,
+        required: [true, "Please enter product subcategory"],
+        validate: {
+          validator: function(value) {
+            const subCategoriesByCategory = {
+              "Electronics": ["Audio", "Video", "Wearables", "Cameras", "Home Entertainment"],
+              "Accessories": ["Chargers", "Cables", "Bags", "Screen Protectors", "Mounts"],
+              "Laptops": ["Gaming Laptops", "Ultrabooks", "Business Laptops", "2-in-1", "Student Laptops"],
+              "Tablets": ["Android Tablets", "iPads", "Windows Tablets", "Kids Tablets"],
+              "Smart Phones": ["Android Phones", "iPhones", "5G Phones", "Refurbished Phones"],
+              "Headphones": ["In-Ear", "Over-Ear", "Wireless", "Noise-Canceling", "Gaming Headsets"],
+              "Desktops": ["Gaming Desktops", "All-in-One", "Mini PCs", "Workstations"],
+              "Gaming Accessories": ["Controllers", "VR Headsets", "Gaming Mice", "Keyboards", "Gaming Chairs"],
+              "Clothing": ["Men", "Women", "Kids", "Activewear", "Footwear", "Accessories"],
+              "Utilities": ["Home Appliances", "Kitchen Gadgets", "Cleaning Tools", "Storage Solutions"]
+            };
+            const allowedSubCategories = subCategoriesByCategory[this.category.main];
+            return allowedSubCategories ? allowedSubCategories.includes(value) : true;
+          },
+          message: "Invalid subcategory for the selected category",
         }
+      }
     },
     seller:{
         type: String,

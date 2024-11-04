@@ -11,11 +11,9 @@ const UpdateProduct = () => {
     const navigate = useNavigate();
     const params = useParams();
 
-    // 1. **Change 1: Corrected Typo in State Initialization**
-    // Explanation: The property `descripton` was a typo and needed to be changed to `description` to match the input field name and state variable.
     const [product, setProduct] = useState({
         name: "",
-        description: "",  // Fixed typo here
+        description: "",
         price: "",
         category: "",
         stock: "",
@@ -23,22 +21,19 @@ const UpdateProduct = () => {
     });
 
     const [updateProduct, { isLoading, error, isSuccess }] = useUpdateProductMutation();
-
-   const {data} = useGetProductDetailsQuery(params?.id);
+    const { data } = useGetProductDetailsQuery(params?.id);
 
     useEffect(() => {
-
-        if(data?.product) {
+        if (data?.product) {
             setProduct({
-                name: data?.product?.name,
-                description: data?.product?.description,
-                price: data?.product?.price,
-                category: data?.product?.category,
-                stock: data?.product?.stock,
-                seller: data?.product?.seller,
+                name: data.product.name,
+                description: data.product.description,
+                price: data.product.price,
+                category: data.product.category,
+                stock: data.product.stock,
+                seller: data.product.seller,
             });
         }
-
 
         if (error) {
             toast.error(error?.data?.message);
@@ -50,9 +45,7 @@ const UpdateProduct = () => {
         }
     }, [error, isSuccess, navigate, data]);
 
-    // 2. **Change 2: Destructured Correctly**
-    // Explanation: The typo in `description` was also present in the destructuring of the state, which was fixed.
-    const { name, description, price, category, stock, seller } = product;  // Fixed typo here
+    const { name, description, price, category, stock, seller } = product;
 
     const onChange = (e) => {
         setProduct({ ...product, [e.target.name]: e.target.value });
@@ -60,7 +53,7 @@ const UpdateProduct = () => {
 
     const submitHandler = (e) => {
         e.preventDefault();
-        updateProduct({id: params?.id, body: product});
+        updateProduct({ id: params?.id, body: product });
     };
 
     return (
@@ -70,6 +63,7 @@ const UpdateProduct = () => {
                 <div className="col-10 col-lg-10 mt-5 mt-lg-0">
                     <form className="shadow rounded bg-body" onSubmit={submitHandler}>
                         <h2 className="mb-4">Update Product</h2>
+
                         <div className="mb-3">
                             <label htmlFor="name_field" className="form-label"> Name </label>
                             <input
@@ -83,14 +77,12 @@ const UpdateProduct = () => {
                         </div>
 
                         <div className="mb-3">
-                            <label htmlFor="description_field" className="form-label">
-                                Description
-                            </label>
+                            <label htmlFor="description_field" className="form-label"> Description </label>
                             <textarea
                                 className="form-control"
                                 id="description_field"
                                 rows="8"
-                                name="description"  // Corrected the name attribute here as well
+                                name="description"
                                 value={description}
                                 onChange={onChange}
                             ></textarea>
@@ -121,6 +113,7 @@ const UpdateProduct = () => {
                                 />
                             </div>
                         </div>
+
                         <div className="row">
                             <div className="mb-3 col">
                                 <label htmlFor="category_field" className="form-label"> Category </label>
@@ -131,11 +124,19 @@ const UpdateProduct = () => {
                                     value={category}
                                     onChange={onChange}
                                 >
-                                    {PRODUCT_CATEGORIES?.map((category) => (
-                                        <option key={category} value={category}>{category}</option>
+                                    <option value="">Select Category</option>
+                                    {Object.keys(PRODUCT_CATEGORIES).map((mainCategory) => (
+                                        <optgroup key={mainCategory} label={mainCategory}>
+                                            {PRODUCT_CATEGORIES[mainCategory].map((subCategory) => (
+                                                <option key={subCategory} value={subCategory}>
+                                                    {subCategory}
+                                                </option>
+                                            ))}
+                                        </optgroup>
                                     ))}
                                 </select>
                             </div>
+
                             <div className="mb-3 col">
                                 <label htmlFor="seller_field" className="form-label"> Seller Name </label>
                                 <input
@@ -148,6 +149,7 @@ const UpdateProduct = () => {
                                 />
                             </div>
                         </div>
+
                         <button type="submit" className="btn w-100 py-2" disabled={isLoading}>
                             {isLoading ? "UPDATING..." : "UPDATE"}
                         </button>
