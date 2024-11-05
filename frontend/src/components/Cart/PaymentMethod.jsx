@@ -182,7 +182,7 @@ const PaymentMethod = () => {
                 type="button" 
                 className="btn btn-stripe mb-2" 
                 onClick={() => handleMethodSelectAndSubmit("Card")} 
-                disabled={loading}
+                
                 style={{
                   backgroundColor: "#000000",
                   color: "#ffffff",
@@ -193,7 +193,7 @@ const PaymentMethod = () => {
                   cursor: "pointer",
                   transition: "background-color 0.3s ease",
                   width: "auto"
-                }}
+                }} disabled  
               >
                 Pay with Stripe
               </button>
