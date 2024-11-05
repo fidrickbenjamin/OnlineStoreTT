@@ -62,21 +62,40 @@ const UpdateProduct = () => {
         }));
     };
 
-    // Submit handler for form submission
-    const submitHandler = async (e) => {
-        e.preventDefault();
+  // Submit handler for form submission
+const submitHandler = async (e) => {
+    e.preventDefault(); // Prevent the default form submission behavior
 
-        const productData = {
-            ...product,
-            price: parseFloat(product.price),
-        };
+    // Prepare the product data to send, ensuring 'price' is parsed as a float
+    const productData = {
+        ...product,
+        price: parseFloat(product.price),
+    };
 
+    try {
+        // Log the data before sending it for debugging purposes
+        console.log("Submitting product data:", productData);
+
+        // Send the update request to the backend with product data and ID
         const response = await updateProduct({ id: params.id, body: productData });
 
+        // Check if there was an error in the response
         if (response.error) {
-            toast.error(response.error.data.message);
+            // Log and display an error if it exists in the response
+            console.error("Error response:", response.error);
+            toast.error(response.error.data.message || "Failed to update product");
+        } else {
+            // Display a success message if the update was successful
+            toast.success("Product Updated Successfully!");
+            // Navigate back to the products list or desired page after success
+            navigate("/admin/products");
         }
-    };
+    } catch (error) {
+        // Log and handle unexpected errors
+        console.error("Unexpected error:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+    }
+};
 
     if (loadingDetails) {
         return <Loader />;
