@@ -74,7 +74,6 @@ export const getAdminProducts = catchAsyncErrors(async (req, res, next ) => {
 
 
 
-
 // Update Product Details => /api/v2/products/:id
 export const updateProduct = catchAsyncErrors(async (req, res) => {
     
@@ -84,10 +83,9 @@ export const updateProduct = catchAsyncErrors(async (req, res) => {
         return next(new ErrorHandler("Product not found", 404));
     }
 
-         product = await Product.findByIdAndUpdate(req?.params?.id, req.body, { new: true, runValidators: true});
+         product = await Product.findByIdAndUpdate(req?.params?.id, req.body, { new: true, });
 
     res.status(200).json({
-        success: true,
         product,
     });
 });
