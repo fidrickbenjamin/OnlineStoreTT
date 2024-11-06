@@ -293,9 +293,9 @@ footer {
 
 .wrapper form .btn,
 .fetch-btn {
-  background-color: #fa9c23;
-  border-color: #fa9c23;
-  color: white;
+  background-color: #fa9c23 !important;
+  border-color: #fa9c23 !important;
+  color: white !important;
   margin-top: 1rem;
 }
 
