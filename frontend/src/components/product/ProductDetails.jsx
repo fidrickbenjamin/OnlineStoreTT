@@ -9,7 +9,7 @@ import { setCartItem } from "../../redux/features/cartSlice";
 import MetaData from "../layout/MetaData";
 import NewReview from "../reviews/NewReview";
 import ListReviews from "../reviews/ListReviews";
-import styles from './ProductDetails.module.css';  // Import the CSS Module
+import styles from './ProductDetails.module.css';
 import NotFound from "../layout/NotFound";
 
 const ProductDetails = () => {
@@ -30,7 +30,7 @@ const ProductDetails = () => {
         if (isError) {
             toast.error(error?.data?.message);
         }
-    }, [isError]);
+    }, [isError, error?.data?.message]); // Added missing dependency
 
     const increaseQty = () => {
         const count = document.querySelector(".count");
@@ -60,13 +60,9 @@ const ProductDetails = () => {
         toast.success("Item Added to Cart!");
     };
 
-
-   
-
-
     if (isLoading) return <Loader />;
 
-    if(error && error?.status == 404) {
+    if (error && error?.status === 404) { // Updated to `===`
         return <NotFound />
     }
 
@@ -85,14 +81,16 @@ const ProductDetails = () => {
                     <div className="row justify-content-start mt-5">
                         {product?.images?.map((img) => (
                             <div className={`col-2 ms-4 mt-2 ${styles.thumbnail}`} key={img.url}>
-                                <a href="#" role="button">
+                                <button
+                                    type="button"
+                                    className={`d-block border rounded p-1 cursor-pointer ${img.url === activeImg ? "border-warning" : ""}`}
+                                    onClick={() => setActiveImg(img.url)}
+                                >
                                     <img
-                                        className={`d-block border rounded p-1 cursor-pointer ${img.url === activeImg ? "border-warning" : ""}`}
                                         src={img?.url}
-                                        alt={img?.url}
-                                        onClick={() => setActiveImg(img.url)}
+                                        alt={product?.name}
                                     />
-                                </a>
+                                </button>
                             </div>
                         ))}
                     </div>
