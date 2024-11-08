@@ -4,36 +4,75 @@ import ErrorHandler from "../utils/errorHandler.js";
 import Product from "../models/product.js";
 import nodemailer from "nodemailer";
 import Admin from "../models/user.js"; 
+import User from "../models/user.js";
+import sendEmail from "../utils/sendEmail.js";
+import {generateOrderEmail, generateAdminOrderEmail} from "../utils/emailNotification.js"
 
 // Create New Order => /api/v2/orders/new
-
-export const newOrder = catchAsyncErrors(async (req, res, next)=> {
-   const { 
-    orderItems,
-    shippingInfo,
-    itemsPrice,
-    taxAmount,
-    shippingAmount,
-    totalAmount,
-    paymentMethod,
-    paymentInfo,
-   }  = req.body;
-
-   const order = await Order.create ({
-    orderItems,
-    shippingInfo,
-    itemsPrice,
-    taxAmount,
-    shippingAmount,
-    totalAmount,
-    paymentMethod,
-    paymentInfo,
-    user: req.user._id,
+export const newOrder = catchAsyncErrors(async (req, res, next) => {
+   const {
+       orderItems,
+       shippingInfo,
+       itemsPrice,
+       taxAmount,
+       shippingAmount,
+       totalAmount,
+       paymentMethod,
+       paymentInfo,
+   } = req.body;
+ 
+   // Create the new order in the database
+   const order = await Order.create({
+       orderItems,
+       shippingInfo,
+       itemsPrice,
+       taxAmount,
+       shippingAmount,
+       totalAmount,
+       paymentMethod,
+       paymentInfo,
+       user: req.user._id,
    });
+ 
+   // Format total amount to 2 decimal places if needed
+   const formattedTotalAmount = parseFloat(order.totalAmount).toFixed(2);
+ 
+   // Generate email content using the template function for the user
+   const userEmailContent = generateOrderEmail(order, req.user);
+ 
+   // Prepare email subject for user
+   const subject = "New Order Created!";
+ 
+   // Send email to the user who placed the order
+   await sendEmail({
+       email: req.user.email,
+       subject: subject,
+       message: userEmailContent, // Use the generated email content for the user
+       isHtml: true, // Ensure sendEmail knows this is HTML content
+   });
+
+   // Admin notification: Retrieve all admin users' emails
+   const adminUsers = await User.find({ role: 'admin' }); // assuming a User model with 'role' field
+   const adminEmails = adminUsers.map(admin => admin.email);
+
+   // Generate the same email content for admins using the new admin email template
+   const adminEmailContent = generateAdminOrderEmail(order, req.user);
+ 
+   // Send email to all admin users
+   for (let email of adminEmails) {
+       await sendEmail({
+           email: email,
+           subject: `New Order Alert: Order #${order._id}`,
+           message: adminEmailContent, // Use the new admin-specific email content
+           isHtml: true,
+       });
+   }
+ 
    res.status(200).json({
-    order,
+     success: true,
+     order,
    });
-});
+ });
 
 
 // Get current user orders => /api/v2/me/orders

@@ -448,7 +448,7 @@ export const getResetPasswordTemplate = (username, resetUrl) => `
             <tr>
               <td class="email-masthead">
                 <a
-                  href="https://tactical-trends.com"
+                  href="https://tactrendsshop.com"
                   class="f-fallback email-masthead_name"
                 >
                   Online Store TT
@@ -557,7 +557,7 @@ export const getResetPasswordTemplate = (username, resetUrl) => `
                     <td class="content-cell" align="center">
                       <p class="f-fallback sub align-center">
                         Online Store TT
-                        <br />1234 Street Rd. <br />Suite 1234
+                        <br />Pine Square, Wesley <br />Commonwealth of Dominica
                       </p>
                     </td>
                   </tr>
