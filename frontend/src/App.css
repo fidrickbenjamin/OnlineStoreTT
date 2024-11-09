@@ -663,8 +663,26 @@ input.count {
   display: flex;
   justify-content: center;
   gap: 2px;
+  overflow-x: auto; /* Enables horizontal scrolling */
+  white-space: nowrap; /* Keeps links on a single line */
   font-size: 1rem;
+  scrollbar-width: thin; /* For Firefox: Thin scrollbar */
+  -ms-overflow-style: none; /* Hides scrollbar in IE/Edge */
 }
+
+.quick-links::-webkit-scrollbar {
+  height: 8px; /* Height of the scrollbar */
+}
+
+.quick-links::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.quick-links::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
 
 .quick-links a {
   color: #333; /* Dark text color for contrast */
