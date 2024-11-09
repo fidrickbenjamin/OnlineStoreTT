@@ -49,7 +49,7 @@ const Home = () => {
      <Hero />
       <div className="row">
         {keyword && (
-          <div className="col-6 col-md-3 mt-5"> 
+          <div className="col-6 col-md-3 mt-5 hide-on-mobile"> 
           <Filters />
           </div>
         ) }

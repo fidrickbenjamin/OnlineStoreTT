@@ -559,6 +559,18 @@ footer {
   }
 }
 
+
+.hide-on-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-on-mobile {
+    display: block; /* Show on tablet and larger screens */
+  }
+}
+
+
 /* Sidebar */
 
 .list-group-item:first-child {
