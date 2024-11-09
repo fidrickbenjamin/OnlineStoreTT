@@ -655,3 +655,29 @@ input.count::-webkit-inner-spin-button {
 input.count {
     -moz-appearance: textfield;
 }
+
+.quick-links {
+  background-color: #fff;
+  padding: 2px 0;
+  border-top: 1px solid #fff;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  font-size: 1rem;
+}
+
+.quick-links a {
+  color: #333; /* Dark text color for contrast */
+  font-weight: bold;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 1px;
+  background-color: #fff; /* Yellow background */
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.quick-links a:hover {
+  color: #fff;
+  background-color: #333333; /* Dark grayish color on hover */
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+}
