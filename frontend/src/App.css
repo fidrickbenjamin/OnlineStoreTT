@@ -544,6 +544,19 @@ footer {
 
 .filter {
   margin-top: 5.8rem;
+  flex: 1 1 250px; /* Set a minimum width for filters */
+  max-width: 300px; /* Limits the width of the filters */
+}
+
+.products-container {
+  flex: 2 1 500px; /* Allows products to take more space */
+}
+
+
+@media (max-width: 768px) {
+  .filters-products-container {
+    flex-direction: column; /* Stacks filters and products vertically on small screens */
+  }
 }
 
 /* Sidebar */
