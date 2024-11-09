@@ -91,7 +91,7 @@ const Header = () => {
         <Link to="/?keyword=Iphone">Iphone</Link>
         <Link to="/?keyword=earbuds">Earbuds</Link>
         <Link to="/?keyword=Chargers">Chargers</Link>
-        <Link to="/?keyword=Mounts">Mounts</Link>
+        <Link to="/?keyword=Mount">Mounts</Link>
         <Link to="/?keyword=Clothing">Clothing</Link>
       </div>
     </>
