@@ -90,10 +90,15 @@ const Header = () => {
         <Link to="/?keyword=Samsung">Samsung</Link>
         <Link to="/?keyword=Iphone">Iphone</Link>
         <Link to="/?keyword=Android">Android</Link>
+        <Link to="/?keyword=Pc">Pc</Link>
         <Link to="/?keyword=earbuds">Earbuds</Link>
         <Link to="/?keyword=Chargers">Chargers</Link>
         <Link to="/?keyword=Mount">Mounts</Link>
         <Link to="/?keyword=Clothing">Clothing</Link>
+        <Link to="/?keyword=Women Clothing">Women Clothing</Link>
+        <Link to="/?keyword=Men's Clothing">Men's Clothing</Link>
+        <Link to="/?keyword=Boys Clothing">Boys Clothing</Link>
+        <Link to="/?keyword=Girls Clothing">Girls Clothing</Link>
       </div>
     </>
   );
