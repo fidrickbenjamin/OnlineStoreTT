@@ -198,10 +198,9 @@ const PaymentMethod = () => {
                 Pay with Stripe
               </button>
               <PayPalButton
-                onClick={() => handleMethodSelectAndSubmit("PayPal")} disabled={loading}
-                amount={totalPrice}
-                onSuccess={handlePaypalSuccess}
-                options={{
+                 amount={totalPrice}
+                 onSuccess={handlePaypalSuccess}
+                 options={{
                   clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
                   currency: "USD",
                 }}

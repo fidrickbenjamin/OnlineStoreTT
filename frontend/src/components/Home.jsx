@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import Filters from "./layout/Filters";
 import Hero from "./Hero";
 
+
 const Home = () => {
 
   let [searchParams] = useSearchParams();
@@ -42,12 +43,18 @@ const Home = () => {
 
  if(isLoading) return <Loader />;
 
+
+
+
+
     return (
       <> 
       <MetaData title={"Tactical Trends Online Store"} />
       
      <Hero />
+  
       <div className="row">
+     
         {keyword && (
           <div className="col-6 col-md-3 mt-5 hide-on-mobile"> 
           <Filters />
@@ -70,7 +77,7 @@ const Home = () => {
             
             </div>
           </section>
-
+              
           <CustomPagination resPerPage={data?.resPerPage} filteredProductsCount={data?.filteredProductsCount} />
         </div>
       </div>
