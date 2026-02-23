@@ -33,7 +33,7 @@ const Header = () => {
         <div className="col-12 col-md-3 ps-5">
           <div className="navbar-brand">
             <a href="https://www.tactrendsshop.com/">
-              <img src="/images/LogoTactical.png" alt="Tactical Trends Logo" />
+              <img src="/images/Tactical-Trends-Universal.png" alt="Tactical Trends Logo" />
             </a>
           </div>
         </div>
