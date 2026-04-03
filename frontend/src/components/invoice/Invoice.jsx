@@ -122,11 +122,19 @@ html2canvas(input).then((canvas) => {
                 </tr>
   
                 <tr>
-                  <td colspan="4">
-                    <b>SHIPPING</b>
-                  </td>
-                  <td className="total">${order?.shippingAmount}</td>
-                </tr>
+  <td colSpan="4">
+    <b>SHIPPING</b>
+  </td>
+  <td className="total">
+    {
+      order?.shippingOption === "roseau"
+        ? `Roseau Delivery ($${order?.shippingAmount})`
+        : order?.shippingOption === "portsmouth"
+        ? `Portsmouth Delivery ($${order?.shippingAmount})`
+        : `Pickup ($0)`
+    }
+  </td>
+</tr>
   
                 <tr>
                   <td colspan="4" className="grand total">

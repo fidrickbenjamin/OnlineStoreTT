@@ -86,6 +86,12 @@ shippingAmount: {
     required: true,
 },
 
+shippingOption: {
+    type: String,
+    enum: ["roseau", "portsmouth", "pickup"],
+    required: true,
+},
+
 totalAmount: {
     type: Number,
     required: true,

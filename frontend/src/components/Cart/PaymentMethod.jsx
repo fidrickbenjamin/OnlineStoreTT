@@ -105,6 +105,7 @@ const PaymentMethod = () => {
   const handlePaypalSuccess = async (details, data) => {
     const orderData = {
       shippingInfo,
+      shippingOption,
       orderItems: cartItems,
       itemsPrice,
       shippingAmount: shippingPrice,
