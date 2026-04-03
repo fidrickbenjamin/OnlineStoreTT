@@ -49,6 +49,7 @@ const PaymentMethod = () => {
 
     const orderData = {
       shippingInfo,
+      shippingOption,
       orderItems: cartItems,
       itemsPrice,
       shippingAmount: shippingPrice,
