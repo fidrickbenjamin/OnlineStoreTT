@@ -157,6 +157,7 @@ const PaymentMethod = () => {
           <p><strong>Bank Name:</strong> National Bank of Dominica</p>
           <p>Please ensure you verify all details before proceeding with your payment.</p>
           <p>${totalPrice} USD</p>
+          <p> ${shippingPrice.toFixed(2)} - {shippingOption}  </p>
           <p>Order total: {(totalPrice * 2.67).toFixed(2)} XCD</p>
         </div>
 
