@@ -7,42 +7,34 @@ import { useCreateNewOrderMutation, useStripeCheckoutSessionMutation } from "../
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { PayPalButton } from "react-paypal-button-v2";
-import { useStripe } from "@stripe/react-stripe-js";
+import axios from "axios";
 
 const PaymentMethod = () => {
   const [method, setMethod] = useState("");
-  const [loading, setLoading] = useState(false); // State to manage loading
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { shippingInfo = {}, cartItems = [] } = useSelector((state) => state.cart);
+  const { shippingInfo = {}, cartItems = [], shippingOption } = useSelector((state) => state.cart);
 
   const [createNewOrder, { error, isSuccess }] = useCreateNewOrderMutation();
-  const [stripeCheckoutSession, { data: checkoutData, error: checkoutError, isLoading }] = useStripeCheckoutSessionMutation();
+  const [stripeCheckoutSession, { data: checkoutData, error: checkoutError }] = useStripeCheckoutSessionMutation();
 
-  const { itemsPrice, shippingPrice, taxPrice, totalPrice } = calculateOrderCost(cartItems);
+  const { itemsPrice, shippingPrice, taxPrice, totalPrice } = calculateOrderCost(cartItems, shippingOption);
 
   useEffect(() => {
-    if (checkoutData) {
-      window.location.href = checkoutData?.url;
-    }
-    if (checkoutError) {
-      toast.error(checkoutError?.data?.message);
-    }
+    if (checkoutData) window.location.href = checkoutData?.url;
+    if (checkoutError) toast.error(checkoutError?.data?.message);
   }, [checkoutData, checkoutError]);
 
   useEffect(() => {
-    if (error) {
-      toast.error(error?.data?.message);
-    }
+    if (error) toast.error(error?.data?.message);
     if (isSuccess) {
       navigate("/me/orders?order_success=true");
       toast.success("Order Completed!");
     }
   }, [error, isSuccess, navigate]);
 
-  const submitHandler = async (e) => {
-    if (e) {
-      e.preventDefault();
-    }
+  const submitHandler = async (selectedMethod) => {
+    setMethod(selectedMethod);
 
     if (!cartItems.length) {
       toast.error("Cart is empty");
@@ -62,23 +54,51 @@ const PaymentMethod = () => {
       shippingAmount: shippingPrice,
       taxAmount: taxPrice,
       totalAmount: totalPrice,
-      paymentInfo: { status: method === "COD" || method === "CASH" ? "Not Paid" : method === "NBD" 
-        ? "Verifying" : "Paid" },
-      paymentMethod: method,
+      paymentInfo: {
+        status:
+          selectedMethod === "COD" || selectedMethod === "CASH"
+            ? "Not Paid"
+            : selectedMethod === "NBD"
+            ? "Verifying"
+            : "Paid",
+      },
+      paymentMethod: selectedMethod,
     };
 
-    setLoading(true); // Set loading to true when processing starts
+    setLoading(true);
 
     try {
-      if (method === "COD" || method === "CASH" || method === "NBD") {
+      if (["COD", "CASH", "NBD"].includes(selectedMethod)) {
         await createNewOrder(orderData).unwrap();
-      } else if (method === "Card") {
+      } else if (selectedMethod === "Card") {
         await stripeCheckoutSession(orderData).unwrap();
+      } else if (selectedMethod === "FISERV") {
+        const cardNumber = prompt("Enter card number");
+        const expiry = prompt("Enter expiry MM/YY");
+        const cvv = prompt("Enter CVV");
+
+        const response = await axios.post("/api/v2/payment/fiserv", {
+          ...orderData,
+          cardNumber,
+          expiry,
+          cvv,
+          userId: "userIdHere",
+        });
+
+        if (response.data.success) {
+          toast.success("Payment successful! Order placed.");
+          navigate("/me/orders?order_success=true");
+        } else {
+          toast.error("Payment failed: " + (response.data.message || ""));
+        }
+      } else if (selectedMethod === "PayPal") {
+        setLoading(false);
+        return; // PayPal handled separately
       }
     } catch (error) {
-      toast.error(error?.data?.message);
+      toast.error(error?.response?.data?.message || error.message);
     } finally {
-      setLoading(false); // Reset loading state after processing
+      if (selectedMethod !== "PayPal") setLoading(false);
     }
   };
 
@@ -91,7 +111,7 @@ const PaymentMethod = () => {
       taxAmount: taxPrice,
       totalAmount: totalPrice,
       paymentInfo: { id: data.orderID, status: "Paid" },
-      paymentMethod: "Card",
+      paymentMethod: "PayPal",
     };
 
     await createNewOrder(orderData);
@@ -99,17 +119,26 @@ const PaymentMethod = () => {
     toast.success(`Transaction completed by ${details.payer.name.given_name}`);
   };
 
-  const handleMethodSelectAndSubmit = (selectedMethod) => {
-    setMethod(selectedMethod);
-    if (selectedMethod === "PayPal") {
-      // Directly render PayPal button when PayPal is selected
-      submitHandler(); // Invoke submit handler to create order data
-    } else {
-      const syntheticEvent = {
-        preventDefault: () => {},
-      };
-      submitHandler(syntheticEvent);
-    }
+  const buttonStyles = {
+    COD: { backgroundColor: "#8593ff", color: "#000000" },
+    CASH: { backgroundColor: "#FFB84D", color: "#000000" },
+    NBD: { backgroundColor: "#66bb66", color: "#000000" },
+    Card: { backgroundColor: "#555555", color: "#ffffff" }, // Stripe stays white
+    FISERV: { backgroundColor: "#4da6ff", color: "#000000" },
+    PayPal: { backgroundColor: "#ffc439", color: "#000000" },
+  };
+
+  const baseStyle = {
+    borderRadius: "50px",
+    padding: "12px 25px",
+    fontSize: "16px",
+    fontWeight: "700", // Bold text
+    border: "none",
+    cursor: "pointer",
+    width: "100%",
+    maxWidth: "300px",
+    marginBottom: "10px",
+    transition: "all 0.3s ease",
   };
 
   return (
@@ -118,100 +147,56 @@ const PaymentMethod = () => {
       <CheckoutSteps shipping ConfirmOrder Payment />
 
       <div className="row wrapper" style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
-
-         {/* Banking Information Box */}
-         <div className="col-10 col-lg-5 shadow rounded bg-light" style={{ padding: "20px", marginBottom: "20px" }}>
+        <div className="col-10 col-lg-5 shadow rounded bg-light p-4 mb-4">
           <h4 className="text-center">Mobanking Information</h4>
           <p><strong>Account Name:</strong> Fidrick Benjamin</p>
           <p><strong>Account Number:</strong> 600400420</p>
           <p><strong>Mobile Id:</strong> 7672858487</p>
           <p><strong>Bank Name:</strong> National Bank of Dominica</p>
           <p>Please ensure you verify all details before proceeding with your payment.</p>
-          <p>   ${totalPrice} USD </p>
-          <p>Order total : ${(totalPrice * 2.67).toFixed(2)} XCD </p>
+          <p>${totalPrice} USD</p>
+          <p>Order total: {(totalPrice * 2.67).toFixed(2)} XCD</p>
         </div>
 
         <div className="col-10 col-lg-5">
-          <div className="shadow rounded bg-body">
+          <div className="shadow rounded bg-body p-4">
             <h2 className="mb-4 text-center">Select Payment Method</h2>
+            <div className="d-flex flex-column align-items-center">
+              {["COD", "CASH", "NBD", "Card", "FISERV", "PayPal"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => submitHandler(m)}
+                  disabled={loading}
+                  style={{ ...baseStyle, ...buttonStyles[m] }}
+                  onMouseOver={(e) => (e.currentTarget.style.opacity = 0.85)}
+                  onMouseOut={(e) => (e.currentTarget.style.opacity = 1)}
+                >
+                  {m === "COD" ? "Cash on Delivery" :
+                   m === "CASH" ? "Cash Payment" :
+                   m === "NBD" ? "Mobanking" :
+                   m === "Card" ? "Pay with Stripe" :
+                   m === "FISERV" ? "Pay with Fiserv" :
+                   "Pay with PayPal"}
+                </button>
+              ))}
 
-            <div className="btn-group-vertical" role="group" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("COD")} disabled={loading}
-                style={{
-                  backgroundColor: "#6772e5",
-                  color: "#ffffff",
-                  padding: "10px 20px",
-                  borderRadius: "4px",
-                  border: "none",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s ease",
-                  width: "auto"
-                }} >
-                Cash on Delivery
-              </button>
-              <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("CASH")} disabled={loading}
-                style={{
-                  backgroundColor: "#FFA500",
-                  color: "#ffffff",
-                  padding: "10px 20px",
-                  borderRadius: "4px",
-                  border: "none",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s ease",
-                  width: "auto"
-                }} >
-                Cash Payment
-              </button>
-              <button type="button" className="btn btn-outline-primary mb-2" onClick={() => handleMethodSelectAndSubmit("NBD")} disabled={loading}
-                style={{
-                  backgroundColor: "#008000",
-                  color: "#ffffff",
-                  padding: "10px 20px",
-                  borderRadius: "4px",
-                  border: "none",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s ease",
-                  width: "auto"
-                }}>
-                Mobanking
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-stripe mb-2" 
-                onClick={() => handleMethodSelectAndSubmit("Card")} 
-                
-                style={{
-                  backgroundColor: "#000000",
-                  color: "#ffffff",
-                  padding: "10px 20px",
-                  borderRadius: "4px",
-                  border: "none",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s ease",
-                  width: "auto"
-                }} disabled  
-              >
-                Pay with Stripe
-              </button>
-              <PayPalButton
-                 amount={totalPrice}
-                 onSuccess={handlePaypalSuccess}
-                 options={{
-                  clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
-                  currency: "USD",
-                }}
-              />
+              {method === "PayPal" && (
+                <div style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}>
+                  <PayPalButton
+                    amount={(totalPrice * 2.67).toFixed(2)}
+                    onSuccess={handlePaypalSuccess}
+                    options={{
+                      clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
+                      currency: "XCD",
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
-            {loading && <div className="text-center">Processing...</div>} {/* Loading indicator */}
+            {loading && <div className="text-center mt-3">Processing...</div>}
           </div>
         </div>
-
-         
       </div>
     </>
   );

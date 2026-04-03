@@ -9,16 +9,17 @@ import CheckoutSteps from "./CheckoutSteps";
 const ConfirmOrder = () => {
 
 
-    const {cartItems, shippingInfo } = useSelector((state) => state.cart);
+    const { cartItems, shippingInfo, shippingOption } = useSelector((state) => state.cart);
     const {user } = useSelector((state) => state.auth);
 
     const navigate = useNavigate();
 
-  const {itemsPrice,
-    shippingPrice,
-    taxPrice,
-    totalPrice,} = calculateOrderCost(cartItems);
-
+  const {
+  itemsPrice,
+  shippingPrice,
+  taxPrice,
+  totalPrice,
+} = calculateOrderCost(cartItems, shippingOption);
   
 
     return (
@@ -73,8 +74,12 @@ const ConfirmOrder = () => {
             <h4>Order Summary</h4>
             <hr />
             <p>Subtotal: <span className="order-summary-values">${itemsPrice}</span></p>
-            <p>Shipping: <span className="order-summary-values">${shippingPrice}</span></p>
+            <hr />
             <p>Tax: <span className="order-summary-values">${taxPrice}</span></p>
+            <hr />
+            <p> Delivery: <span className="order-summary-values"> {" "} {shippingOption === "roseau" ? "Roseau Delivery ($15)" : shippingOption === "portsmouth" ? "Portsmouth Delivery ($15)" : "Pickup ($0)"}
+</span> </p>
+            
   
             <hr />
   

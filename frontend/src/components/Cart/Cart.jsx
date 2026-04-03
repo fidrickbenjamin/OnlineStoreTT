@@ -1,10 +1,13 @@
-import React from "react";
+
 import MetaData from "../layout/MetaData";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { setCartItem, removeCartItem } from "../../redux/features/cartSlice";
 import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
+import React, { useState } from "react";
+import { calculateOrderCost } from "../../helpers/helpers";
+import { setShippingOption } from "../../redux/features/cartSlice";
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -46,6 +49,10 @@ const setItemToCart = (item, newQty) => {
   
 };
 
+const [selectedShipping, setSelectedShipping] = useState("none");
+
+const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
+  calculateOrderCost(cartItems, selectedShipping);
 
 
 const removeCartItemHandler = (id) => {
@@ -120,8 +127,47 @@ return (
       <p>Units:{" "} <span className="order-summary-values">
           {cartItems?.reduce((acc, item) => acc + item?.quantity, 0)}   {"  "}
          (Units)</span></p>
-      
-      <p>Est. total: <span className="order-summary-values">${cartItems?.reduce((acc, item) => acc + item?.quantity * item.price, 0).toFixed(2)}</span></p>
+         <p>
+  Subtotal:{" "}
+  <span className="order-summary-values">${itemsPrice}</span>
+</p>
+
+<p>
+  Shipping:{" "}
+  <span className="order-summary-values">${shippingPrice.toFixed(2)}</span>
+</p>
+
+<p>
+  Tax:{" "}
+  <span className="order-summary-values">${taxPrice}</span>
+</p>
+
+<hr />
+
+<p>
+  Total:{" "}
+  <span className="order-summary-values">${totalPrice}</span>
+</p>
+      <div className="form-group mt-2">
+  
+  <label>Select Shipping</label>
+  <select
+     className="form-control"
+  value={selectedShipping}
+  onChange={(e) => {
+    setSelectedShipping(e.target.value);
+    dispatch(setShippingOption(e.target.value));
+  }}>
+    <option value="none">No Shipping (Pickup) - $0.00</option>
+    <option value="roseau">Roseau - $15.00</option>
+    <option value="portsmouth">Portsmouth - $15.00</option>
+     </select>
+      </div>
+
+      <p>
+  Est. total:{" "}
+  <span className="order-summary-values">${totalPrice}</span>
+</p>
       <hr />
       <button id="checkout_btn" className="btn btn-primary w-100" onClick={checkoutHandler}>
         Check out

@@ -14,12 +14,19 @@ export const getPriceQueryParams = (searchParams, key, value) => {
 
 
 
-export const calculateOrderCost = (cartItems) => {
+export const calculateOrderCost = (cartItems, shippingOption) => {
     const itemsPrice = cartItems?.reduce(
         (acc, item) => acc + item.price * item.quantity, 0
     );
 
-    const shippingPrice = itemsPrice > 200 ? 0 : 4.00;
+    let shippingPrice = 0;
+
+    if (shippingOption === "roseau" || shippingOption === "portsmouth") {
+        shippingPrice = 15;
+    } else {
+        shippingPrice = 0;
+    }
+
     const taxPrice = Number((0.15 * itemsPrice).toFixed(2));
     const totalPrice = (itemsPrice + shippingPrice + taxPrice).toFixed(2);
 
