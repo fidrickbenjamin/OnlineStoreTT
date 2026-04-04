@@ -156,7 +156,7 @@ const PaymentMethod = () => {
           <p><strong>Mobile Id:</strong> 7672858487</p>
           <p><strong>Bank Name:</strong> National Bank of Dominica</p>
           <p>Please ensure you verify all details before proceeding with your payment.</p>
-          <p>${totalPrice} USD</p>
+          <p>${totalPrice.toFixed(2)} USD</p>
           <p> ${shippingPrice.toFixed(2)} - {shippingOption}  </p>
           <p>Order total: {(totalPrice * 2.67).toFixed(2)} XCD</p>
         </div>
@@ -177,7 +177,7 @@ const PaymentMethod = () => {
                   {m === "COD" ? "Cash on Delivery" :
                    m === "CASH" ? "Cash Payment" :
                    m === "NBD" ? "Mobanking" :
-                   m === "Card" ? "Pay with Stripe" :
+                 //  m === "Card" ? "Pay with Stripe" :
                    m === "FISERV" ? "Pay with Fiserv" :
                    "Pay with PayPal"}
                 </button>
@@ -186,11 +186,11 @@ const PaymentMethod = () => {
               {method === "PayPal" && (
                 <div style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}>
                   <PayPalButton
-                    amount={(totalPrice * 2.67).toFixed(2)}
+                    amount={totalPrice.toFixed(2)}
                     onSuccess={handlePaypalSuccess}
                     options={{
                       clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
-                      currency: "XCD",
+                      currency: "USD",
                     }}
                   />
                 </div>

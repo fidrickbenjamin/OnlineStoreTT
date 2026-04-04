@@ -139,14 +139,14 @@ return (
 
 <p>
   Tax:{" "}
-  <span className="order-summary-values">${taxPrice}</span>
+  <span className="order-summary-values">${taxPrice.toFixed(2)}</span>
 </p>
 
 <hr />
 
 <p>
   Total:{" "}
-  <span className="order-summary-values">${totalPrice}</span>
+  <span className="order-summary-values">${totalPrice.toFixed(2)}</span>
 </p>
       <div className="form-group mt-2">
   
@@ -166,7 +166,7 @@ return (
 
       <p>
   Est. total:{" "}
-  <span className="order-summary-values">${totalPrice}</span>
+  <span className="order-summary-values">${totalPrice.toFixed(2)}</span>
 </p>
       <hr />
       <button id="checkout_btn" className="btn btn-primary w-100" onClick={checkoutHandler}>

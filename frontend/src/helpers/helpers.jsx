@@ -23,15 +23,13 @@ export const calculateOrderCost = (cartItems, shippingOption) => {
 
     if (shippingOption === "roseau" || shippingOption === "portsmouth") {
         shippingPrice = 15;
-    } else {
-        shippingPrice = 0;
     }
 
-    const taxPrice = Number((0.15 * itemsPrice).toFixed(2));
-    const totalPrice = (itemsPrice + shippingPrice + taxPrice).toFixed(2);
+    const taxPrice = 0.15 * itemsPrice;
+    const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
     return {
-        itemsPrice: Number(itemsPrice).toFixed(2),
+        itemsPrice,
         shippingPrice,
         taxPrice,
         totalPrice,

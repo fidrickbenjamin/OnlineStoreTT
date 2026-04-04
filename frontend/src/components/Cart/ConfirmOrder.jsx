@@ -73,9 +73,9 @@ const ConfirmOrder = () => {
           <div id="order_summary">
             <h4>Order Summary</h4>
             <hr />
-            <p>Subtotal: <span className="order-summary-values">${itemsPrice}</span></p>
+            <p>Subtotal: <span className="order-summary-values">${itemsPrice.toFixed(2)}</span></p>
             <hr />
-            <p>Tax: <span className="order-summary-values">${taxPrice}</span></p>
+            <p>Tax: <span className="order-summary-values">${taxPrice.toFixed(2)}</span></p>
             <hr />
             <p> Delivery: <span className="order-summary-values"> {" "} {shippingOption === "roseau" ? "Roseau Delivery ($15)" : shippingOption === "portsmouth" ? "Portsmouth Delivery ($15)" : "Pickup ($0)"}
 </span> </p>
@@ -83,7 +83,7 @@ const ConfirmOrder = () => {
   
             <hr />
   
-            <p>Total: <span className="order-summary-values">${totalPrice}</span></p>
+            <p>Total: <span className="order-summary-values">${totalPrice.toFixed(2)}</span></p>
   
             <hr />
             <Link to="/payment_method" id="checkout_btn" className="btn btn-primary w-100" >
