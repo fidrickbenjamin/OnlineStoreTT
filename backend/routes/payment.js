@@ -11,5 +11,7 @@ router.route("/payment/webhook").post(stripeWebhook);
 // POST /api/v2/payment/fiserv
 router.route("/payment/fiserv").post(isAuthenticatedUser, processFiservPayment);
 
+// PayPal webhook route
+router.route("/payment/paypal-webhook").post(handlePayPalWebhook); // ← New route
 
 export default router;

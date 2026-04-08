@@ -169,7 +169,7 @@ const PaymentMethod = () => {
                 <button
                   key={m}
                   onClick={() => submitHandler(m)}
-                  disabled={loading}
+                  disabled={loading || m === "Card"} // disable Stripe
                   style={{ ...baseStyle, ...buttonStyles[m] }}
                   onMouseOver={(e) => (e.currentTarget.style.opacity = 0.85)}
                   onMouseOut={(e) => (e.currentTarget.style.opacity = 1)}
@@ -177,10 +177,10 @@ const PaymentMethod = () => {
                   {m === "COD" ? "Cash on Delivery" :
                    m === "CASH" ? "Cash Payment" :
                    m === "NBD" ? "Mobanking" :
-                 //  m === "Card" ? "Pay with Stripe" :
+                   m === "Card" ? "Pay with Stripe (Disabled)" :
                    m === "FISERV" ? "Pay with Fiserv" :
                    "Pay with PayPal"}
-                </button>
+                </button> 
               ))}
 
               {method === "PayPal" && (
