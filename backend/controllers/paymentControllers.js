@@ -81,6 +81,23 @@ export const stripeCheckoutSession = catchAsyncErrors(
     });
 };
 
+// controllers/paymentControllers.js
+export const handlePayPalWebhook = (req, res) => {
+  try {
+    // PayPal sends events in req.body
+    console.log("PayPal webhook received:", req.body);
+
+    // TODO: Verify the webhook with PayPal SDK if needed
+    // Then process the event
+    res.status(200).send("Webhook received");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Webhook error");
+  }
+};
+
+
+
 // Create New Order After payment => /api/v2/payment/webhook
 export const stripeWebhook = catchAsyncErrors(
     
