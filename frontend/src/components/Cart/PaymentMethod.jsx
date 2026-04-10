@@ -189,7 +189,7 @@ const PaymentMethod = () => {
                     amount={totalPrice.toFixed(2)}
                     onSuccess={handlePaypalSuccess}
                     options={{
-                      clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
+                      clientId: "AXTD4mxaPsiwqyYqIsZsTAWptnbkpehTbE1vFnCnhJcz6SjbgODtfM4vbiYzbDF5Wyi0-AUS9kIDeLC5",
                       currency: "USD",
                     }}
                   />
