@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import MetaData from "../layout/MetaData";
 import CheckoutSteps from "./CheckoutSteps";
+import { saveShippingInfo } from "../../redux/features/cartSlice";
 
 const Shipping = () => {
   const countriesList = Object.values(countries);
@@ -11,6 +12,8 @@ const Shipping = () => {
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth); // Access the user from the Redux store
+   const { shippingInfo } = useSelector((state) => state.cart);
+
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [zipCode, setZipCode] = useState("");
@@ -36,6 +39,7 @@ const Shipping = () => {
     const shippingData = { address, city, zipCode, phoneNo, country };
     localStorage.setItem("shippingInfo", JSON.stringify(shippingData));
     // Optionally, navigate to confirm order page without updating user shipping info
+     dispatch(saveShippingInfo(shippingData));
     navigate("/confirm_order");
   };
 

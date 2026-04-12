@@ -1,6 +1,6 @@
 // frontend/src/redux/cartActions.js
 import axios from "axios";
-import { CART_ADD_ITEM, CART_GET_ITEMS } from "./cartConstants";
+import { CART_ADD_ITEM, CART_GET_ITEMS, SAVE_SHIPPING_INFO  } from "./cartConstants";
 
 // Add Items to Cart
 export const addToCart = (userId, items, shippingInfo) => async (dispatch) => {
@@ -20,4 +20,14 @@ export const getCart = (userId) => async (dispatch) => {
     } catch (error) {
         console.error(error);
     }
+};
+
+
+export const saveShippingInfo = (data) => (dispatch) => {
+    dispatch({
+        type: SAVE_SHIPPING_INFO,
+        payload: data,
+    });
+
+    localStorage.setItem("shippingInfo", JSON.stringify(data));
 };

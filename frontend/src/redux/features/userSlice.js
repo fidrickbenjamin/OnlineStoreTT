@@ -1,62 +1,74 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { toast } from 'react-toastify';
-import { useUpdateAddressMutation } from '../api/userApi'; // Adjust the path as necessary
+import { createSlice } from "@reduxjs/toolkit";
+import { toast } from "react-toastify";
 
 const initialState = {
     user: null,
     isAuthenticated: false,
-    loading: true,
+    loading: false,
     error: null,
 };
 
-// Async thunk for updating the address
-export const updateAddress = createAsyncThunk(
-    'me/profile',
-    async (updatedInfo, { rejectWithValue }) => {
-        try {
-            const response = await useUpdateAddressMutation(updatedInfo); // Your API call
-            return response.data; // Assuming your API returns the updated user data
-        } catch (error) {
-            return rejectWithValue(error.response.data.message || "Failed to update address");
-        }
-    }
-);
-
 export const userSlice = createSlice({
-    name: "userSlice",
+    name: "user",
     initialState,
     reducers: {
+
+        // ✅ Set logged-in user
         setUser(state, action) {
             state.user = action.payload;
+            state.isAuthenticated = true;
         },
+
+        // ✅ Update authentication status
         setIsAuthenticated(state, action) {
             state.isAuthenticated = action.payload;
         },
+
+        // ✅ Loading state
         setLoading(state, action) {
             state.loading = action.payload;
         },
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(updateAddress.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(updateAddress.fulfilled, (state, action) => {
-                state.loading = false;
+
+        // ✅ Logout user
+        logout(state) {
+            state.user = null;
+            state.isAuthenticated = false;
+            state.loading = false;
+            state.error = null;
+            toast.info("Logged out successfully");
+        },
+
+        // ✅ Update shipping address locally (after API success)
+        updateShippingInfo(state, action) {
+            if (state.user) {
                 state.user = {
                     ...state.user,
-                    shippingInfo: action.payload, // Assuming the payload contains the updated shipping info
+                    shippingInfo: action.payload,
                 };
-                toast.success("Shipping information updated successfully");
-            })
-            .addCase(updateAddress.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-                toast.error(action.payload);
-            });
-    }
+            }
+        },
+
+        // ✅ Set error
+        setError(state, action) {
+            state.error = action.payload;
+            toast.error(action.payload);
+        },
+
+        // ✅ Clear error
+        clearError(state) {
+            state.error = null;
+        },
+    },
 });
 
-export default userSlice.reducer;
+export const {
+    setUser,
+    setIsAuthenticated,
+    setLoading,
+    logout,
+    updateShippingInfo,
+    setError,
+    clearError,
+} = userSlice.actions;
 
-export const { setIsAuthenticated, setUser, setLoading } = userSlice.actions;
+export default userSlice.reducer;
