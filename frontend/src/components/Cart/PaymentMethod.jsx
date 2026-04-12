@@ -7,6 +7,7 @@ import { useCreateNewOrderMutation, useStripeCheckoutSessionMutation } from "../
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { PayPalButton } from "react-paypal-button-v2";
+import { PayPalButtons } from "@paypal/react-paypal-js";
 import axios from "axios";
 
 const PaymentMethod = () => {
@@ -185,14 +186,23 @@ const PaymentMethod = () => {
 
               {method === "PayPal" && (
                 <div style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}>
-                  <PayPalButton
-                    amount={totalPrice.toFixed(2)}
-                    onSuccess={handlePaypalSuccess}
-                    options={{
-                      clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
-                      currency: "USD",
-                    }}
-                  />
+                  <PayPalButtons
+  createOrder={(_data, actions) => {
+    return actions.order.create({
+      purchase_units: [
+        {
+          amount: {
+            value: totalPrice.toFixed(2),
+          },
+        },
+      ],
+    });
+  }}
+  onApprove={async (data, actions) => {
+    const details = await actions.order.capture();
+    handlePaypalSuccess(details);
+  }}
+/>
                 </div>
               )}
             </div>
