@@ -7,6 +7,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import MetaData from "../layout/MetaData";
 import { useDispatch } from "react-redux";
 import { clearCart } from "../../redux/features/cartSlice";
+import { useCancelOrderMutation } from "../../redux/api/OrderApi";
 
 const MyOrders = () => {
     const { data, isLoading, error } = useMyOrdersQuery();
@@ -25,26 +26,19 @@ const MyOrders = () => {
         }
     }, [error, orderSuccess]);
 
-    const cancelOrderHandler = async (orderId) => {
-        try {
-            const response = await fetch(`/api/orders/cancel-order/${orderId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+const [cancelOrder] = useCancelOrderMutation();
 
-            const data = await response.json();
-            if (response.ok) {
-                toast.success(data.message);
-                navigate("/me/orders");
-            } else {
-                toast.error(data.message);
-            }
-        } catch (err) {
-            toast.error('Error canceling the order');
-        }
-    };
+    const cancelOrderHandler = async (orderId) => {
+    try {
+        await cancelOrder(orderId).unwrap(); // ✅ RTK QUERY USED PROPERLY
+
+        toast.success("Order cancelled successfully");
+        navigate("/me/orders");
+
+    } catch (err) {
+        toast.error(err?.data?.message || "Error canceling the order");
+    }
+};
 
     const setOrders = () => {
         const orders = {

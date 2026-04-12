@@ -73,7 +73,8 @@ const ProcessOrder = () => {
                 <td className={
                   String(orderStatus).includes("Delivered") ? "greenColor" : 
                   String(orderStatus).includes("Shipped") ? "yellowColor" : 
-                  String(orderStatus).includes("Processing") ? "redColor" : 
+                  String(orderStatus).includes("Processing") ? "blueColor" : 
+                  String(orderStatus).includes("Cancelled") ? "redColor" : 
                   
                   " "}>
                   <b>{orderStatus}</b>
@@ -156,6 +157,7 @@ const ProcessOrder = () => {
             <option value="Processing">Processing</option>
             <option value="Shipped">Shipped</option>
             <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
         </select>
     </div>
 

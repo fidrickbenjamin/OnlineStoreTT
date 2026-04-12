@@ -100,7 +100,7 @@ totalAmount: {
 orderStatus: {
     type: String,
     enum: {
-        values: ["Processing", "Shipped", "Delivered"],
+        values: ["Processing", "Shipped", "Delivered", "Cancelled"],
         message: "Please select correct order status",
     },
     default: "Processing",

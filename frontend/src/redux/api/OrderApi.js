@@ -28,6 +28,14 @@ export const orderApi = createApi ({
 
         }),
 
+        cancelOrder: builder.mutation({
+    query: (id) => ({
+        url: `/orders/cancel-order/${id}`,
+        method: "POST",
+    }),
+    invalidatesTags: ["Order", "Orders", "AdminOrders"],
+}),
+
 
 
         stripeCheckoutSession: builder.mutation({
@@ -87,4 +95,5 @@ export const { useCreateNewOrderMutation,
                useLazyGetDashboardSalesQuery,
                useGetAdminOrdersQuery,
                useUpdateOrderMutation,
-               useDeleteOrderMutation } = orderApi;
+               useDeleteOrderMutation, 
+               useCancelOrderMutation,} = orderApi;
