@@ -186,23 +186,14 @@ const PaymentMethod = () => {
 
               {method === "PayPal" && (
                 <div style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}>
-                  <PayPalButtons
-  createOrder={(_data, actions) => {
-    return actions.order.create({
-      purchase_units: [
-        {
-          amount: {
-            value: totalPrice.toFixed(2),
-          },
-        },
-      ],
-    });
-  }}
-  onApprove={async (data, actions) => {
-    const details = await actions.order.capture();
-    handlePaypalSuccess(details);
-  }}
-/>
+                   <PayPalButton
+      amount={totalPrice.toFixed(2)}
+      onSuccess={handlePaypalSuccess}
+      options={{
+        clientId: "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
+        currency: "USD",
+      }}
+    />
                 </div>
               )}
             </div>

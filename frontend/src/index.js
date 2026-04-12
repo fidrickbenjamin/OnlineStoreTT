@@ -12,15 +12,10 @@ root.render(
   <React.StrictMode>
     <Provider store={store}> 
 
-               <PayPalScriptProvider
-        options={{
-          "client-id": "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
-          currency: "USD",
-        }}
-      > 
+            
       <App />
 
-      </PayPalScriptProvider>
+      
 
     </Provider>
     
