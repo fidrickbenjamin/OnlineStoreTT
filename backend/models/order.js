@@ -61,8 +61,8 @@ paymentMethod: {
     type: String,
     required: [true, " Please select a payment method"],
     enum: {
-        values: ["COD", "Card", "NBD", "CASH"],
-        message: "Please select COD , Card , NBD or CASH",
+        values: ["COD", "Card", "NBD", "CASH", "ShopdmPay"],
+        message: "Please select COD, Card, NBD, CASH or ShopdmPay",
     },
 },
 

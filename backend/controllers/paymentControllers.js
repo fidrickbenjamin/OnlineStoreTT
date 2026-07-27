@@ -3,6 +3,49 @@ import order from "../models/order.js";
 import Stripe from "stripe";
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
+export const createShopdmPayCheckout = catchAsyncErrors(async (req, res) => {
+    const { totalAmount, orderId, reason, custom } = req.body;
+
+    const merchantHandle = process.env.SHOPDM_PAY_MERCHANT_HANDLE || "your-shopdm-merchant-handle";
+    const sandbox = process.env.SHOPDM_PAY_SANDBOX === "true";
+
+    if (!merchantHandle || merchantHandle.includes("your-shopdm")) {
+        return res.status(400).json({
+            success: false,
+            message: "Shopdm Pay merchant handle is not configured yet. Please add your real Shopdm credentials.",
+        });
+    }
+
+    const checkoutUrl = `https://sandbox.shopdm.com/pay/${merchantHandle}`;
+
+    res.status(200).json({
+        success: true,
+        sandbox,
+        checkoutUrl,
+        merchantHandle,
+        metadata: {
+            orderId,
+            reason,
+            custom,
+            amount: totalAmount,
+        },
+    });
+});
+
+export const shopdmPayWebhook = catchAsyncErrors(async (req, res) => {
+    const signature = req.headers["x-shopdm-signature"] || req.headers["shopdm-signature"];
+    const secret = process.env.SHOPDM_PAY_WEBHOOK_SECRET || "your-shopdm-webhook-secret";
+
+    if (!signature || secret.includes("your-shopdm")) {
+        return res.status(400).json({
+            success: false,
+            message: "Shopdm Pay webhook secret is not configured yet.",
+        });
+    }
+
+    res.status(200).json({ success: true, message: "Webhook received" });
+});
+
 // Create stripe checkout session => /api/v2/payment/checkout_session
 
 export const stripeCheckoutSession = catchAsyncErrors(

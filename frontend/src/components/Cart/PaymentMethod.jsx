@@ -3,14 +3,10 @@ import MetaData from "../layout/MetaData";
 import { useSelector } from "react-redux";
 import CheckoutSteps from "./CheckoutSteps";
 import { calculateOrderCost } from "../../helpers/helpers";
-import {
-  useCreateNewOrderMutation,
-  useStripeCheckoutSessionMutation,
-} from "../../redux/api/OrderApi";
+import { useCreateNewOrderMutation } from "../../redux/api/OrderApi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { PayPalButton } from "react-paypal-button-v2";
-import axios from "axios";
+import ShopdmPay from "../payment/ShopdmPay";
 
 const PaymentMethod = () => {
   const [method, setMethod] = useState("");
@@ -19,12 +15,9 @@ const PaymentMethod = () => {
 
   const { shippingInfo = {}, cartItems = [], shippingOption } =
     useSelector((state) => state.cart);
+  const { user } = useSelector((state) => state.auth);
 
   const [createNewOrder, { error, isSuccess }] = useCreateNewOrderMutation();
-  const [
-    stripeCheckoutSession,
-    { data: checkoutData, error: checkoutError },
-  ] = useStripeCheckoutSessionMutation();
 
   const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
     calculateOrderCost(cartItems, shippingOption);
@@ -35,11 +28,6 @@ const PaymentMethod = () => {
   // ❌ DO NOT silently default — force user selection
   const isShippingValid =
     validShippingOptions.includes(shippingOption);
-
-  useEffect(() => {
-    if (checkoutData) window.location.href = checkoutData?.url;
-    if (checkoutError) toast.error(checkoutError?.data?.message);
-  }, [checkoutData, checkoutError]);
 
   useEffect(() => {
     if (error) toast.error(error?.data?.message);
@@ -88,7 +76,6 @@ const PaymentMethod = () => {
       return;
     }
 
-    // 🔥 HARD STOP IF SHIPPING NOT SELECTED
     if (!isShippingValid) {
       toast.error("Please select a shipping option before continuing");
       navigate("/shipping");
@@ -98,79 +85,33 @@ const PaymentMethod = () => {
     setLoading(true);
 
     try {
-      // ================= COD / CASH / NBD =================
-      if (["COD", "CASH", "NBD"].includes(selectedMethod)) {
-        const orderData = buildOrderData(selectedMethod, {
-          status: selectedMethod === "NBD" ? "Verifying" : "Not Paid",
-        });
+      if (["COD", "CASH", "NBD", "ShopdmPay"].includes(selectedMethod)) {
+        const paymentInfo =
+          selectedMethod === "NBD"
+            ? { status: "Verifying" }
+            : selectedMethod === "ShopdmPay"
+            ? { status: "Pending", note: "Shopdm Pay pending confirmation" }
+            : { status: "Not Paid" };
 
+        const orderData = buildOrderData(selectedMethod, paymentInfo);
         await createNewOrder(orderData).unwrap();
-      }
-
-      // ================= STRIPE =================
-      else if (selectedMethod === "Card") {
-        const orderData = buildOrderData(selectedMethod);
-        await stripeCheckoutSession(orderData).unwrap();
-      }
-
-      // ================= FISERV =================
-      else if (selectedMethod === "FISERV") {
-        const cardNumber = prompt("Enter card number");
-        const expiry = prompt("Enter expiry MM/YY");
-        const cvv = prompt("Enter CVV");
-
-        const orderData = buildOrderData(selectedMethod);
-
-        const response = await axios.post("/api/v2/payment/fiserv", {
-          ...orderData,
-          cardNumber,
-          expiry,
-          cvv,
-        });
-
-        if (response.data.success) {
-          toast.success("Payment successful!");
-          navigate("/me/orders?order_success=true");
-        } else {
-          toast.error("Payment failed");
-        }
-      }
-
-      // ================= PAYPAL =================
-      else if (selectedMethod === "PayPal") {
-        setLoading(false);
-        return;
       }
     } catch (err) {
       toast.error(err?.response?.data?.message || err.message);
     } finally {
-      if (selectedMethod !== "PayPal") setLoading(false);
+      setLoading(false);
     }
   };
 
-  // =============================
-  // PAYPAL SUCCESS
-  // =============================
-  const handlePaypalSuccess = async (details, data) => {
-    const orderData = buildOrderData("PayPal", {
-      id: data.orderID,
-      status: "Paid",
-    });
-
-    await createNewOrder(orderData);
-    navigate("/me/orders?order_success=true");
-    toast.success(
-      `Transaction completed by ${details.payer.name.given_name}`
-    );
+  const handleShopdmPay = () => {
+    submitHandler("ShopdmPay");
   };
 
   const buttonStyles = {
     COD: { backgroundColor: "#8593ff", color: "#000000" },
     CASH: { backgroundColor: "#FFB84D", color: "#000000" },
     NBD: { backgroundColor: "#66bb66", color: "#000000" },
-    Card: { backgroundColor: "#555555", color: "#ffffff" },
-    FISERV: { backgroundColor: "#4da6ff", color: "#000000" },
-    PayPal: { backgroundColor: "#ffc439", color: "#000000" },
+    ShopdmPay: { backgroundColor: "#28a745", color: "#ffffff" },
   };
 
   const baseStyle = {
@@ -216,38 +157,27 @@ const PaymentMethod = () => {
             <h2 className="mb-4 text-center">Select Payment Method</h2>
 
             <div className="d-flex flex-column align-items-center">
-              {[ "CASH", "NBD", "Card", ].map((m) => (
+              {["CASH", "NBD"].map((m) => (
                 <button
                   key={m}
                   onClick={() => submitHandler(m)}
-                  disabled={loading || m === "Card"}
+                  disabled={loading}
                   style={{ ...baseStyle, ...buttonStyles[m] }}
                 >
-                  { m === "CASH"
-                    ? "Cash Payment"
-                    : m === "NBD"
-                    ? "Mobanking"
-                    : m === "Card"
-                    ? "Pay with Stripe (Disabled)"
-                    : m === "FISERV"
-                    ? "Pay with Fiserv"
-                    : "Pay with PayPal"}
+                  {m === "CASH" ? "Cash Payment" : "Mobanking"}
                 </button>
               ))}
 
-              {method === "PayPal" && (
-                <div style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}>
-                  <PayPalButton
-                    amount={totalPrice.toFixed(2)}
-                    onSuccess={handlePaypalSuccess}
-                    options={{
-                      clientId:
-                        "ARi7SuAhS8m8CEw6CU-YNXcehZBt83cyyE27RCwKvVdW_tykWQEqpsmbBdvepVGCa2itqafM3LKGEQbV",
-                      currency: "USD",
-                    }}
-                  />
-                </div>
-              )}
+              <ShopdmPay
+                amount={totalPrice}
+                invoiceId={`order-${user?._id || Date.now()}`}
+                reason={`Order ${user?._id || "checkout"}`}
+                custom={user?._id}
+                orderId={null}
+                onPay={handleShopdmPay}
+                disabled={loading}
+                label="Shopdm Pay"
+              />
             </div>
 
             {loading && <div className="text-center mt-3">Processing...</div>}
