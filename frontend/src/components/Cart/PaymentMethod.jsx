@@ -11,6 +11,7 @@ import ShopdmPay from "../payment/ShopdmPay";
 const PaymentMethod = () => {
   const [method, setMethod] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showBankingModal, setShowBankingModal] = useState(false);
   const navigate = useNavigate();
 
   const { shippingInfo = {}, cartItems = [], shippingOption } =
@@ -107,6 +108,15 @@ const PaymentMethod = () => {
     submitHandler("ShopdmPay");
   };
 
+  const handleMobankingConfirm = async () => {
+    setShowBankingModal(false);
+    await submitHandler("NBD");
+  };
+
+  const handleMobankingSelection = () => {
+    setShowBankingModal(true);
+  };
+
   const buttonStyles = {
     COD: { backgroundColor: "#8593ff", color: "#000000" },
     CASH: { backgroundColor: "#FFB84D", color: "#000000" },
@@ -141,15 +151,14 @@ const PaymentMethod = () => {
           <p><strong>Mobile Id:</strong> 7672858487</p>
           <p><strong>Bank Name:</strong> National Bank of Dominica</p>
 
-          <p>${totalPrice.toFixed(2)} USD</p>
+          <p>Amount Due: EC${totalPrice.toFixed(2)} XCD</p>
 
           {/* ✅ FIXED DISPLAY */}
           <p>
-            {shippingPrice.toFixed(2)} -{" "}
-            {isShippingValid ? shippingOption : "Please select shipping option"}
+            EC${shippingPrice.toFixed(2)} -{" "}
           </p>
 
-          <p>Order total: {(totalPrice * 2.67).toFixed(2)} XCD</p>
+          <p>Order total: EC${totalPrice.toFixed(2)} XCD</p>
         </div>
 
         <div className="col-10 col-lg-5">
@@ -157,16 +166,21 @@ const PaymentMethod = () => {
             <h2 className="mb-4 text-center">Select Payment Method</h2>
 
             <div className="d-flex flex-column align-items-center">
-              {["CASH", "NBD"].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => submitHandler(m)}
-                  disabled={loading}
-                  style={{ ...baseStyle, ...buttonStyles[m] }}
-                >
-                  {m === "CASH" ? "Cash Payment" : "Mobanking"}
-                </button>
-              ))}
+              <button
+                onClick={() => submitHandler("CASH")}
+                disabled={loading}
+                style={{ ...baseStyle, ...buttonStyles.CASH }}
+              >
+                Cash Payment
+              </button>
+
+              <button
+                onClick={handleMobankingSelection}
+                disabled={loading}
+                style={{ ...baseStyle, ...buttonStyles.NBD }}
+              >
+                Mobanking
+              </button>
 
               <ShopdmPay
                 amount={totalPrice}
@@ -184,6 +198,93 @@ const PaymentMethod = () => {
           </div>
         </div>
       </div>
+
+      {showBankingModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+            padding: "20px",
+          }}
+        >
+          <div
+            className="rounded shadow"
+            style={{
+              width: "100%",
+              maxWidth: "480px",
+              padding: "24px",
+              background: "linear-gradient(135deg, #f7fff8 0%, #eaf8ee 45%, #dff5e4 100%)",
+              border: "2px solid #2e8b57",
+              boxShadow: "0 16px 40px rgba(46, 139, 87, 0.2)",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage:
+                  "radial-gradient(circle at 20% 20%, rgba(46,139,87,0.18) 0 8px, transparent 9px), radial-gradient(circle at 80% 30%, rgba(46,139,87,0.12) 0 10px, transparent 11px), radial-gradient(circle at 40% 80%, rgba(46,139,87,0.15) 0 7px, transparent 8px)",
+                backgroundSize: "24px 24px, 32px 32px, 28px 28px",
+                opacity: 0.7,
+                pointerEvents: "none",
+              }}
+            />
+
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div className="text-center mb-3">
+                <h4 className="mb-2" style={{ color: "#1f6f42", fontWeight: 700 }}>
+                  Mobanking Payment Details
+                </h4>
+                <div
+                  style={{
+                    width: "72px",
+                    height: "4px",
+                    background: "linear-gradient(90deg, #2e8b57, #4caf50)",
+                    borderRadius: "999px",
+                    margin: "0 auto",
+                  }}
+                />
+              </div>
+
+              <p><strong>Account Name:</strong> Fidrick Benjamin</p>
+              <p><strong>Account Number:</strong> 600400420</p>
+              <p><strong>Mobile ID:</strong> 7672858487</p>
+              <p><strong>Bank Name:</strong> National Bank of Dominica</p>
+              <p><strong>Product:</strong> {cartItems?.[0]?.name || "Your order"}</p>
+              <p><strong>Total:</strong> EC${totalPrice.toFixed(2)} XCD</p>
+
+              <div className="d-flex gap-2 mt-4">
+                <button
+                  className="btn flex-grow-1"
+                  onClick={handleMobankingConfirm}
+                  disabled={loading}
+                  style={{
+                    backgroundColor: "#2e8b57",
+                    color: "#fff",
+                    border: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Mobanking Payment Sent
+                </button>
+                <button
+                  className="btn btn-outline-secondary flex-grow-1"
+                  onClick={() => setShowBankingModal(false)}
+                >
+                  Back
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

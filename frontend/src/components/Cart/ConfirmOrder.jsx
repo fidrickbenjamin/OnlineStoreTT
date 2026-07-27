@@ -58,7 +58,7 @@ const ConfirmOrder = () => {
               </div>
   
               <div className="col-4 col-lg-4 mt-4 mt-lg-0">
-                <p>{item?.quantity} x ${item?.price} = <b>${(item?.quantity * item.price).toFixed(2)}</b></p>
+                <p>{item?.quantity} x EC${Number(item?.price).toFixed(2)} = <b>EC${(item?.quantity * item.price).toFixed(2)}</b></p>
               </div>
             </div>
           </div>
@@ -73,17 +73,17 @@ const ConfirmOrder = () => {
           <div id="order_summary">
             <h4>Order Summary</h4>
             <hr />
-            <p>Subtotal: <span className="order-summary-values">${itemsPrice.toFixed(2)}</span></p>
+            <p>Subtotal: <span className="order-summary-values">EC${itemsPrice.toFixed(2)} XCD</span></p>
             <hr />
-            <p>Tax: <span className="order-summary-values">${taxPrice.toFixed(2)}</span></p>
+            <p>Tax: <span className="order-summary-values">EC${taxPrice.toFixed(2)} XCD</span></p>
             <hr />
-            <p> Delivery: <span className="order-summary-values"> {" "} {shippingOption === "roseau" ? "Roseau Delivery ($15)" : shippingOption === "portsmouth" ? "Portsmouth Delivery ($15)" : "Pickup ($0)"}
+            <p> Delivery: <span className="order-summary-values"> {" "} {shippingOption === "roseau" ? "Roseau Delivery (EC$15)" : shippingOption === "portsmouth" ? "Portsmouth Delivery (EC$15)" : "Pickup (EC$0)"}
 </span> </p>
             
   
             <hr />
   
-            <p>Total: <span className="order-summary-values">${totalPrice.toFixed(2)}</span></p>
+            <p>Total: <span className="order-summary-values">EC${totalPrice.toFixed(2)} XCD</span></p>
   
             <hr />
             <Link to="/payment_method" id="checkout_btn" className="btn btn-primary w-100" >

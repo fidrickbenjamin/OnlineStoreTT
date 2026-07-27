@@ -15,7 +15,8 @@ const UpdateProduct = () => {
         name: "",
         description: "",
         price: "",
-        category: "",
+        mainCategory: "",
+        subCategory: "",
         stock: "",
         seller: "",
     });
@@ -25,11 +26,16 @@ const UpdateProduct = () => {
 
     useEffect(() => {
         if (data?.product) {
+            const categoryData = data.product.category || {};
+            const mainCategory = typeof categoryData === "object" && categoryData.main ? categoryData.main : "";
+            const subCategory = typeof categoryData === "object" && categoryData.sub ? categoryData.sub : "";
+
             setProduct({
                 name: data.product.name,
                 description: data.product.description,
                 price: data.product.price,
-                category: data.product.category,
+                mainCategory,
+                subCategory,
                 stock: data.product.stock,
                 seller: data.product.seller,
             });
@@ -45,7 +51,7 @@ const UpdateProduct = () => {
         }
     }, [error, isSuccess, navigate, data]);
 
-    const { name, description, price, category, stock, seller } = product;
+    const { name, description, price, mainCategory, subCategory, stock, seller } = product;
 
     const onChange = (e) => {
         setProduct({ ...product, [e.target.name]: e.target.value });
@@ -53,7 +59,20 @@ const UpdateProduct = () => {
 
     const submitHandler = (e) => {
         e.preventDefault();
-        updateProduct({ id: params?.id, body: product });
+
+        if (!mainCategory || !subCategory) {
+            toast.error("Please select both main category and subcategory");
+            return;
+        }
+
+        const updatedProduct = {
+            ...product,
+            category: { main: mainCategory, sub: subCategory },
+            price: Number(price),
+            stock: Number(stock),
+        };
+
+        updateProduct({ id: params?.id, body: updatedProduct });
     };
 
     return (
@@ -116,38 +135,56 @@ const UpdateProduct = () => {
 
                         <div className="row">
                             <div className="mb-3 col">
-                                <label htmlFor="category_field" className="form-label"> Category </label>
+                                <label htmlFor="mainCategory_field" className="form-label">Main Category</label>
                                 <select
                                     className="form-select"
-                                    id="category_field"
-                                    name="category"
-                                    value={category}
-                                    onChange={onChange}
+                                    id="mainCategory_field"
+                                    name="mainCategory"
+                                    value={mainCategory}
+                                    onChange={(e) => {
+                                        setProduct({ ...product, mainCategory: e.target.value, subCategory: "" });
+                                    }}
                                 >
-                                    <option value="">Select Category</option>
-                                    {Object.keys(PRODUCT_CATEGORIES).map((mainCategory) => (
-                                        <optgroup key={mainCategory} label={mainCategory}>
-                                            {PRODUCT_CATEGORIES[mainCategory].map((subCategory) => (
-                                                <option key={subCategory} value={subCategory}>
-                                                    {subCategory}
-                                                </option>
-                                            ))}
-                                        </optgroup>
+                                    <option value="">Select Main Category</option>
+                                    {Object.keys(PRODUCT_CATEGORIES).map((mainCat) => (
+                                        <option key={mainCat} value={mainCat}>
+                                            {mainCat}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
 
                             <div className="mb-3 col">
-                                <label htmlFor="seller_field" className="form-label"> Seller Name </label>
-                                <input
-                                    type="text"
-                                    id="seller_field"
-                                    className="form-control"
-                                    name="seller"
-                                    value={seller}
+                                <label htmlFor="subCategory_field" className="form-label">Subcategory</label>
+                                <select
+                                    className="form-select"
+                                    id="subCategory_field"
+                                    name="subCategory"
+                                    value={subCategory}
                                     onChange={onChange}
-                                />
+                                    disabled={!mainCategory}
+                                >
+                                    <option value="">Select Subcategory</option>
+                                    {mainCategory &&
+                                        PRODUCT_CATEGORIES[mainCategory].map((subCat) => (
+                                            <option key={subCat} value={subCat}>
+                                                {subCat}
+                                            </option>
+                                        ))}
+                                </select>
                             </div>
+                        </div>
+
+                        <div className="mb-3">
+                            <label htmlFor="seller_field" className="form-label"> Seller Name </label>
+                            <input
+                                type="text"
+                                id="seller_field"
+                                className="form-control"
+                                name="seller"
+                                value={seller}
+                                onChange={onChange}
+                            />
                         </div>
 
                         <button type="submit" className="btn w-100 py-2" disabled={isLoading}>

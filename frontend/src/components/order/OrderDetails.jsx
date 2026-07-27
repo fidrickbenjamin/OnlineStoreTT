@@ -99,7 +99,7 @@ const OrderDetails = () => {
             </tr>
             <tr>
               <th scope="row">Amount Paid</th>
-              <td>${totalAmount}</td>
+              <td>EC${Number(totalAmount).toFixed(2)} XCD</td>
             </tr>
           </tbody>
         </table>
