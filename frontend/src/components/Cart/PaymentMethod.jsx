@@ -143,27 +143,38 @@ const PaymentMethod = () => {
       <CheckoutSteps shipping ConfirmOrder Payment />
 
       <div className="row wrapper" style={{ display: "flex", justifyContent: "center" }}>
-        <div className="col-10 col-lg-5 shadow rounded bg-light p-4 mb-4">
-          <h4 className="text-center">Mobanking Information</h4>
+        <div className="col-10 col-lg-5 shadow rounded p-4 mb-4" style={{ background: "linear-gradient(135deg, #f8fbf9 0%, #eef8f0 100%)", border: "1px solid #dcefe3" }}>
+          <h4 className="text-center mb-4" style={{ color: "#1f6f42", fontWeight: 700 }}>Order Summary</h4>
 
-          <p><strong>Account Name:</strong> Fidrick Benjamin</p>
-          <p><strong>Account Number:</strong> 600400420</p>
-          <p><strong>Mobile Id:</strong> 7672858487</p>
-          <p><strong>Bank Name:</strong> National Bank of Dominica</p>
+          <div className="mb-3">
+            <div className="d-flex justify-content-between mb-2">
+              <span>Subtotal</span>
+              <strong>EC${itemsPrice.toFixed(2)} XCD</strong>
+            </div>
+            <div className="d-flex justify-content-between mb-2">
+              <span>Shipping</span>
+              <strong>EC${shippingPrice.toFixed(2)} XCD</strong>
+            </div>
+            <div className="d-flex justify-content-between mb-2">
+              <span>Tax</span>
+              <strong>EC${taxPrice.toFixed(2)} XCD</strong>
+            </div>
+            <hr />
+            <div className="d-flex justify-content-between">
+              <span>Total</span>
+              <strong style={{ color: "#1f6f42", fontSize: "1.1rem" }}>EC${totalPrice.toFixed(2)} XCD</strong>
+            </div>
+          </div>
 
-          <p>Amount Due: EC${totalPrice.toFixed(2)} XCD</p>
-
-          {/* ✅ FIXED DISPLAY */}
-          <p>
-            EC${shippingPrice.toFixed(2)} -{" "}
-          </p>
-
-          <p>Order total: EC${totalPrice.toFixed(2)} XCD</p>
+          <div className="rounded p-3" style={{ backgroundColor: "#ffffff", border: "1px solid #dcefe3" }}>
+            <p className="mb-2"><strong>Delivery:</strong> {isShippingValid ? shippingOption : "Please select shipping option"}</p>
+            <p className="mb-0"><strong>Customer:</strong> {user?.name || "Guest"}</p>
+          </div>
         </div>
 
         <div className="col-10 col-lg-5">
-          <div className="shadow rounded bg-body p-4">
-            <h2 className="mb-4 text-center">Select Payment Method</h2>
+          <div className="shadow rounded bg-body p-4" style={{ border: "1px solid #e7ecea" }}>
+            <h2 className="mb-4 text-center" style={{ color: "#1f6f42", fontWeight: 700 }}>Select Payment Method</h2>
 
             <div className="d-flex flex-column align-items-center">
               <button
