@@ -216,16 +216,14 @@ const PaymentMethod = () => {
             <h2 className="mb-4 text-center">Select Payment Method</h2>
 
             <div className="d-flex flex-column align-items-center">
-              {["COD", "CASH", "NBD", "Card", "FISERV", "PayPal"].map((m) => (
+              {[ "CASH", "NBD", "Card", ].map((m) => (
                 <button
                   key={m}
                   onClick={() => submitHandler(m)}
                   disabled={loading || m === "Card"}
                   style={{ ...baseStyle, ...buttonStyles[m] }}
                 >
-                  {m === "COD"
-                    ? "Cash on Delivery"
-                    : m === "CASH"
+                  { m === "CASH"
                     ? "Cash Payment"
                     : m === "NBD"
                     ? "Mobanking"
