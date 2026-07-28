@@ -8,5 +8,12 @@ export const PRODUCT_CATEGORIES = {
   Desktops: ["Gaming Desktops", "All-in-One", "Mini PCs", "Workstations"],
   "Gaming Accessories": ["Controllers", "VR Headsets", "Gaming Mice", "Keyboards", "Gaming Chairs"],
   Clothing: ["Men", "Women", "Kids", "Activewear", "Footwear", "Accessories"],
-  Utilities: ["Home Appliances", "Kitchen Gadgets", "Cleaning Tools", "Storage Solutions"]
+  Utilities: ["Home Appliances", "Kitchen Gadgets", "Cleaning Tools", "Storage Solutions"],
+  Hardware: ["Tools", "Fasteners", "Electrical", "Plumbing", "Gardening"],
+  "Agro Sales": ["Seeds", "Fertilizers", "Pesticides", "Farm Tools", "Animal Feed"],
+  Grocery: ["Condiments", "Snacks", "Beverages", "Staples", "Household Essentials"],
+  "Home & Living": ["Furniture", "Decor", "Kitchenware", "Storage", "Bedding"],
+  Tactical: ["Gear", "Protective Wear", "Camping", "Outdoor", "Accessories"],
+  Fashion: ["Men", "Women", "Kids", "Footwear", "Accessories"],
+  "Property or Real Estate": ["Residential", "Commercial", "Land", "Rental", "Vacation"],
 };

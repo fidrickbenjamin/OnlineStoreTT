@@ -683,16 +683,24 @@ input.count {
 
 .quick-links {
   background-color: #fff;
-  padding: 2px 0;
-  border-top: 1px solid #fff;
+  padding: 8px 12px 10px;
+  border-top: 1px solid #f1f3f5;
   display: flex;
-  justify-content: center;
-  gap: 2px;
-  overflow-x: auto; /* Enables horizontal scrolling */
-  white-space: nowrap; /* Keeps links on a single line */
-  font-size: 1rem;
-  scrollbar-width: thin; /* For Firefox: Thin scrollbar */
-  -ms-overflow-style: none; /* Hides scrollbar in IE/Edge */
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+  font-size: 0.95rem;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .quick-links::-webkit-scrollbar {
@@ -710,13 +718,16 @@ input.count {
 
 
 .quick-links a {
-  color: #333; /* Dark text color for contrast */
-  font-weight: bold;
+  color: #333;
+  font-weight: 600;
   text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 1px;
-  background-color: #fff; /* Yellow background */
+  padding: 6px 10px;
+  border-radius: 999px;
+  background-color: #f8f9fa;
   transition: color 0.3s ease, background-color 0.3s ease;
+  flex: 0 0 auto;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .quick-links a:hover {

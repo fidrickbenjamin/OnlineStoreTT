@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useLazyLogoutQuery } from "../../redux/api/authApi";
 import AddressDisplay from "../AdditionalFunctions/AddressDisplay";
 import { clearCart } from "../../redux/features/cartSlice"; // Import clearCart action
+import { PRODUCT_CATEGORIES } from "../../constants/constants";
 
 const Header = () => {
   const dispatch = useDispatch(); // Use dispatch hook
@@ -86,19 +87,12 @@ const Header = () => {
 
       {/* Quick Links Section */}
       <div className="quick-links text-center">
-      <Link to="/">Home</Link>
-        <Link to="/?keyword=Samsung">Samsung</Link>
-        <Link to="/?keyword=Iphone">Iphone</Link>
-        <Link to="/?keyword=Android">Android</Link>
-        <Link to="/?keyword=Pc">Pc</Link>
-        <Link to="/?keyword=earbuds">Earbuds</Link>
-        <Link to="/?keyword=Chargers">Chargers</Link>
-        <Link to="/?keyword=Mount">Mounts</Link>
-        <Link to="/?keyword=Clothing">Clothing</Link>
-        <Link to="/?keyword=Women Clothing">Women Clothing</Link>
-        <Link to="/?keyword=Men's Clothing">Men's Clothing</Link>
-        <Link to="/?keyword=Boys Clothing">Boys Clothing</Link>
-        <Link to="/?keyword=Girls Clothing">Girls Clothing</Link>
+        <Link to="/?skipSplash=true">Home</Link>
+        {Object.keys(PRODUCT_CATEGORIES).map((category) => (
+          <Link key={category} to={`/?category=${encodeURIComponent(category)}&skipSplash=true`}>
+            {category}
+          </Link>
+        ))}
       </div>
     </>
   );

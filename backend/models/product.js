@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema({
     main: {
       type: String,
       required: [true, "Please enter product category"],
-      enum: ["Electronics", "Accessories", "Laptops", "Tablets", "Smart Phones", "Headphones", "Desktops", "Gaming Accessories", "Clothing", "Utilities"],
+      enum: ["Electronics", "Accessories", "Laptops", "Tablets", "Smart Phones", "Headphones", "Desktops", "Gaming Accessories", "Clothing", "Utilities", "Hardware", "Agro Sales", "Grocery", "Home & Living", "Tactical", "Fashion", "Property or Real Estate"],
     },
     sub: {
       type: String,
@@ -55,6 +55,13 @@ const productSchema = new mongoose.Schema({
             "Gaming Accessories": ["Controllers", "VR Headsets", "Gaming Mice", "Keyboards", "Gaming Chairs"],
             Clothing: ["Men", "Women", "Kids", "Activewear", "Footwear", "Accessories"],
             Utilities: ["Home Appliances", "Kitchen Gadgets", "Cleaning Tools", "Storage Solutions"],
+            Hardware: ["Tools", "Fasteners", "Electrical", "Plumbing", "Gardening"],
+            "Agro Sales": ["Seeds", "Fertilizers", "Pesticides", "Farm Tools", "Animal Feed"],
+            Grocery: ["Condiments", "Snacks", "Beverages", "Staples", "Household Essentials"],
+            "Home & Living": ["Furniture", "Decor", "Kitchenware", "Storage", "Bedding"],
+            Tactical: ["Gear", "Protective Wear", "Camping", "Outdoor", "Accessories"],
+            Fashion: ["Men", "Women", "Kids", "Footwear", "Accessories"],
+            "Property or Real Estate": ["Residential", "Commercial", "Land", "Rental", "Vacation"],
           };
           const allowedSubCategories = subCategoriesByCategory[this.category.main];
           return allowedSubCategories ? allowedSubCategories.includes(value) : true;

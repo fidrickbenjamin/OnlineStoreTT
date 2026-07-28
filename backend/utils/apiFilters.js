@@ -24,15 +24,29 @@ filters() {
    const fieldsToRemove = ["keyword", "page"];
    fieldsToRemove.forEach((el) => delete queryCopy[el]);
 
-   // Advance Filter for Price, Ratings, ets
-   
+   let filterQuery = {};
+   const categoryValue = queryCopy.category;
 
-   let queryStr = JSON.stringify(queryCopy);
+   if (categoryValue) {
+       delete queryCopy.category;
+       filterQuery = {
+           ...queryCopy,
+           $or: [
+               { "category.main": categoryValue },
+               { "category.sub": categoryValue },
+               { category: categoryValue },
+           ],
+       };
+   } else {
+       filterQuery = queryCopy;
+   }
+
+   // Advance Filter for Price, Ratings, ets
+   let queryStr = JSON.stringify(filterQuery);
    queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
 
-
-  this.query = this.query.find(JSON.parse(queryStr));
-  return this;
+   this.query = this.query.find(JSON.parse(queryStr));
+   return this;
 }
 
 pagination(resPerPage) { 
