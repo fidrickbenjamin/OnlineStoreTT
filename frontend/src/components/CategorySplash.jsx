@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const categories = [
-  { key: "Electronics", label: "Electronics", icon: "📱", accent: "#2f6fed" },
+  { key: "Smart Phones", label: "Smart Phones", icon: "📱", accent: "#2f6fed" },
   { key: "Agro Sales", label: "Agro Sales", icon: "🌾", accent: "#2f8f4f" },
   { key: "Hardware", label: "Hardware", icon: "🛠️", accent: "#8a4b12" },
   { key: "Grocery", label: "Groceries", icon: "🛒", accent: "#d97706" },
+  { key: "School Supplies", label: "School Supplies", icon: "📚", accent: "#b45309" },
   { key: "Tactical", label: "Tactical Gear", icon: "🪖", accent: "#1f6f42" },
   { key: "Home & Living", label: "Home & Living", icon: "🏠", accent: "#7b5cf0" },
   { key: "Fashion", label: "Fashion", icon: "👕", accent: "#c64077" },
