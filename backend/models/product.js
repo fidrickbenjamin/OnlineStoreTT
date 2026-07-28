@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema({
     main: {
       type: String,
       required: [true, "Please enter product category"],
-      enum: ["Electronics", "Accessories", "Laptops", "Tablets", "Smart Phones", "Headphones", "Desktops", "Gaming Accessories", "Clothing", "Utilities", "Hardware", "Agro Sales", "Grocery", "Home & Living", "Tactical", "Fashion", "Property or Real Estate"],
+      enum: ["Electronics", "Accessories", "Laptops", "Tablets", "Smart Phones", "Headphones", "Desktops", "Gaming Accessories", "Clothing", "Utilities", "Hardware", "Agro Sales", "Grocery", "Home & Living", "Tactical", "Fashion", "Sports", "Property or Real Estate"],
     },
     sub: {
       type: String,
@@ -61,6 +61,7 @@ const productSchema = new mongoose.Schema({
             "Home & Living": ["Furniture", "Decor", "Kitchenware", "Storage", "Bedding"],
             Tactical: ["Gear", "Protective Wear", "Camping", "Outdoor", "Accessories"],
             Fashion: ["Men", "Women", "Kids", "Footwear", "Accessories"],
+            Sports: ["Cricket", "Basketball", "Football", "Tennis"],
             "Property or Real Estate": ["Residential", "Commercial", "Land", "Rental", "Vacation"],
           };
           const allowedSubCategories = subCategoriesByCategory[this.category.main];

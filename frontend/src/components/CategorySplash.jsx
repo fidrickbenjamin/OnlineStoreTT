@@ -10,6 +10,7 @@ const categories = [
   { key: "Tactical", label: "Tactical Gear", icon: "🪖", accent: "#1f6f42" },
   { key: "Home & Living", label: "Home & Living", icon: "🏠", accent: "#7b5cf0" },
   { key: "Fashion", label: "Fashion", icon: "👕", accent: "#c64077" },
+  { key: "Sports", label: "Sports", icon: "⚽", accent: "#dc2626" },
   { key: "Property or Real Estate", label: "Property / Real Estate", icon: "🏡", accent: "#0f766e" },
 ];
 

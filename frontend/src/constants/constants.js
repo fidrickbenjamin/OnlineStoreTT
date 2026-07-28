@@ -16,5 +16,6 @@ export const PRODUCT_CATEGORIES = {
   "Home & Living": ["Furniture", "Decor", "Kitchenware", "Storage", "Bedding"],
   Tactical: ["Gear", "Protective Wear", "Camping", "Outdoor", "Accessories"],
   Fashion: ["Men", "Women", "Kids", "Footwear", "Accessories"],
+  Sports: ["Cricket", "Basketball", "Football", "Tennis"],
   "Property or Real Estate": ["Residential", "Commercial", "Land", "Rental", "Vacation"],
 };
