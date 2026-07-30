@@ -1,8 +1,15 @@
 import cloudinary from "cloudinary";
-import  dotenv from "dotenv";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envFile = process.env.NODE_ENV === "PRODUCTION"
+    ? path.resolve(__dirname, "../../.env.production")
+    : path.resolve(__dirname, "../config/config.env");
 
-dotenv.config({ path: "backend/config/config.env"})
+dotenv.config({ path: envFile });
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

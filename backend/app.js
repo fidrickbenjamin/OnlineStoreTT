@@ -15,6 +15,9 @@ import {fileURLToPath} from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const envFile = process.env.NODE_ENV === "PRODUCTION"
+    ? path.resolve(__dirname, "../.env.production")
+    : path.resolve(__dirname, "config/config.env");
 
 
 
@@ -25,8 +28,7 @@ process.on("uncaughtException", (err) => {
     process.exit(1);
 });
 
-if (process.env.NODE_ENV !== "PRODUCTION")
-{ dotenv.config({ path: "backend/config/config.env"}); }
+dotenv.config({ path: envFile });
 
 // Connectin to Database
 connectDatabase();
