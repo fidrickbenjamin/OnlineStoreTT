@@ -172,21 +172,21 @@ const Cart = () => {
                 <p>
                   Subtotal:{" "}
                   <span className="order-summary-values">
-                    EC${itemsPrice.toFixed(2)} XCD
+                    ${itemsPrice.toFixed(2)} XCD
                   </span>
                 </p>
 
                 <p>
                   Shipping:{" "}
                   <span className="order-summary-values">
-                    EC${shippingPrice.toFixed(2)} XCD
+                    ${shippingPrice.toFixed(2)} XCD
                   </span>
                 </p>
 
                 <p>
                   Tax:{" "}
                   <span className="order-summary-values">
-                    EC${taxPrice.toFixed(2)} XCD
+                    ${taxPrice.toFixed(2)} XCD
                   </span>
                 </p>
 
@@ -195,7 +195,7 @@ const Cart = () => {
                 <p>
                   Total:{" "}
                   <span className="order-summary-values">
-                    EC${totalPrice.toFixed(2)} XCD
+                    ${totalPrice.toFixed(2)} XCD
                   </span>
                 </p>
 
@@ -234,7 +234,7 @@ const Cart = () => {
                 <p>
                   Est. total:{" "}
                   <span className="order-summary-values">
-                    EC${totalPrice.toFixed(2)} XCD
+                    ${totalPrice.toFixed(2)} XCD
                   </span>
                 </p>
 

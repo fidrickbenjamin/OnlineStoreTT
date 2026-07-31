@@ -100,9 +100,9 @@ html2canvas(input).then((canvas) => {
                 <tr>
                   <td className="service">{item?.product}</td>
                   <td className="desc">{item?.name}</td>
-                  <td className="unit">EC${Number(item?.price).toFixed(2)}</td>
+                  <td className="unit">${Number(item?.price).toFixed(2)}</td>
                   <td className="qty">{item?.quantity}</td>
-                  <td className="total">EC${(Number(item?.price) * item?.quantity).toFixed(2)}</td>
+                  <td className="total">${(Number(item?.price) * item?.quantity).toFixed(2)}</td>
                 </tr>
                 ))}
                 
@@ -111,14 +111,14 @@ html2canvas(input).then((canvas) => {
                   <td colspan="4">
                     <b>SUBTOTAL</b>
                   </td>
-                  <td className="total">EC${Number(order?.itemsPrice).toFixed(2)}</td>
+                  <td className="total">${Number(order?.itemsPrice).toFixed(2)}</td>
                 </tr>
   
                 <tr>
                   <td colspan="4">
                     <b>TAX 15%</b>
                   </td>
-                  <td className="total">EC${Number(order?.taxAmount).toFixed(2)}</td>
+                  <td className="total">${Number(order?.taxAmount).toFixed(2)}</td>
                 </tr>
   
                 <tr>
@@ -128,10 +128,10 @@ html2canvas(input).then((canvas) => {
   <td className="total">
     {
       order?.shippingOption === "roseau"
-        ? `Roseau Delivery (EC$${Number(order?.shippingAmount).toFixed(2)})`
+        ? `Roseau Delivery ($${Number(order?.shippingAmount).toFixed(2)})`
         : order?.shippingOption === "portsmouth"
-        ? `Portsmouth Delivery (EC$${Number(order?.shippingAmount).toFixed(2)})`
-        : `Pickup (EC$0.00)`
+        ? `Portsmouth Delivery ($${Number(order?.shippingAmount).toFixed(2)})`
+        : `Pickup ($0.00)`
     }
   </td>
 </tr>
@@ -140,7 +140,7 @@ html2canvas(input).then((canvas) => {
                   <td colspan="4" className="grand total">
                     <b>GRAND TOTAL</b>
                   </td>
-                  <td className="grand total">EC${Number(order?.totalAmount).toFixed(2)} XCD</td>
+                  <td className="grand total">${Number(order?.totalAmount).toFixed(2)} XCD</td>
                 </tr>
               </tbody>
             </table>

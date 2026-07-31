@@ -149,20 +149,20 @@ const PaymentMethod = () => {
           <div className="mb-3">
             <div className="d-flex justify-content-between mb-2">
               <span>Subtotal</span>
-              <strong>EC${itemsPrice.toFixed(2)} XCD</strong>
+              <strong>${itemsPrice.toFixed(2)} XCD</strong>
             </div>
             <div className="d-flex justify-content-between mb-2">
               <span>Shipping</span>
-              <strong>EC${shippingPrice.toFixed(2)} XCD</strong>
+              <strong>${shippingPrice.toFixed(2)} XCD</strong>
             </div>
             <div className="d-flex justify-content-between mb-2">
               <span>Tax</span>
-              <strong>EC${taxPrice.toFixed(2)} XCD</strong>
+              <strong>${taxPrice.toFixed(2)} XCD</strong>
             </div>
             <hr />
             <div className="d-flex justify-content-between">
               <span>Total</span>
-              <strong style={{ color: "#1f6f42", fontSize: "1.1rem" }}>EC${totalPrice.toFixed(2)} XCD</strong>
+              <strong style={{ color: "#1f6f42", fontSize: "1.1rem" }}>${totalPrice.toFixed(2)} XCD</strong>
             </div>
           </div>
 
@@ -269,7 +269,7 @@ const PaymentMethod = () => {
               <p><strong>Mobile ID:</strong> 7672858487</p>
               <p><strong>Bank Name:</strong> National Bank of Dominica</p>
               <p><strong>Product:</strong> {cartItems?.[0]?.name || "Your order"}</p>
-              <p><strong>Total:</strong> EC${totalPrice.toFixed(2)} XCD</p>
+              <p><strong>Total:</strong> ${totalPrice.toFixed(2)} XCD</p>
 
               <div className="d-flex gap-2 mt-4">
                 <button
