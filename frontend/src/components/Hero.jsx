@@ -3,10 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { useGetProductsQuery } from '../redux/api/productsApi';
 import './Hero.css'; // Import the CSS file
 import Price from '../components/Price/Price'; // Import the Price component
+import { useIsMobile } from './hooks/useIsMobile';
 
 const Hero = () => {
   const [randomProducts, setRandomProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const isMobile = useIsMobile();
+
   const { data, isLoading, isError } = useGetProductsQuery({ page: 1, keyword: "" });
 
   useEffect(() => {
@@ -29,6 +33,8 @@ const Hero = () => {
   if (isLoading) return <div className="hero-loading">Loading hero images...</div>;
   if (isError) return <div className="hero-error">Error loading products</div>;
 
+  
+
   return (
     <section id="hero" className="hero-section">
       <div className="hero-container">
@@ -40,7 +46,10 @@ const Hero = () => {
             />
             <div className="hero-overlay">
               <div className="price">
-               <Price amount={randomProducts[currentIndex].price} size="hero" />
+               <Price
+                 amount={randomProducts[currentIndex].price}
+                 size={isMobile ? undefined : "hero"}
+                            />
              </div>
               <a
                 href={`/product/${randomProducts[currentIndex]._id}`} // Ensure this URL matches your route configuration
