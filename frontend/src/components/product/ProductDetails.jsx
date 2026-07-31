@@ -12,6 +12,7 @@ import NewReview from "../reviews/NewReview";
 import ListReviews from "../reviews/ListReviews";
 import styles from './ProductDetails.module.css';
 import NotFound from "../layout/NotFound";
+import Price from "../Price/Price"; // Import the Price component
 
 const ProductDetails = () => {
     const params = useParams();
@@ -44,7 +45,7 @@ const productSchema = {
     },
     offers: {
         "@type": "Offer",
-        priceCurrency: "USD",
+        priceCurrency: "XCD",
         price: product?.price ? product.price.toFixed(2) : "0.00",
         availability:
             product?.stock > 0
@@ -191,7 +192,7 @@ const productSchema = {
     <meta property="og:image:alt" content={productName} />
     <meta property="og:site_name" content="OnlineStore" />
     <meta property="product:price:amount" content={product?.price ? product.price.toFixed(2) : ""} />
-    <meta property="product:price:currency" content="USD" />
+    <meta property="product:price:currency" content="XCD" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={productName} />
     <meta name="twitter:description" content={productDescription} />
@@ -244,7 +245,7 @@ const productSchema = {
                         <span id="no-of-reviews" className="pt-1 ps-2">({product?.numOfReviews} Reviews)</span>
                     </div>
                     <hr />
-                    <p id="product_price">${product?.price?.toFixed(2)} XCD</p>
+                    <p id="product_price"> <Price amount={product.price} /> </p>
                     <div className="stockCounter d-inline">
                         <span className="btn btn-danger minus" onClick={decreaseQty}>-</span>
                         <input

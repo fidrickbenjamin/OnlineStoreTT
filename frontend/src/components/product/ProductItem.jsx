@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import StarRatings from "react-star-ratings";
 import './ProductItem.css'; // Import the CSS file
+import Price from "../Price/Price"; // Import the Price component
 
 const ProductItem = ({ product, columnSize }) => {
   return (
@@ -26,7 +27,7 @@ const ProductItem = ({ product, columnSize }) => {
             starSpacing="1px"
           />
           <span className="pt-2 ps-2">({product?.numOfReviews})</span>
-          <p className="card-text mt-2">${product?.price?.toFixed(2)} XCD</p>
+          <p className="card-text mt-2"> <Price amount={product?.price} /> </p>
           <Link to={`/product/${product?._id}`} className="btn btn-primary">
             View Details
           </Link>

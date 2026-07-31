@@ -7,6 +7,7 @@ import { useCreateNewOrderMutation } from "../../redux/api/OrderApi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import ShopdmPay from "../payment/ShopdmPay";
+import Price from "../Price/Price";
 
 const PaymentMethod = () => {
   const [method, setMethod] = useState("");
@@ -149,20 +150,20 @@ const PaymentMethod = () => {
           <div className="mb-3">
             <div className="d-flex justify-content-between mb-2">
               <span>Subtotal</span>
-              <strong>${itemsPrice.toFixed(2)} XCD</strong>
+              <strong>  <Price amount={itemsPrice}/></strong>
             </div>
             <div className="d-flex justify-content-between mb-2">
               <span>Shipping</span>
-              <strong>${shippingPrice.toFixed(2)} XCD</strong>
+              <strong> <Price amount={shippingPrice}/> </strong>
             </div>
             <div className="d-flex justify-content-between mb-2">
               <span>Tax</span>
-              <strong>${taxPrice.toFixed(2)} XCD</strong>
+              <strong> <Price amount={taxPrice} /> </strong>
             </div>
             <hr />
             <div className="d-flex justify-content-between">
               <span>Total</span>
-              <strong style={{ color: "#1f6f42", fontSize: "1.1rem" }}>${totalPrice.toFixed(2)} XCD</strong>
+              <strong style={{ color: "#1f6f42", fontSize: "1.1rem" }}> <Price amount={totalPrice} /> </strong>
             </div>
           </div>
 
@@ -269,7 +270,7 @@ const PaymentMethod = () => {
               <p><strong>Mobile ID:</strong> 7672858487</p>
               <p><strong>Bank Name:</strong> National Bank of Dominica</p>
               <p><strong>Product:</strong> {cartItems?.[0]?.name || "Your order"}</p>
-              <p><strong>Total:</strong> ${totalPrice.toFixed(2)} XCD</p>
+              <p><strong>Total:</strong> <Price amount={totalPrice} /> </p>
 
               <div className="d-flex gap-2 mt-4">
                 <button

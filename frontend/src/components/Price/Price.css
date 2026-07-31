@@ -1,0 +1,70 @@
+.product-price {
+    display: inline-flex;
+    align-items: flex-start;
+    font-weight: 700;
+    color: #111;
+}
+
+.product-price .currency {
+    margin-right: 2px;
+}
+
+.product-price .decimal {
+    vertical-align: super;
+}
+
+/* Small (Order Details, Cart) */
+.product-price.small .currency {
+    font-size: 11px;
+}
+
+.product-price.small .whole {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.product-price.small .decimal {
+    font-size: 11px;
+}
+
+/* Medium (Product Cards) */
+.product-price.medium .currency {
+    font-size: 13px;
+}
+
+.product-price.medium .whole {
+    font-size: 26px;
+    line-height: 1;
+}
+
+.product-price.medium .decimal {
+    font-size: 14px;
+}
+
+/* Large (Product Details) */
+.product-price.large .currency {
+    font-size: 16px;
+}
+
+.product-price.large .whole {
+    font-size: 40px;
+    line-height: 1;
+}
+
+.product-price.large .decimal {
+    font-size: 18px;
+}
+
+/* Hero Banner */
+.product-price.hero .currency {
+    font-size: 18px;
+}
+
+.product-price.hero .whole {
+    font-size: 54px;
+    line-height: 1;
+}
+
+.product-price.hero .decimal {
+    font-size: 20px;
+}

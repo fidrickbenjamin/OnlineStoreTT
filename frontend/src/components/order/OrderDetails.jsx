@@ -4,6 +4,7 @@ import MetaData from "../layout/MetaData";
 import { useOrderDetailsQuery } from "../../redux/api/OrderApi";
 import toast from "react-hot-toast";
 import Loader from "../layout/Loader";
+import Price from "../Price/Price";
 
 const OrderDetails = () => {
 
@@ -99,7 +100,9 @@ const OrderDetails = () => {
             </tr>
             <tr>
               <th scope="row">Amount Paid</th>
-              <td>${Number(totalAmount).toFixed(2)} XCD</td>
+              <td>
+                <Price amount={totalAmount} />
+                   </td>
             </tr>
           </tbody>
         </table>
@@ -124,7 +127,7 @@ const OrderDetails = () => {
             </div>
 
             <div className="col-4 col-lg-2 mt-4 mt-lg-0">
-              <p>${item?.price}</p>
+              <Price amount={item?.price} />
             </div>
 
             <div className="col-4 col-lg-3 mt-4 mt-lg-0">

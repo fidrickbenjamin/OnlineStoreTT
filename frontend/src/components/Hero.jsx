@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGetProductsQuery } from '../redux/api/productsApi';
 import './Hero.css'; // Import the CSS file
+import Price from '../components/Price/Price'; // Import the Price component
 
 const Hero = () => {
   const [randomProducts, setRandomProducts] = useState([]);
@@ -38,7 +39,9 @@ const Hero = () => {
               alt={randomProducts[currentIndex].name}
             />
             <div className="hero-overlay">
-              <p className="price">${randomProducts[currentIndex].price.toFixed(2)} XCD</p>
+              <div className="price">
+               <Price amount={randomProducts[currentIndex].price} size="hero" />
+             </div>
               <a
                 href={`/product/${randomProducts[currentIndex]._id}`} // Ensure this URL matches your route configuration
                 className="btn"

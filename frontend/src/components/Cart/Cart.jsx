@@ -5,6 +5,7 @@ import { setCartItem, removeCartItem, setShippingOption } from "../../redux/feat
 import toast from "react-hot-toast";
 import React, { useState } from "react";
 import { calculateOrderCost } from "../../helpers/helpers";
+import Price from "../Price/Price";
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -109,7 +110,8 @@ const Cart = () => {
                       </div>
 
                       <div className="col-4 col-lg-2 mt-4 mt-lg-0">
-                        <p>${item?.price}</p>
+                        <p> <Price amount={item?.price} /> </p>
+                        
                       </div>
 
                       <div className="col-4 col-lg-3 mt-4 mt-lg-0">
@@ -172,21 +174,21 @@ const Cart = () => {
                 <p>
                   Subtotal:{" "}
                   <span className="order-summary-values">
-                    ${itemsPrice.toFixed(2)} XCD
+                     <Price amount={itemsPrice} />
                   </span>
                 </p>
 
                 <p>
                   Shipping:{" "}
                   <span className="order-summary-values">
-                    ${shippingPrice.toFixed(2)} XCD
+                    <Price amount={shippingPrice} />
                   </span>
                 </p>
 
                 <p>
                   Tax:{" "}
                   <span className="order-summary-values">
-                    ${taxPrice.toFixed(2)} XCD
+                     <Price amount={taxPrice} />
                   </span>
                 </p>
 
@@ -195,7 +197,7 @@ const Cart = () => {
                 <p>
                   Total:{" "}
                   <span className="order-summary-values">
-                    ${totalPrice.toFixed(2)} XCD
+                   <Price amount={totalPrice} />
                   </span>
                 </p>
 
@@ -234,7 +236,7 @@ const Cart = () => {
                 <p>
                   Est. total:{" "}
                   <span className="order-summary-values">
-                    ${totalPrice.toFixed(2)} XCD
+                   <Price amount={totalPrice} />
                   </span>
                 </p>
 

@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { calculateOrderCost } from "../../helpers/helpers";
 import CheckoutSteps from "./CheckoutSteps";
+import Price from "../Price/Price";
 
 
 const ConfirmOrder = () => {
@@ -58,7 +59,7 @@ const ConfirmOrder = () => {
               </div>
   
               <div className="col-4 col-lg-4 mt-4 mt-lg-0">
-                <p>{item?.quantity} x ${Number(item?.price).toFixed(2)} = <b>${(item?.quantity * item.price).toFixed(2)}</b></p>
+                <p>{item?.quantity} x $ {item?.price}  = <Price amount={itemsPrice} size="small"/> </p>
               </div>
             </div>
           </div>
@@ -73,9 +74,9 @@ const ConfirmOrder = () => {
           <div id="order_summary">
             <h4>Order Summary</h4>
             <hr />
-<p>Subtotal: <span className="order-summary-values">${itemsPrice.toFixed(2)} XCD</span></p>
+<p>Subtotal: <span className="order-summary-values"> <Price amount={itemsPrice}/> </span></p>
             <hr />
-            <p>Tax: <span className="order-summary-values">${taxPrice.toFixed(2)} XCD</span></p>
+            <p>Tax: <span className="order-summary-values"> <Price amount={taxPrice}/> </span></p>
             <hr />
             <p> Delivery: <span className="order-summary-values"> {" "} {shippingOption === "roseau" ? "Roseau Delivery ($15)" : shippingOption === "portsmouth" ? "Portsmouth Delivery ($15)" : "Pickup ($0)"}
 </span> </p>
@@ -83,7 +84,7 @@ const ConfirmOrder = () => {
   
             <hr />
 
-            <p>Total: <span className="order-summary-values">${totalPrice.toFixed(2)} XCD</span></p>
+            <p>Total: <span className="order-summary-values"> <Price amount={totalPrice} /> </span></p>
   
             <hr />
             <Link to="/payment_method" id="checkout_btn" className="btn btn-primary w-100" >
