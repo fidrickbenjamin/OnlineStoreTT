@@ -50,7 +50,7 @@ const Home = () => {
 
     return (
       <> 
-      <MetaData title={"Tactical Trends Online Store"} />
+      <MetaData title={"Tactical Trends Market Place"} />
       <CategorySplash />
      <Hero />
   
