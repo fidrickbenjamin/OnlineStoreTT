@@ -41,6 +41,21 @@ const Home = () => {
       }, [isError] );
 
       const columnSize = keyword ? 4 : 3; 
+      const hasActiveFilters = Boolean(keyword || category || min || max || ratings);
+
+      const headingLabel = category
+        ? category
+        : ratings
+          ? `${ratings} star${Number(ratings) === 1 ? "" : "s"}${Number(ratings) < 5 ? " or more" : ""}`
+          : keyword || "";
+
+      const headingText = headingLabel
+        ? category
+          ? `${data?.products?.length} Products in ${headingLabel}`
+          : ratings
+            ? `${data?.products?.length} Products with ${headingLabel}`
+            : `${data?.products?.length} Products found with keyword: ${headingLabel}`
+        : "Latest Products";
 
  if(isLoading) return <Loader />;
 
@@ -56,7 +71,7 @@ const Home = () => {
   
       <div className="row">
      
-        {keyword && (
+        {hasActiveFilters && (
           <div className="col-6 col-md-3 mt-5 hide-on-mobile"> 
           <Filters />
           </div>
@@ -64,11 +79,7 @@ const Home = () => {
         <div className={keyword? "col-12 col-sm-6 col-md-9 products-container filters-products-container" : "col-12 col-sm-6 col-md-12 products-container filters-products-container"}>
           <h1 id="products_heading" className="text-secondary"  >
             
-            { keyword
-              ? `${data?.products?.length} Products found with keyword: ${keyword}`
-              : category
-                ? `${data?.products?.length} Products in ${category}`
-                : "Latest Products"}
+            {headingText}
             
             </h1>
 

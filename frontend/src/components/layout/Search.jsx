@@ -1,18 +1,28 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Search = () => {
 
     const [keyword, setKeyword] = useState("");
     const navigate = useNavigate();
+    const [, setSearchParams] = useSearchParams();
 
     const submitHandler = (e) => {
         e.preventDefault();
 
-        if (keyword?.trim()) {
-            navigate(`/?keyword=${keyword}`);
+        const trimmedKeyword = keyword?.trim();
+        const nextParams = new URLSearchParams();
+
+        if (trimmedKeyword) {
+            nextParams.set("keyword", trimmedKeyword);
+            nextParams.set("skipSplash", "true");
+            setSearchParams(nextParams);
+            navigate(`/?${nextParams.toString()}`);
         } else {
-            navigate(`/`);
+            nextParams.delete("keyword");
+            nextParams.set("skipSplash", "true");
+            setSearchParams(nextParams);
+            navigate(`/?${nextParams.toString()}`);
         }
     };
 
@@ -24,7 +34,7 @@ const Search = () => {
                     id="search_field"
                     aria-describedby="search_btn"
                     className="form-control search-input"
-                    placeholder="Enter Product Name ..."
+                    placeholder="Search products by name, description or price"
                     name="keyword"
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}

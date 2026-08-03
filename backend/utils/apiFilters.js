@@ -5,15 +5,30 @@ class APIFilters {
     }
 
     search() {
-        const keyword = this.queryStr.keyword ? { 
-            name: {
-                $regex: this.queryStr.keyword,
-                $options: "i",
-            },
+        const rawKeyword = this.queryStr.keyword;
 
-        } : { };
+        if (!rawKeyword || !String(rawKeyword).trim()) {
+            this.query = this.query.find({});
+            return this;
+        }
 
-        this.query = this.query.find({...keyword });
+        const keyword = String(rawKeyword).trim();
+        const keywordRegex = {
+            $regex: keyword,
+            $options: "i",
+        };
+
+        const searchConditions = [
+            { name: keywordRegex },
+            { description: keywordRegex },
+        ];
+
+        const numericKeyword = Number(keyword);
+        if (!Number.isNaN(numericKeyword)) {
+            searchConditions.push({ price: numericKeyword });
+        }
+
+        this.query = this.query.find({ $or: searchConditions });
         return this;
     }
 

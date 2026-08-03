@@ -20,11 +20,10 @@ const CategorySplash = () => {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    if (searchParams.get("skipSplash") === "true") {
-      setVisible(false);
-    } else {
-      setVisible(true);
-    }
+    const hasKeyword = Boolean(searchParams.get("keyword")?.trim());
+    const shouldHide = searchParams.get("skipSplash") === "true" || hasKeyword;
+
+    setVisible(!shouldHide);
   }, [searchParams]);
 
   const handleSelect = (categoryKey) => {

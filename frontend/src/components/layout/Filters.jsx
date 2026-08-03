@@ -1,70 +1,59 @@
 import React, { useEffect, useState } from "react";
-import {useNavigate, useSearchParams} from "react-router-dom";
-import { getPriceQueryParams } from "../../helpers/helpers";
+import { useSearchParams } from "react-router-dom";
 import { PRODUCT_CATEGORIES } from "../../constants/constants";
 import StarRatings from "react-star-ratings";
 
 const Filters = () => {
 
-    const [min, setMin] = useState(0);
-    const [max, setMax] = useState(0);
+    const [min, setMin] = useState("");
+    const [max, setMax] = useState("");
 
-    const navigate = useNavigate();
-    let [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
 
-      useEffect(() => { 
-        searchParams.has("min") && setMin(searchParams.get("min"));
-        searchParams.has("max") && setMax(searchParams.get("max"));
-      }, [])
+    useEffect(() => {
+      setMin(searchParams.get("min") || "");
+      setMax(searchParams.get("max") || "");
+    }, [searchParams]);
    
-    //Handle Category & ratings filter
+    const handleClick = (checkbox) => {
+      const nextParams = new URLSearchParams(searchParams.toString());
+      const filterName = checkbox.name;
 
-      const handleClick = (checkbox) => {
-        const checkboxes = document.getElementsByName(checkbox.name);
-        checkboxes.forEach((item) => {
-          if(item !== checkbox) item.checked = false;
-        });
+      nextParams.delete(filterName);
 
-        if(checkbox.checked === false) {
-            //Delete Filter from query
-          if(searchParams.has(checkbox.name)) {
-            searchParams.delete(checkbox.name);
-            const path = window.location.pathname + "?" + searchParams.toString();
-            navigate(path);
-          }
-        } else {
-          //Set new filter value if already there
-          if(searchParams.has(checkbox.name)) {
-              searchParams.set(checkbox.name, checkbox.value);
-          } else {
-            // Append new Filter
-            searchParams.append(checkbox.name, checkbox.value);
-          }
-          const path = window.location.pathname + "?" + searchParams.toString();
-          navigate(path);
+      if (checkbox.checked) {
+        nextParams.set(filterName, checkbox.value);
+      }
 
-        }
+      nextParams.set("page", "1");
+      setSearchParams(nextParams);
+    };
 
-      };
+    const handleButtonClick = (e) => {
+      e.preventDefault();
 
+      const nextParams = new URLSearchParams(searchParams.toString());
 
- //Handle Price
- const handleButtonClick = (e) => {
-  e.preventDefault()
+      if (min) {
+        nextParams.set("min", min);
+      } else {
+        nextParams.delete("min");
+      }
 
+      if (max) {
+        nextParams.set("max", max);
+      } else {
+        nextParams.delete("max");
+      }
 
-  searchParams = getPriceQueryParams(searchParams, "min", min);
-  searchParams = getPriceQueryParams(searchParams, "max", max);
+      nextParams.set("page", "1");
+      setSearchParams(nextParams);
+    };
 
-  const path = window.location.pathname + "?" + searchParams.toString();
-  navigate(path);
-};
-
-const defaultCheckHandler = (checkboxType, checkboxValue) => {
-  const value = searchParams.get(checkboxType);
-  if (checkboxValue === value) return true;
-  return false;
-};
+    const defaultCheckHandler = (checkboxType, checkboxValue) => {
+      const value = searchParams.get(checkboxType);
+      return checkboxValue === value;
+    };
 
     return (
         <div className="border p-3 filter">
@@ -118,8 +107,8 @@ const defaultCheckHandler = (checkboxType, checkboxValue) => {
                                 type="checkbox"
                                 name="category"
                                 value={subCategory}
-                                defaultChecked={defaultCheckHandler("category", subCategory)}
-                                onClick={(e) => handleClick(e.target)}
+                                checked={defaultCheckHandler("category", subCategory)}
+                                onChange={(e) => handleClick(e.target)}
                             />
                             <label className="form-check-label">
                                 {subCategory}
@@ -133,17 +122,17 @@ const defaultCheckHandler = (checkboxType, checkboxValue) => {
         <h5 className="mb-3">Ratings</h5>
           
           {[5,4,3,2,1].map((rating) => (
-                  <div className="form-check">
+                  <div className="form-check" key={rating}>
                   <input
                     className="form-check-input"
                     type="checkbox"
                     name="ratings"
-                    id="check7"
+                    id={`rating-${rating}`}
                     value={rating}
-                    defaultChecked={defaultCheckHandler("ratings", rating?.toString())}
-                    onClick={(e) => handleClick(e.target)}
+                    checked={defaultCheckHandler("ratings", rating?.toString())}
+                    onChange={(e) => handleClick(e.target)}
                   />
-                  <label className="form-check-label" for="check7">
+                  <label className="form-check-label" htmlFor={`rating-${rating}`}>
                   <StarRatings 
                       rating={rating}
                       StarRatedColor="#ffb829"
