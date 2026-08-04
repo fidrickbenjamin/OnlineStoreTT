@@ -1,36 +1,64 @@
-// ProductItem.js
 import React from "react";
 import { Link } from "react-router-dom";
 import StarRatings from "react-star-ratings";
-import './ProductItem.css'; // Import the CSS file
-import Price from "../Price/Price"; // Import the Price component
+import './ProductItem.css';
+import Price from "../Price/Price";
 
 const ProductItem = ({ product, columnSize }) => {
+  const isProperty = product?.listingType === "property" || product?.category?.main === "Property or Real Estate";
+
   return (
     <div className={`col-sm-12 col-md-6 col-lg-${columnSize} my-3`}>
-      <div className="card p-3 rounded product-card">
+      <div className={`card p-3 rounded product-card ${isProperty ? "property-card" : ""}`}>
         <img
           className="card-img-top"
           src={product?.images[0] ? product?.images[0]?.url : "/images/default_product.png"}
           alt={product?.name}
         />
         <div className="card-body d-flex flex-column">
-          <h5 className="card-title">
-            <Link to={`/product/${product?._id}`}>{product?.name}</Link>
-          </h5>
-          <StarRatings 
-            rating={product?.ratings}
-            starRatedColor="#ffb829"
-            numberOfStars={5}
-            name="rating"
-            starDimension="20px"
-            starSpacing="1px"
-          />
-          <span className="pt-2 ps-2">({product?.numOfReviews})</span>
-          <p className="card-text mt-2"> <Price amount={product?.price} /> </p>
-          <Link to={`/product/${product?._id}`} className="btn btn-primary">
-            View Details
-          </Link>
+          <div className="d-flex justify-content-between align-items-start gap-2">
+            <h5 className="card-title mb-2">
+              <Link to={`/product/${product?._id}`}>{product?.name}</Link>
+            </h5>
+            {isProperty && (
+              <span className="badge bg-primary-subtle text-primary">Property</span>
+            )}
+          </div>
+
+          {isProperty ? (
+            <>
+              <p className="text-muted mb-2">
+                {product?.propertyDetails?.location || "Location available on request"}
+              </p>
+              <p className="mb-2">
+                <strong>{product?.propertyDetails?.propertyType || "Property"}</strong>
+                {product?.propertyDetails?.bedrooms ? ` · ${product?.propertyDetails?.bedrooms} bed` : ""}
+                {product?.propertyDetails?.bathrooms ? ` · ${product?.propertyDetails?.bathrooms} bath` : ""}
+              </p>
+              <p className="card-text mt-2">
+                <Price amount={product?.price} />
+              </p>
+              <Link to={`/product/${product?._id}`} className="btn btn-outline-primary mt-auto">
+                Request Details
+              </Link>
+            </>
+          ) : (
+            <>
+              <StarRatings
+                rating={product?.ratings}
+                starRatedColor="#ffb829"
+                numberOfStars={5}
+                name="rating"
+                starDimension="20px"
+                starSpacing="1px"
+              />
+              <span className="pt-2 ps-2">({product?.numOfReviews})</span>
+              <p className="card-text mt-2"><Price amount={product?.price} /></p>
+              <Link to={`/product/${product?._id}`} className="btn btn-primary mt-auto">
+                View Details
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

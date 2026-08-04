@@ -19,6 +19,7 @@ import PaymentMethod from "../Cart/PaymentMethod";
 import MyOrders from "../order/MyOrders";
 import OrderDetails from "../order/OrderDetails";
 import Invoice from "../invoice/Invoice";
+import PropertyHub from "../property/PropertyHub";
 import ShippingAddress from "../user/ShippingAddress";
 
 
@@ -29,6 +30,7 @@ const userRoutes = () => {
 
                     
       <Route path="/" element={<Home />} />
+      <Route path="/property-hub" element={<PropertyHub />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

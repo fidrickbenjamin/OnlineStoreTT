@@ -1,5 +1,6 @@
 // src/components/Hero.js
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useGetProductsQuery } from '../redux/api/productsApi';
 import './Hero.css'; // Import the CSS file
 import Price from '../components/Price/Price'; // Import the Price component
@@ -15,8 +16,11 @@ const Hero = () => {
 
   useEffect(() => {
     if (!isLoading && !isError && data && data.products) {
-      const products = [...data.products];
-      const shuffled = products.sort(() => 0.5 - Math.random());
+      const retailProducts = data.products.filter((product) => {
+        const isProperty = product?.listingType === "property" || product?.category?.main === "Property or Real Estate";
+        return !isProperty;
+      });
+      const shuffled = [...retailProducts].sort(() => 0.5 - Math.random());
       const selected = shuffled.slice(0, 5);
       setRandomProducts(selected);
     }
@@ -51,12 +55,17 @@ const Hero = () => {
                  size={isMobile ? undefined : "hero"}
                             />
              </div>
-              <a
-                href={`/product/${randomProducts[currentIndex]._id}`} // Ensure this URL matches your route configuration
-                className="btn"
-              >
-                View Product
-              </a>
+              <div className="d-flex flex-wrap gap-2 mt-2">
+                <a
+                  href={`/product/${randomProducts[currentIndex]._id}`} // Ensure this URL matches your route configuration
+                  className="btn"
+                >
+                  View Product
+                </a>
+                <Link to="/property-hub" className="btn btn-outline-light">
+                  Explore Property Hub
+                </Link>
+              </div>
             </div>
           </div>
         ) : (

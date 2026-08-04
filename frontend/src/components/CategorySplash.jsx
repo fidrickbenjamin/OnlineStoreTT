@@ -29,6 +29,10 @@ const CategorySplash = () => {
   const handleSelect = (categoryKey) => {
     localStorage.setItem("tactical-trends-selected-category", categoryKey);
     setVisible(false);
+    if (categoryKey === "Property or Real Estate") {
+      navigate(`/property-hub?skipSplash=true`);
+      return;
+    }
     navigate(`/?category=${encodeURIComponent(categoryKey)}&skipSplash=true`);
   };
 

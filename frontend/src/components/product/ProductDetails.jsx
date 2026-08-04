@@ -12,17 +12,29 @@ import NewReview from "../reviews/NewReview";
 import ListReviews from "../reviews/ListReviews";
 import styles from './ProductDetails.module.css';
 import NotFound from "../layout/NotFound";
-import Price from "../Price/Price"; // Import the Price component
+import Price from "../Price/Price";
+import { Modal, Form, Button } from "react-bootstrap";
+import { useCreatePropertyInquiryMutation } from "../../redux/api/productsApi";
 
 const ProductDetails = () => {
     const params = useParams();
     const dispatch = useDispatch();
     const [quantity, setQuantity] = useState(1);
     const [activeImg, setActiveImg] = useState("");
+    const [showInquiryForm, setShowInquiryForm] = useState(false);
+    const [inquiryForm, setInquiryForm] = useState({
+        name: "",
+        phone: "",
+        email: "",
+        preferredViewingDate: "",
+        message: "",
+    });
     const { data, isLoading, error, isError } = useGetProductDetailsQuery(params?.id);
+    const [createPropertyInquiry, { isLoading: isSubmittingInquiry }] = useCreatePropertyInquiryMutation();
 
     const product = data?.product;
     const { isAuthenticated } = useSelector((state) => state.auth);
+    const isProperty = product?.listingType === "property" || product?.category?.main === "Property or Real Estate";
 
     const productName = product?.name || "Product";
 const productImage = product?.images?.[0]?.url || "/images/default_product.png";
@@ -91,6 +103,30 @@ const productSchema = {
 
         dispatch(setCartItem(cartItem));
         toast.success("Item Added to Cart!");
+    };
+
+    const handleInquirySubmit = async (event) => {
+        event.preventDefault();
+
+        if (!product?._id) return;
+
+        try {
+            await createPropertyInquiry({
+                productId: product._id,
+                ...inquiryForm,
+            }).unwrap();
+            toast.success("Viewing request sent. We will contact you shortly.");
+            setInquiryForm({
+                name: "",
+                phone: "",
+                email: "",
+                preferredViewingDate: "",
+                message: "",
+            });
+            setShowInquiryForm(false);
+        } catch (err) {
+            toast.error(err?.data?.message || "Unable to send viewing request");
+        }
     };
 
     const shareProduct = (platform) => {
@@ -246,25 +282,40 @@ const productSchema = {
                     </div>
                     <hr />
                     <p id="product_price"> <Price amount={product.price} /> </p>
-                    <div className="stockCounter d-inline">
-                        <span className="btn btn-danger minus" onClick={decreaseQty}>-</span>
-                        <input
-                            type="number"
-                            className="form-control count d-inline"
-                            value={quantity}
-                            readOnly
-                        />
-                        <span className="btn btn-primary plus" onClick={increaseQty}>+</span>
-                    </div>
-                    <button
-                        type="button"
-                        id="cart_btn"
-                        className="btn btn-primary d-inline ms-4"
-                        disabled={product?.stock <= 0}
-                        onClick={setItemToCart}
-                    >
-                        Add to Cart
-                    </button>
+
+                    {isProperty ? (
+                        <div className="mt-3">
+                            <div className="alert alert-info">
+                                This is a property listing. Please request details or schedule a viewing instead of purchasing online.
+                            </div>
+                            <div className="d-flex flex-wrap gap-2">
+                                <button type="button" className="btn btn-primary" onClick={() => setShowInquiryForm(true)}>Schedule Viewing</button>
+                                <button type="button" className="btn btn-outline-primary" onClick={() => setShowInquiryForm(true)}>Request Information</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="stockCounter d-inline">
+                                <span className="btn btn-danger minus" onClick={decreaseQty}>-</span>
+                                <input
+                                    type="number"
+                                    className="form-control count d-inline"
+                                    value={quantity}
+                                    readOnly
+                                />
+                                <span className="btn btn-primary plus" onClick={increaseQty}>+</span>
+                            </div>
+                            <button
+                                type="button"
+                                id="cart_btn"
+                                className="btn btn-primary d-inline ms-4"
+                                disabled={product?.stock <= 0}
+                                onClick={setItemToCart}
+                            >
+                                Add to Cart
+                            </button>
+                        </>
+                    )}
                           
                           <div className="d-flex flex-wrap gap-2 mt-3">
     <button
@@ -298,14 +349,23 @@ const productSchema = {
                     <hr />
                     <p>
                         Status: <span id="stock_status" className={product?.stock > 0 ? "greenColor" : "redColor"}>
-                            {product?.stock > 0 ? "In Stock" : "Out of Stock"}
+                            {isProperty ? (product?.propertyDetails?.listingStatus || "For Sale") : (product?.stock > 0 ? "In Stock" : "Out of Stock")}
                         </span>
                     </p>
+                    {isProperty && (
+                        <div className="mb-3">
+                            <p><strong>Property Type:</strong> {product?.propertyDetails?.propertyType || "Not specified"}</p>
+                            <p><strong>Location:</strong> {product?.propertyDetails?.location || "Location available upon request"}</p>
+                            <p><strong>Bedrooms:</strong> {product?.propertyDetails?.bedrooms || "N/A"}</p>
+                            <p><strong>Bathrooms:</strong> {product?.propertyDetails?.bathrooms || "N/A"}</p>
+                            <p><strong>Size:</strong> {product?.propertyDetails?.sizeSqft ? `${product.propertyDetails.sizeSqft} sqft` : "N/A"}</p>
+                        </div>
+                    )}
                     <hr />
                     <h4 className="mt-2">Description:</h4>
                     <p>{product?.description}</p>
                     <hr />
-                    <p id="product_seller mb-3">Sold by: <strong>{product?.seller}</strong></p>
+                    <p id="product_seller mb-3">Listed by: <strong>{product?.seller}</strong></p>
 
                     {isAuthenticated ? (
                         <NewReview productId={product?._id}/> ) : (
@@ -315,6 +375,66 @@ const productSchema = {
                     )}
                 </div>
             </div>
+
+            <Modal show={showInquiryForm} onHide={() => setShowInquiryForm(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Schedule a viewing</Modal.Title>
+                </Modal.Header>
+                <Form onSubmit={handleInquirySubmit}>
+                    <Modal.Body>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Name</Form.Label>
+                            <Form.Control
+                                required
+                                value={inquiryForm.name}
+                                onChange={(e) => setInquiryForm({ ...inquiryForm, name: e.target.value })}
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Phone</Form.Label>
+                            <Form.Control
+                                required
+                                value={inquiryForm.phone}
+                                onChange={(e) => setInquiryForm({ ...inquiryForm, phone: e.target.value })}
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                type="email"
+                                required
+                                value={inquiryForm.email}
+                                onChange={(e) => setInquiryForm({ ...inquiryForm, email: e.target.value })}
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Preferred viewing date</Form.Label>
+                            <Form.Control
+                                type="date"
+                                required
+                                value={inquiryForm.preferredViewingDate}
+                                onChange={(e) => setInquiryForm({ ...inquiryForm, preferredViewingDate: e.target.value })}
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Message</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                maxLength={32}
+                                required
+                                value={inquiryForm.message}
+                                onChange={(e) => setInquiryForm({ ...inquiryForm, message: e.target.value })}
+                            />
+                            <Form.Text className="text-muted">Keep your message to 32 characters or less.</Form.Text>
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowInquiryForm(false)}>Cancel</Button>
+                        <Button variant="primary" type="submit" disabled={isSubmittingInquiry}>Send Request</Button>
+                    </Modal.Footer>
+                </Form>
+            </Modal>
 
             {product?.reviews.length > 0 && <ListReviews reviews={product?.reviews} />}
         </>

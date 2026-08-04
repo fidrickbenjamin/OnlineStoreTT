@@ -1,5 +1,6 @@
 import express from "express";
 import { getProductDetails, getProducts, newProduct, updateProduct, deleteProduct, createProductReview, getProductReviews, deleteReview, canUserReview, getAdminProducts, uploadProductImages, deleteProductImage } from "../controllers/productControllers.js";
+import { createPropertyInquiry, getPropertyInquiries, updatePropertyInquiryStatus } from "../controllers/propertyInquiryController.js";
 import { isAuthenticatedUser, authorizeRoles } from "../middlewares/auth.js";
 const router = express.Router();
 
@@ -24,5 +25,9 @@ router.route("/reviews")
 router.route("/admin/reviews").delete(isAuthenticatedUser, authorizeRoles("admin"), deleteReview);
 
 router.route("/can_review").get(isAuthenticatedUser, canUserReview);
+
+router.route("/property_inquiries").post(isAuthenticatedUser, createPropertyInquiry);
+router.route("/admin/property_inquiries").get(isAuthenticatedUser, authorizeRoles("admin"), getPropertyInquiries);
+router.route("/admin/property_inquiries/:id").put(isAuthenticatedUser, authorizeRoles("admin"), updatePropertyInquiryStatus);
 
 export default router;

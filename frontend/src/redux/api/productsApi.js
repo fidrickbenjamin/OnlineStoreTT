@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const productApi = createApi ({
     reducerPath: "productApi",
     baseQuery: fetchBaseQuery({ baseUrl: "/api/v2"}),
-    tagTypes:["Product", "AdminProducts", "Reviews", "AdminReview"],
+    tagTypes:["Product", "AdminProducts", "Reviews", "AdminReview", "PropertyInquiries"],
     endpoints: (builder) => ({
         getProducts: builder.query({
             query: (params) => ({ 
@@ -114,6 +114,33 @@ export const productApi = createApi ({
             invalidatesTags: ["AdminProducts", "Reviews", "AdminReview"],
         }),
 
+        createPropertyInquiry: builder.mutation({
+            query(body) {
+                return {
+                    url: "/property_inquiries",
+                    method: "POST",
+                    body,
+                };
+            },
+            invalidatesTags: ["PropertyInquiries"],
+        }),
+
+        getPropertyInquiries: builder.query({
+            query: () => "/admin/property_inquiries",
+            providesTags: ["PropertyInquiries"],
+        }),
+
+        updatePropertyInquiryStatus: builder.mutation({
+            query({ id, body }) {
+                return {
+                    url: `/admin/property_inquiries/${id}`,
+                    method: "PUT",
+                    body,
+                };
+            },
+            invalidatesTags: ["PropertyInquiries"],
+        }),
+
     }),
 });
 
@@ -129,4 +156,7 @@ export const {
     useDeleteProductImageMutation,
     useDeleteProductMutation,
     useLazyGetProductReviewsQuery,
-    useDeleteReviewMutation } = productApi;
+    useDeleteReviewMutation,
+    useCreatePropertyInquiryMutation,
+    useGetPropertyInquiriesQuery,
+    useUpdatePropertyInquiryStatusMutation } = productApi;

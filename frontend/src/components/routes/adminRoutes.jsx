@@ -11,6 +11,7 @@ import ProcessOrder from "../admin/ProcessOrder";
 import ListUsers from "../admin/ListUsers";
 import UpdateUser from "../admin/UpdateUser";
 import ProductReviews from "../admin/ProductReviews";
+import PropertyInquiries from "../admin/PropertyInquiries";
 
 const adminRoutes = () => {
 
@@ -27,6 +28,7 @@ const adminRoutes = () => {
         <Route path="/admin/users" element={<ProtectedRoute admin={true}> <ListUsers /> </ProtectedRoute>} />
         <Route path="/admin/users/:id" element={<ProtectedRoute admin={true}> <UpdateUser /> </ProtectedRoute>} />
         <Route path="/admin/reviews" element={<ProtectedRoute admin={true}> <ProductReviews /> </ProtectedRoute>} />
+        <Route path="/admin/property_inquiries" element={<ProtectedRoute admin={true}> <PropertyInquiries /> </ProtectedRoute>} />
 
          </>
     );

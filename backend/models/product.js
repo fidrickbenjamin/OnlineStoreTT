@@ -10,10 +10,19 @@ const productSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: [true, "Please enter product price"],
-    max: [99999.99, "Product price cannot exceed 5 digits"],
     default: 0.00,
     min: [0, "Price cannot be negative"],
     set: (value) => (typeof value === "number" && !isNaN(value) ? parseFloat(value.toFixed(2)) : value),
+    validate: {
+      validator(value) {
+        if (typeof value !== "number" || Number.isNaN(value)) return false;
+        if (this.listingType === "property" || this.category?.main === "Property or Real Estate") {
+          return value >= 0;
+        }
+        return value <= 99999.99;
+      },
+      message: "Product price cannot exceed 5 digits for retail listings",
+    },
   },
 
   description: {
@@ -75,6 +84,43 @@ const productSchema = new mongoose.Schema({
   seller: {
     type: String,
     required: [true, "Please enter product seller"],
+  },
+
+  listingType: {
+    type: String,
+    enum: ["retail", "property"],
+    default: "retail",
+  },
+
+  propertyDetails: {
+    propertyType: {
+      type: String,
+      enum: ["House", "Apartment", "Land", "Commercial", "Villa", "Townhouse", "Other"],
+    },
+    location: {
+      type: String,
+    },
+    bedrooms: {
+      type: Number,
+    },
+    bathrooms: {
+      type: Number,
+    },
+    sizeSqft: {
+      type: Number,
+    },
+    yearBuilt: {
+      type: Number,
+    },
+    listingStatus: {
+      type: String,
+      enum: ["For Sale", "For Rent", "Sold", "Pending"],
+      default: "For Sale",
+    },
+    inquiryOnly: {
+      type: Boolean,
+      default: true,
+    },
   },
 
   stock: {

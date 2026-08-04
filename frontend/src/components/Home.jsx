@@ -33,6 +33,10 @@ const Home = () => {
   
 
  const {data, isLoading, error, isError} = useGetProductsQuery(params);
+ const retailProducts = (data?.products || []).filter((product) => {
+   const isProperty = product?.listingType === "property" || product?.category?.main === "Property or Real Estate";
+   return !isProperty;
+ });
 
       useEffect(() => {
           if(isError) {
@@ -51,10 +55,10 @@ const Home = () => {
 
       const headingText = headingLabel
         ? category
-          ? `${data?.products?.length} Products in ${headingLabel}`
+          ? `${retailProducts.length} Products in ${headingLabel}`
           : ratings
-            ? `${data?.products?.length} Products with ${headingLabel}`
-            : `${data?.products?.length} Products found with keyword: ${headingLabel}`
+            ? `${retailProducts.length} Products with ${headingLabel}`
+            : `${retailProducts.length} Products found with keyword: ${headingLabel}`
         : "Latest Products";
 
  if(isLoading) return <Loader />;
@@ -85,7 +89,7 @@ const Home = () => {
 
           <section id="products" className="mt-5">
             <div className="row">
-              {data?.products?.map((product) => (
+              {retailProducts.map((product) => (
                 <ProductItem  product={product} columnSize={columnSize} />
               ))}
               

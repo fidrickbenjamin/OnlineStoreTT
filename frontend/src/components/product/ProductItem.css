@@ -2,36 +2,86 @@
 .product-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: stretch;
+    text-align: left;
     background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #c7a78d;
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(75, 46, 43, 0.12);
     overflow: hidden;
-    max-height: 415px; /* Adjust height to fit the content properly */
+    max-height: 100%;
     position: relative;
+}
+
+.product-card.property-card {
+    background: linear-gradient(135deg, #fcf7f2 0%, #f5e8df 55%, #efe0eb 100%);
+    border-color: #8b5a3c;
+    box-shadow: 0 12px 28px rgba(107, 70, 91, 0.16);
+}
+
+.product-card.property-card .card-img-top {
+    height: 190px;
+    object-fit: cover;
+    border-bottom: 1px solid rgba(107, 70, 91, 0.2);
+}
+
+.product-card.property-card .card-body {
+    padding: 14px 16px 16px;
+    gap: 8px;
+}
+
+.product-card.property-card .card-title a {
+    color: #4b2e2b;
+    font-weight: 700;
+}
+
+.product-card.property-card .card-text,
+.product-card.property-card .text-muted,
+.product-card.property-card p {
+    color: #5f4b45;
+}
+
+.product-card.property-card .badge {
+    background-color: #7b5a3c !important;
+    color: #fff !important;
+    border: 1px solid #6a4a32;
+}
+
+.product-card.property-card .btn {
+    font-size: 0.9em;
+    padding: 8px 14px;
+    margin-top: 6px;
+    background: linear-gradient(135deg, #6f3d72 0%, #8b5a3c 100%);
+    border: 1px solid #6f3d72;
+    color: #fff;
+    border-radius: 999px;
+}
+
+.product-card.property-card .btn:hover {
+    background: linear-gradient(135deg, #5d2f61 0%, #784e31 100%);
+    border-color: #5d2f61;
+    color: #fff;
 }
 
 .card-img-top {
     width: 100%;
-    height: auto; /* Adjust height to auto */
-    max-height: 180px; /* Set a maximum height to ensure the image fits within the card */
-    object-fit: contain; /* Ensure the entire image is visible */
-    display: block; /* Ensure block display */
+    height: auto;
+    max-height: 180px;
+    object-fit: contain;
+    display: block;
 }
 
 .card-body {
-    padding: 8px; /* Reduced padding */
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Distribute space evenly */
-    flex: 1; /* Allow the body to expand and contract */
+    justify-content: space-between;
+    flex: 1;
 }
 
 .card-title {
-    font-size: 1em; /* Smaller font size */
-    margin-bottom: 8px; /* Reduced margin below title */
+    font-size: 1em;
+    margin-bottom: 8px;
 }
 
 .card-title a {
@@ -44,46 +94,67 @@
 }
 
 .card-text {
-    font-size: 0.9em; /* Smaller font size for text */
-    margin: 8px 0; /* Adjust margins for better spacing */
+    font-size: 0.9em;
+    margin: 8px 0;
 }
 
-/* Scoped button styles */
 .product-card .btn {
-    font-size: 0.9em; /* Smaller font size for the button */
-    padding: 6px 12px; /* Adjust padding for the button */
-    margin-top: 8px; /* Reduced margin for the button */
-    background-color: #fa9c23; /* Set the button background color */
-    border-color: #fa9c23; /* Set the button border color */
-    color: #fff; /* Ensure the text color is white for better readability */
+    font-size: 0.9em;
+    padding: 6px 12px;
+    margin-top: 8px;
+    background-color: #fa9c23;
+    border-color: #fa9c23;
+    color: #fff;
 }
 
 .product-card .btn:hover {
-    background-color: #e58c20; /* Slightly darker shade on hover */
-    border-color: #e58c20; /* Match the border color on hover */
+    background-color: #e58c20;
+    border-color: #e58c20;
 }
 
 @media (max-width: 768px) {
     .product-card {
-        max-height: 450px; /* Increase height for better visibility on smaller screens */
+        max-height: none;
+        min-height: 100%;
+    }
+
+    .product-card.property-card .card-img-top {
+        height: 160px;
     }
 
     .card-body {
-        padding: 6px; /* Further reduced padding */
+        padding: 10px 12px 12px;
     }
-    
+
     .card-title {
-        font-size: 0.9em; /* Smaller font size for titles on smaller screens */
+        font-size: 0.95em;
     }
 
     .card-text {
-        font-size: 0.8em; /* Smaller font size for text on smaller screens */
+        font-size: 0.82em;
+        margin: 4px 0;
     }
 
-    /* Scoped button styles for smaller screens */
-    .product-card .btn {
-        font-size: 0.8em; /* Smaller font size for buttons on smaller screens */
-        padding: 5px 10px; /* Adjust padding for buttons */
+    .product-card .btn,
+    .product-card.property-card .btn {
+        font-size: 0.8em;
+        padding: 7px 12px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-card.property-card .card-img-top {
+        height: 140px;
+    }
+
+    .card-body {
+        padding: 10px;
+    }
+
+    .product-card .btn,
+    .product-card.property-card .btn {
+        width: 100%;
     }
 }
 
