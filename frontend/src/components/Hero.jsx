@@ -50,21 +50,23 @@ const Hero = () => {
             />
             <div className="hero-overlay">
               <div className="price">
-               <Price
-                 amount={randomProducts[currentIndex].price}
-                 size={isMobile ? undefined : "hero"}
-                            />
-             </div>
-              <div className="d-flex flex-wrap gap-2 mt-2">
+                <Price
+                  amount={randomProducts[currentIndex].price}
+                  size={isMobile ? "medium" : "hero"}
+                />
+              </div>
+              <div className="hero-actions">
                 <a
-                  href={`/product/${randomProducts[currentIndex]._id}`} // Ensure this URL matches your route configuration
+                  href={`/product/${randomProducts[currentIndex]._id}`}
                   className="btn"
                 >
                   View Product
                 </a>
-                <Link to="/property-hub" className="btn btn-outline-light">
-                  Explore Property Hub
-                </Link>
+                {!isMobile && (
+                  <Link to="/property-hub" className="btn btn-outline-light">
+                    Explore Property Hub
+                  </Link>
+                )}
               </div>
             </div>
           </div>

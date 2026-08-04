@@ -58,14 +58,15 @@
   .hero-overlay {
     position: absolute;
     top: 50%;
-    right: 0;
-    width: 250px; /* Adjust width as needed */
+    right: 12px;
+    width: min(240px, 42vw);
+    max-width: 240px;
     background: rgba(255, 255, 255, 0.2); /* Slightly transparent white background for the glass effect */
     border-radius: 10px; /* Rounded corners */
     backdrop-filter: blur(10px); /* Frosted glass effect */
     -webkit-backdrop-filter: blur(10px); /* Frosted glass effect for Safari */
     color: #fff;
-    padding: 20px;
+    padding: 16px 12px;
     box-sizing: border-box;
     text-align: center;
     z-index: 2; /* Ensure it is above the images */
@@ -74,15 +75,23 @@
   
   /* Price styling */
   .hero-overlay .price {
-    font-size: 1.5em;
+    font-size: 1.2em;
     font-weight: bold;
     color: #000; /* Black color for price */
+    margin-bottom: 8px;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
   
   /* Button styling */
   .hero-overlay .btn {
-    margin-top: 10px;
-    padding: 10px 20px;
+    margin-top: 0;
+    padding: 8px 12px;
     background-color: #ff8c00; /* Button color */
     color: #fff;
     border: none;
@@ -90,6 +99,7 @@
     cursor: pointer;
     text-decoration: none;
     font-weight: bold;
+    font-size: 0.9rem;
   }
   
   .hero-overlay .btn:hover {
@@ -131,8 +141,13 @@
     }
   
     .hero-overlay {
-      width: 200px;
-      padding: 15px;
+      width: min(180px, 44vw);
+      padding: 12px 10px;
+      right: 8px;
+    }
+
+    .hero-overlay .price {
+      margin-bottom: 6px;
     }
   }
   
@@ -152,9 +167,20 @@
     }
   
     .hero-overlay {
-      width: 150px;
-      padding: 10px;
-      font-size: 0.9em;
+      width: min(142px, 46vw);
+      padding: 8px 7px;
+      font-size: 0.85em;
+      right: 6px;
+    }
+
+    .hero-actions {
+      gap: 6px;
+    }
+
+    .hero-overlay .btn {
+      width: 100%;
+      padding: 7px 8px;
+      font-size: 0.8rem;
     }
   }
   
