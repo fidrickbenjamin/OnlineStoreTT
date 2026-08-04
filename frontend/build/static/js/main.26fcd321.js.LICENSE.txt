@@ -17,15 +17,22 @@ object-assign
 */
 
 /*!
-  react-datepicker v7.3.0
+  react-datepicker v7.6.0
   https://github.com/Hacker0x01/react-datepicker
   Released under the MIT License.
 */
 
 /*!
- * Chart.js v3.0.0
+ * @kurkle/color v0.2.1
+ * https://github.com/kurkle/color#readme
+ * (c) 2022 Jukka Kurkela
+ * Released under the MIT License
+ */
+
+/*!
+ * Chart.js v3.9.1
  * https://www.chartjs.org
- * (c) 2021 Chart.js Contributors
+ * (c) 2022 Chart.js Contributors
  * Released under the MIT License
  */
 
@@ -36,24 +43,7 @@ object-assign
  */
 
 /*!
- * react-paypal-js v8.7.0 (2024-09-16T17:52:54.237Z)
- * Copyright 2020-present, PayPal, Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*!
-* tabbable 6.2.0
+* tabbable 6.5.0
 * @license MIT, https://github.com/focus-trap/tabbable/blob/master/LICENSE
 */
 
@@ -70,7 +60,7 @@ object-assign
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** */
 
-/*! countries-list v3.1.0 by Annexare | MIT */
+/*! countries-list v3.4.1 by Annexare | MIT */
 
 /**
  * @license
@@ -310,16 +300,16 @@ object-assign
 
 /**
  * @license React
- * use-sync-external-store-with-selector.production.min.js
+ * use-sync-external-store-with-selector.production.js
  *
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 /**
- * @remix-run/router v1.16.0
+ * @remix-run/router v1.23.3
  *
  * Copyright (c) Remix Software Inc.
  *
@@ -337,7 +327,7 @@ object-assign
  */
 
 /**
- * React Router DOM v6.23.0
+ * React Router DOM v6.30.4
  *
  * Copyright (c) Remix Software Inc.
  *
@@ -348,7 +338,7 @@ object-assign
  */
 
 /**
- * React Router v6.23.0
+ * React Router v6.30.4
  *
  * Copyright (c) Remix Software Inc.
  *
@@ -396,7 +386,7 @@ object-assign
 /** @license
  *
  * jsPDF - PDF Document creation from JavaScript
- * Version 2.5.1 Built on 2022-01-28T15:37:57.791Z
+ * Version 2.5.2 Built on 2024-09-17T13:29:57.859Z
  *                      CommitID 00000000
  *
  * Copyright (c) 2010-2021 James Hall <james@parall.ax>, https://github.com/MrRio/jsPDF
@@ -481,24 +471,6 @@ object-assign
 
 /** @license React v17.0.1
  * react.production.min.js
- *
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/** @license React v17.0.2
- * react-dom.production.min.js
- *
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/** @license React v17.0.2
- * react-jsx-runtime.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
