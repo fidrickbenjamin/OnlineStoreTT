@@ -39,6 +39,12 @@ const AdminLayout = ({children}) => {
             url: "/admin/reviews",
             icon: "bi bi-star-fill",
         },
+
+        {
+            name: "Property Inquiries",
+            url: "/admin/property_inquiries",
+            icon: "bi bi-chat-square-text",
+        },
     ];
 
 

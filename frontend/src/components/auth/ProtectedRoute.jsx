@@ -6,6 +6,7 @@ import Loader from "../layout/Loader";
 const ProtectedRoute = ({ admin, children }) => {
 
     const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
+    const userRole = user?.role?.toLowerCase?.();
     
     
     if(loading) return <Loader />;
@@ -15,7 +16,7 @@ const ProtectedRoute = ({ admin, children }) => {
                     return <Navigate to="/login" replace />;
                 }
 
-    if(admin && user?.role !== "admin") {
+    if(admin && userRole !== "admin") {
         return <Navigate to="/" replace />;
     }            
 
