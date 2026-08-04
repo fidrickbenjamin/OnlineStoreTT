@@ -1,15 +1,38 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import StarRatings from "react-star-ratings";
 import './ProductItem.css';
 import Price from "../Price/Price";
 
 const ProductItem = ({ product, columnSize }) => {
+  const navigate = useNavigate();
   const isProperty = product?.listingType === "property" || product?.category?.main === "Property or Real Estate";
+
+  const handleCardClick = (event) => {
+    if (event.target.closest("a, button, input, select, textarea")) {
+      return;
+    }
+
+    navigate(`/product/${product?._id}`);
+  };
+
+  const handleCardKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      navigate(`/product/${product?._id}`);
+    }
+  };
 
   return (
     <div className={`col-sm-12 col-md-6 col-lg-${columnSize} my-3`}>
-      <div className={`card p-3 rounded product-card ${isProperty ? "property-card" : ""}`}>
+      <div
+        className={`card p-3 rounded product-card ${isProperty ? "property-card property-card--landscape" : ""}`}
+        data-testid="product-card"
+        role="button"
+        tabIndex={0}
+        onClick={handleCardClick}
+        onKeyDown={handleCardKeyDown}
+      >
         <img
           className="card-img-top"
           src={product?.images[0] ? product?.images[0]?.url : "/images/default_product.png"}
