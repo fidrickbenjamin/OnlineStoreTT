@@ -62,7 +62,7 @@ const PropertyHub = () => {
           </div>
           <div className="col-12 col-lg-4">
             <div className="rounded-4 p-3 p-sm-4 h-100 shadow-sm border" style={{ background: "#f7efe9", borderColor: "#e5d7ca" }}>
-              <h5 className="fw-semibold mb-2" style={{ color: "#4b2e2b" }}>Why this section feels different</h5>
+              <h5 className="fw-semibold mb-2" style={{ color: "#4b2e2b" }}> Find Your Perfect Home or Investment in Dominica</h5>
               <p className="mb-0 text-muted small">
                 This hub focuses on viewing, inquiry, and trusted property conversations rather than instant checkout.
               </p>

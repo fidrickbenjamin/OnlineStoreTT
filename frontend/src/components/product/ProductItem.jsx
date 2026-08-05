@@ -59,9 +59,9 @@ const ProductItem = ({ product, columnSize }) => {
                 {product?.name}
               </Link>
             </h5>
-
+                
             {isProperty && (
-              <span className="badge">
+              <span className="badge ms-2">
                 Property
               </span>
             )}
@@ -78,17 +78,20 @@ const ProductItem = ({ product, columnSize }) => {
 
 
               <p className="card-text">
-                <strong>
-                  {product?.propertyDetails?.propertyType ||
-                    "Property"}
-                </strong>
+  <strong>
+    {product?.propertyDetails?.propertyType || "Property"}
+  </strong>
 
-                {product?.propertyDetails?.bedrooms &&
-                  ` · ${product.propertyDetails.bedrooms} bed`}
+  {product?.propertyDetails?.propertyType?.toLowerCase() !== "land" && (
+    <>
+      {product?.propertyDetails?.bedrooms &&
+        ` · ${product.propertyDetails.bedrooms} bed`}
 
-                {product?.propertyDetails?.bathrooms &&
-                  ` · ${product.propertyDetails.bathrooms} bath`}
-              </p>
+      {product?.propertyDetails?.bathrooms &&
+        ` · ${product.propertyDetails.bathrooms} bath`}
+    </>
+  )}
+</p>
 
 
               <p className="card-text">
