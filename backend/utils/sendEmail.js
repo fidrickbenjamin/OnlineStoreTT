@@ -1,24 +1,28 @@
 import nodemailer from "nodemailer";
+import { MailtrapTransport } from "mailtrap";
 
 const sendEmail = async (options) => {
-    const transport = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        auth: {
-          user: process.env.SMTP_EMAIL,
-          pass: process.env.SMTP_PASSWORD,
-        },
-      });
+  const transport = nodemailer.createTransport(
+    MailtrapTransport({
+      token: process.env.MAILTRAP_API_TOKEN,
+    })
+  );
 
-      const message = {
-        from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}> `,
-        to: options.email,
-        subject: options.subject,
-        html: options.message,
-      };
+  const message = {
+    from: {
+      address: process.env.SMTP_FROM_EMAIL,
+      name: process.env.SMTP_FROM_NAME,
+    },
+    to: [
+      {
+        address: options.email,
+      },
+    ],
+    subject: options.subject,
+    html: options.message,
+  };
 
-      await transport.sendMail(message);
-
+  await transport.sendMail(message);
 };
 
 export default sendEmail;

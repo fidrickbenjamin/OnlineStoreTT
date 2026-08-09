@@ -3,48 +3,669 @@ import order from "../models/order.js";
 import Stripe from "stripe";
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-export const createShopdmPayCheckout = catchAsyncErrors(async (req, res) => {
-    const { totalAmount, orderId, reason, custom } = req.body;
+import crypto from "crypto";
 
-    const merchantHandle = process.env.SHOPDM_PAY_MERCHANT_HANDLE || "your-shopdm-merchant-handle";
-    const sandbox = process.env.SHOPDM_PAY_SANDBOX === "true";
 
-    if (!merchantHandle || merchantHandle.includes("your-shopdm")) {
-        return res.status(400).json({
-            success: false,
-            message: "Shopdm Pay merchant handle is not configured yet. Please add your real Shopdm credentials.",
-        });
-    }
 
-    const checkoutUrl = `https://sandbox.shopdm.com/pay/${merchantHandle}`;
+/**
+ * ============================================================
+ * CREATE SHOPDM PAY CHECKOUT
+ * ============================================================
+ */
 
-    res.status(200).json({
-        success: true,
-        sandbox,
-        checkoutUrl,
-        merchantHandle,
-        metadata: {
+export const createShopdmPayCheckout = catchAsyncErrors(
+    async (req, res) => {
+
+        const {
+            totalAmount,
             orderId,
             reason,
             custom,
-            amount: totalAmount,
-        },
-    });
-});
+        } = req.body;
 
-export const shopdmPayWebhook = catchAsyncErrors(async (req, res) => {
-    const signature = req.headers["x-shopdm-signature"] || req.headers["shopdm-signature"];
-    const secret = process.env.SHOPDM_PAY_WEBHOOK_SECRET || "your-shopdm-webhook-secret";
+        // -------------------------------------------------------
+        // 1. Validate Order ID
+        // -------------------------------------------------------
 
-    if (!signature || secret.includes("your-shopdm")) {
-        return res.status(400).json({
-            success: false,
-            message: "Shopdm Pay webhook secret is not configured yet.",
+        if (!orderId) {
+            return res.status(400).json({
+                success: false,
+                message: "Order ID is required.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 2. Find the order
+        // -------------------------------------------------------
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 3. Make sure this is a ShopDM order
+        // -------------------------------------------------------
+
+        if (order.paymentMethod !== "ShopdmPay") {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "This order is not configured for ShopDM Pay.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 4. ALWAYS use the order's database total.
+        //
+        // Do NOT trust totalAmount sent from the frontend.
+        // -------------------------------------------------------
+
+        const orderTotal = Number(order.totalAmount);
+
+        if (
+            !Number.isFinite(orderTotal) ||
+            orderTotal <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Order does not contain a valid total amount.",
+            });
+        }
+
+        const totalXcd = orderTotal.toFixed(2);
+
+        // -------------------------------------------------------
+        // 5. ShopDM configuration
+        // -------------------------------------------------------
+
+        const merchantHandle =
+            process.env.SHOPDM_PAY_MERCHANT_HANDLE;
+
+        const sandbox =
+            process.env.SHOPDM_PAY_SANDBOX === "true";
+
+        if (
+            !merchantHandle ||
+            merchantHandle.includes("your-shopdm")
+        ) {
+            return res.status(500).json({
+                success: false,
+                message:
+                    "ShopDM Pay merchant handle is not configured.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 6. ShopDM environment URLs
+        // -------------------------------------------------------
+
+        const signingApiUrl = sandbox
+            ? "https://us-central1-shop-dm-dev.cloudfunctions.net/api/v1/pay/generate-signature"
+            : "https://us-central1-shop-dm.cloudfunctions.net/api/v1/pay/generate-signature";
+
+        const paymentBaseUrl = sandbox
+            ? "https://pay-dm-dev.web.app"
+            : "https://pay.shopdm.store";
+
+        // -------------------------------------------------------
+        // 7. Build ShopDM payment parameters
+        // -------------------------------------------------------
+
+        const paymentReason =
+            reason ||
+            `Order ${order._id}`;
+
+        const paymentCustom =
+            custom ||
+            `orderId ${order._id}`;
+
+        const payload = {
+            total_xcd: totalXcd,
+            reason: paymentReason,
+            invoice_id: String(order._id),
+            custom: paymentCustom,
+            redirect: true,
+            webhook: true,
+        };
+
+        // -------------------------------------------------------
+        // 8. Generate ShopDM signature
+        // -------------------------------------------------------
+
+        let signature;
+
+        try {
+
+            const response = await fetch(
+                signingApiUrl,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body: JSON.stringify({
+                        payload,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+                console.error(
+                    "ShopDM signature API error:",
+                    errorText
+                );
+
+                return res.status(502).json({
+                    success: false,
+                    message:
+                        "ShopDM signature generation failed.",
+                });
+            }
+
+            const signatureResponse =
+                await response.json();
+
+            signature =
+                signatureResponse?.signature;
+
+            if (!signature) {
+
+                console.error(
+                    "ShopDM signature response:",
+                    signatureResponse
+                );
+
+                return res.status(502).json({
+                    success: false,
+                    message:
+                        "ShopDM did not return a signature.",
+                });
+            }
+
+        } catch (error) {
+
+            console.error(
+                "ShopDM signature request failed:",
+                error
+            );
+
+            return res.status(502).json({
+                success: false,
+                message:
+                    "Unable to connect to ShopDM Pay.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 9. Build final payment URL
+        // -------------------------------------------------------
+
+        const queryParams =
+            new URLSearchParams({
+                total_xcd: payload.total_xcd,
+                reason: payload.reason,
+                invoice_id: payload.invoice_id,
+                custom: payload.custom,
+                signature,
+                redirect: "true",
+                webhook: "true",
+            });
+
+        const checkoutUrl =
+            `${paymentBaseUrl}/${encodeURIComponent(
+                merchantHandle
+            )}?${queryParams.toString()}`;
+
+        // -------------------------------------------------------
+        // 10. Return URL
+        // -------------------------------------------------------
+
+        return res.status(200).json({
+            success: true,
+            sandbox,
+            checkoutUrl,
+            merchantHandle,
+            invoiceId: String(order._id),
+            amountXcd: orderTotal,
         });
     }
+);
 
-    res.status(200).json({ success: true, message: "Webhook received" });
-});
+
+/**
+ * ============================================================
+ * SHOPDM PAY WEBHOOK
+ * ============================================================
+ */
+export const shopdmPayWebhook = catchAsyncErrors(
+    async (req, res) => {
+
+        // -------------------------------------------------------
+        // 1. Get signature
+        // -------------------------------------------------------
+
+        const signature =
+            req.headers["x-shopdm-signature"];
+
+        const webhookSecret =
+            process.env.SHOPDM_PAY_WEBHOOK_SECRET;
+
+        if (!webhookSecret) {
+
+            console.error(
+                "SHOPDM_PAY_WEBHOOK_SECRET is missing."
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "ShopDM webhook secret is not configured.",
+            });
+        }
+
+        if (!signature) {
+
+            console.warn(
+                "ShopDM webhook received without signature."
+            );
+
+            return res.status(401).json({
+                success: false,
+                message:
+                    "Missing ShopDM webhook signature.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 2. Verify HMAC-SHA256
+        // -------------------------------------------------------
+
+        const payload = req.body;
+
+        const sortedPayload =
+            JSON.stringify(
+                payload,
+                Object.keys(payload).sort()
+            );
+
+        const expectedSignature =
+            crypto
+                .createHmac(
+                    "sha256",
+                    webhookSecret
+                )
+                .update(
+                    sortedPayload,
+                    "utf8"
+                )
+                .digest("hex");
+
+        let signatureIsValid = false;
+
+        try {
+
+            const receivedBuffer =
+                Buffer.from(
+                    String(signature),
+                    "utf8"
+                );
+
+            const expectedBuffer =
+                Buffer.from(
+                    expectedSignature,
+                    "utf8"
+                );
+
+            if (
+                receivedBuffer.length ===
+                expectedBuffer.length
+            ) {
+                signatureIsValid =
+                    crypto.timingSafeEqual(
+                        receivedBuffer,
+                        expectedBuffer
+                    );
+            }
+
+        } catch (error) {
+
+            console.error(
+                "ShopDM signature comparison error:",
+                error
+            );
+
+            signatureIsValid = false;
+        }
+
+        if (!signatureIsValid) {
+
+            console.warn(
+                "Invalid ShopDM webhook signature."
+            );
+
+            return res.status(401).json({
+                success: false,
+                message:
+                    "Invalid ShopDM webhook signature.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 3. Verify event
+        // -------------------------------------------------------
+
+        if (
+            payload?.event !==
+            "payment.success"
+        ) {
+
+            return res.status(200).json({
+                success: true,
+                message:
+                    "ShopDM event received but not processed.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 4. Extract ShopDM information
+        // -------------------------------------------------------
+
+        const webhookEventId =
+            payload?.id;
+
+        const paymentData =
+            payload?.data || {};
+
+        const feeData =
+            payload?.fee_data || {};
+
+        const metadata =
+            payload?.metadata || {};
+
+        const invoiceId =
+            metadata?.invoice_id;
+
+        const transactionId =
+            paymentData?.object_id;
+
+        const reference =
+            paymentData?.reference;
+
+        const amountXcd =
+            Number(paymentData?.amount_xcd);
+
+        // -------------------------------------------------------
+        // 5. Validate invoice
+        // -------------------------------------------------------
+
+        if (!invoiceId) {
+
+            console.error(
+                "ShopDM webhook missing invoice_id.",
+                payload
+            );
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "ShopDM webhook is missing invoice_id.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 6. Validate payment amount
+        // -------------------------------------------------------
+
+        if (
+            !Number.isFinite(amountXcd) ||
+            amountXcd <= 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid ShopDM payment amount.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 7. Find the order
+        // -------------------------------------------------------
+
+        let order;
+
+        try {
+
+            order =
+                await Order.findById(
+                    invoiceId
+                );
+
+        } catch (error) {
+
+            console.error(
+                "Invalid ShopDM invoice ID:",
+                invoiceId
+            );
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid ShopDM invoice/order ID.",
+            });
+        }
+
+        if (!order) {
+
+            console.error(
+                "ShopDM order not found:",
+                invoiceId
+            );
+
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Order associated with ShopDM payment was not found.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 8. Verify this is a ShopDM order
+        // -------------------------------------------------------
+
+        if (
+            order.paymentMethod !==
+            "ShopdmPay"
+        ) {
+
+            console.error(
+                "ShopDM webhook received for non-ShopDM order:",
+                order._id
+            );
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Order is not configured for ShopDM Pay.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 9. IDEMPOTENCY
+        //
+        // Your schema does not have isPaid.
+        //
+        // We therefore use:
+        //
+        // paymentInfo.status === "paid"
+        //
+        // -------------------------------------------------------
+
+        if (
+            order.paymentInfo?.status ===
+            "paid"
+        ) {
+
+            return res.status(200).json({
+                success: true,
+                message:
+                    "ShopDM payment was already processed.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 10. Compare ShopDM amount against YOUR order
+        // -------------------------------------------------------
+
+        const expectedAmount =
+            Number(order.totalAmount);
+
+        if (
+            !Number.isFinite(expectedAmount)
+        ) {
+
+            console.error(
+                "Order has invalid totalAmount:",
+                order._id
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Order does not contain a valid total amount.",
+            });
+        }
+
+        const amountMatches =
+            Math.abs(
+                expectedAmount -
+                amountXcd
+            ) < 0.01;
+
+        if (!amountMatches) {
+
+            console.error(
+                "ShopDM amount mismatch:",
+                {
+                    orderId: order._id,
+                    expectedAmount,
+                    amountReceived:
+                        amountXcd,
+                }
+            );
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "ShopDM payment amount does not match order total.",
+            });
+        }
+
+        // -------------------------------------------------------
+        // 11. Save ShopDM payment information
+        // -------------------------------------------------------
+
+        order.paymentInfo = {
+
+            id:
+                transactionId ||
+                null,
+
+            status:
+                "paid",
+
+            provider:
+                "shopdm",
+
+            reference:
+                reference ||
+                null,
+
+            webhookEventId:
+                webhookEventId ||
+                null,
+
+            amountXcd:
+                amountXcd,
+
+            customerFeeXcd:
+                Number(
+                    feeData?.customer_fee_xcd ||
+                    0
+                ),
+
+            merchantFeeXcd:
+                Number(
+                    feeData?.merchant_fee_xcd ||
+                    0
+                ),
+
+            netAmountXcd:
+                Number(
+                    feeData?.net_amount_xcd ||
+                    0
+                ),
+
+            amountPaidByCustomerXcd:
+                Number(
+                    feeData?.amount_paid_by_customer_xcd ||
+                    0
+                ),
+
+            paidAt:
+                new Date(),
+        };
+
+        // -------------------------------------------------------
+        // 12. Save order
+        // -------------------------------------------------------
+
+        await order.save();
+
+        // -------------------------------------------------------
+        // 13. Log successful payment
+        // -------------------------------------------------------
+
+        console.log(
+            "ShopDM payment successfully processed.",
+            {
+                orderId:
+                    order._id.toString(),
+
+                transactionId,
+
+                amountXcd,
+
+                webhookEventId,
+            }
+        );
+
+        // -------------------------------------------------------
+        // 14. Respond to ShopDM
+        // -------------------------------------------------------
+
+        return res.status(200).json({
+            success: true,
+            message:
+                "ShopDM payment processed successfully.",
+        });
+    }
+);
+
+
 
 // Create stripe checkout session => /api/v2/payment/checkout_session
 

@@ -67,8 +67,17 @@ paymentMethod: {
 },
 
 paymentInfo: {
-    id: String,
+     id: String,
     status: String,
+    provider: String,
+    reference: String,
+    webhookEventId: String,
+    amountXcd: Number,
+    customerFeeXcd: Number,
+    merchantFeeXcd: Number,
+    netAmountXcd: Number,
+    amountPaidByCustomerXcd: Number,
+    paidAt: Date,
 },
 
 itemsPrice: {
