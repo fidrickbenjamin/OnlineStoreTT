@@ -68,7 +68,18 @@ paymentMethod: {
 
 paymentInfo: {
      id: String,
-    status: String,
+    status: {
+    type: String,
+    enum: [
+        "Not Paid",
+        "Pending",
+        "Verifying",
+        "Paid",
+        "Failed",
+        "Refunded"
+    ],
+    default: "Not Paid",
+},
     provider: String,
     reference: String,
     webhookEventId: String,
@@ -109,10 +120,16 @@ totalAmount: {
 orderStatus: {
     type: String,
     enum: {
-        values: ["Processing", "Shipped", "Delivered", "Cancelled"],
+        values: [
+            "Pending",
+            "Processing",
+            "Shipped",
+            "Delivered",
+            "Cancelled"
+        ],
         message: "Please select correct order status",
     },
-    default: "Processing",
+    default: "Pending",
 },
 deliveredAt: Date,
 
