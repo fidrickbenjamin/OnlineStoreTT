@@ -92,19 +92,19 @@
               </div>
               <div class="order-item">
                 <span>Items Price:</span>
-                <span>${parseFloat(order.itemsPrice).toFixed(2)} USD</span>
+                <span>${parseFloat(order.itemsPrice).toFixed(2)} XCD</span>
               </div>
               <div class="order-item">
                 <span>Tax:</span>
-                <span>${parseFloat(order.taxAmount).toFixed(2)} USD</span>
+                <span>${parseFloat(order.taxAmount).toFixed(2)} XCD</span>
               </div>
               <div class="order-item">
                 <span>Shipping:</span>
-                <span>${parseFloat(order.shippingAmount).toFixed(2)} USD</span>
+                <span>${parseFloat(order.shippingAmount).toFixed(2)} XCD</span>
               </div>
               <div class="order-total">
                 <span>Total Amount:</span>
-                <span>${parseFloat(order.totalAmount).toFixed(2)} USD</span>
+                <span>${parseFloat(order.totalAmount).toFixed(2)} XCD</span>
               </div>
             </div>
   
@@ -248,19 +248,19 @@
               </div>
               <div class="order-item">
                 <span>Items Price:</span>
-                <span>${parseFloat(order.itemsPrice).toFixed(2)} USD</span>
+                <span>${parseFloat(order.itemsPrice).toFixed(2)} XCD</span>
               </div>
               <div class="order-item">
                 <span>Tax:</span>
-                <span>${parseFloat(order.taxAmount).toFixed(2)} USD</span>
+                <span>${parseFloat(order.taxAmount).toFixed(2)} XCD</span>
               </div>
               <div class="order-item">
                 <span>Shipping:</span>
-                <span>${parseFloat(order.shippingAmount).toFixed(2)} USD</span>
+                <span>${parseFloat(order.shippingAmount).toFixed(2)} XCD</span>
               </div>
               <div class="order-total">
                 <span>Total Amount:</span>
-                <span>${parseFloat(order.totalAmount).toFixed(2)} USD</span>
+                <span>${parseFloat(order.totalAmount).toFixed(2)} XCD</span>
               </div>
             </div>
   

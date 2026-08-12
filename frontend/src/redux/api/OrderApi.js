@@ -1,11 +1,13 @@
+
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-export const orderApi = createApi ({
+export const orderApi = createApi({
     reducerPath: "orderApi",
-    baseQuery: fetchBaseQuery({ baseUrl: "/api/v2"}),
-    tagTypes: ["Order", "Orders" , "AdminOrders"],
+    baseQuery: fetchBaseQuery({ baseUrl: "/api/v2" }),
+    tagTypes: ["Order", "Orders", "AdminOrders"],
+
     endpoints: (builder) => ({
-        
+
         createNewOrder: builder.mutation({
             query(body) {
                 return {
@@ -14,29 +16,25 @@ export const orderApi = createApi ({
                     body,
                 };
             },
-
         }),
 
         myOrders: builder.query({
-            query: ( ) => `/me/orders`,
-            invalidatesTags:["Order", "Orders"],
+            query: () => `/me/orders`,
+            providesTags: ["Order", "Orders"],
         }),
-        orderDetails: builder.query({
-            query: ( id) => `/orders/${id}`,
-            providesTags: ["Order"],
-            invalidatesTags:["Order", "Orders"],
 
+        orderDetails: builder.query({
+            query: (id) => `/orders/${id}`,
+            providesTags: ["Order"],
         }),
 
         cancelOrder: builder.mutation({
-    query: (id) => ({
-        url: `/orders/cancel-order/${id}`,
-        method: "POST",
-    }),
-    invalidatesTags: ["Order", "Orders", "AdminOrders"],
-}),
-
-
+            query: (id) => ({
+                url: `/orders/cancel-order/${id}`,
+                method: "POST",
+            }),
+            invalidatesTags: ["Order", "Orders", "AdminOrders"],
+        }),
 
         stripeCheckoutSession: builder.mutation({
             query(body) {
@@ -46,28 +44,36 @@ export const orderApi = createApi ({
                     body,
                 };
             },
-
         }),
+
+        // Shopdm Pay checkout
+        shopdmCheckout: builder.mutation({
+            query: ({ orderId }) => ({
+                url: "/payment/shopdm-checkout",
+                method: "POST",
+                body: { orderId },
+            }),
+        }),
+
         getDashboardSales: builder.query({
-            query: ( {startDate, endDate}) => `/admin/get_sales/?startDate=${startDate}&endDate=${endDate}`,
-
+            query: ({ startDate, endDate }) =>
+                `/admin/get_sales/?startDate=${startDate}&endDate=${endDate}`,
         }),
-        getAdminOrders: builder.query({
-            query: ( ) => `/admin/orders`,
-            providesTags:["AdminOrders"],
 
+        getAdminOrders: builder.query({
+            query: () => `/admin/orders`,
+            providesTags: ["AdminOrders"],
         }),
 
         updateOrder: builder.mutation({
-            query({id, body}) {
+            query({ id, body }) {
                 return {
                     url: `/admin/orders/${id}`,
                     method: "PUT",
                     body,
                 };
             },
-            invalidatesTags:["Order", "AdminOrders"],
-
+            invalidatesTags: ["Order", "AdminOrders"],
         }),
 
         deleteOrder: builder.mutation({
@@ -75,25 +81,24 @@ export const orderApi = createApi ({
                 return {
                     url: `/admin/orders/${id}`,
                     method: "DELETE",
-                   
                 };
             },
-            invalidatesTags:["AdminOrders"],
-
+            invalidatesTags: ["AdminOrders"],
         }),
-
-
-
 
     }),
 });
 
-export const { useCreateNewOrderMutation,
-               useStripeCheckoutSessionMutation, 
-               useMyOrdersQuery, 
-               useOrderDetailsQuery, 
-               useLazyGetDashboardSalesQuery,
-               useGetAdminOrdersQuery,
-               useUpdateOrderMutation,
-               useDeleteOrderMutation, 
-               useCancelOrderMutation,} = orderApi;
+export const {
+    useCreateNewOrderMutation,
+    useStripeCheckoutSessionMutation,
+    useMyOrdersQuery,
+    useOrderDetailsQuery,
+    useLazyGetDashboardSalesQuery,
+    useGetAdminOrdersQuery,
+    useUpdateOrderMutation,
+    useDeleteOrderMutation,
+    useCancelOrderMutation,
+    useShopdmCheckoutMutation,
+} = orderApi;
+

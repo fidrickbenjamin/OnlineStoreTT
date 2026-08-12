@@ -3,7 +3,7 @@ import MetaData from "../layout/MetaData";
 import { useSelector } from "react-redux";
 import CheckoutSteps from "./CheckoutSteps";
 import { calculateOrderCost } from "../../helpers/helpers";
-import { useCreateNewOrderMutation } from "../../redux/api/OrderApi";
+import { useCreateNewOrderMutation, useShopdmCheckoutMutation } from "../../redux/api/OrderApi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import ShopdmPay from "../payment/ShopdmPay";
@@ -20,6 +20,11 @@ const PaymentMethod = () => {
   const { user } = useSelector((state) => state.auth);
 
   const [createNewOrder, { error, isSuccess }] = useCreateNewOrderMutation();
+  const [shopdmCheckout, {
+    isLoading: isShopdmLoading
+}] = useShopdmCheckoutMutation();
+  // const [shopdmCheckout, { error: shopdmError, isSuccess: shopdmSuccess }] = useShopdmCheckoutMutation();
+
 
   const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
     calculateOrderCost(cartItems, shippingOption);
@@ -31,14 +36,14 @@ const PaymentMethod = () => {
   const isShippingValid =
     validShippingOptions.includes(shippingOption);
 
-  useEffect(() => {
-    if (error) toast.error(error?.data?.message);
-
-    if (isSuccess) {
-      navigate("/me/orders?order_success=true");
-      toast.success("Order Completed!");
-    }
-  }, [error, isSuccess, navigate]);
+ useEffect(() => { 
+  if (error) { 
+    toast.error( 
+      error?.data?.message || 
+      "Unable to create order." 
+    ); 
+  } 
+}, [error]);
 
   // =============================
   // BUILD ORDER
@@ -58,56 +63,110 @@ const PaymentMethod = () => {
   // =============================
   // MAIN HANDLER
   // =============================
-  const submitHandler = async (selectedMethod) => {
+ 
+const submitHandler = async (selectedMethod) => {
     setMethod(selectedMethod);
 
     if (!cartItems.length) {
-      toast.error("Cart is empty");
-      return;
+        toast.error("Cart is empty");
+        return;
     }
 
     if (
-      !shippingInfo.address ||
-      !shippingInfo.city ||
-      !shippingInfo.zipCode ||
-      !shippingInfo.phoneNo ||
-      !shippingInfo.country
+        !shippingInfo.address ||
+        !shippingInfo.city ||
+        !shippingInfo.zipCode ||
+        !shippingInfo.phoneNo ||
+        !shippingInfo.country
     ) {
-      toast.error("Please complete shipping information");
-      navigate("/shipping");
-      return;
+        toast.error("Please complete shipping information");
+        navigate("/shipping");
+        return;
     }
 
     if (!isShippingValid) {
-      toast.error("Please select a shipping option before continuing");
-      navigate("/shipping");
-      return;
+        toast.error("Please select a shipping option before continuing");
+        navigate("/shipping");
+        return;
     }
 
     setLoading(true);
 
     try {
-      if (["COD", "CASH", "NBD", "ShopdmPay"].includes(selectedMethod)) {
-        const paymentInfo =
-          selectedMethod === "NBD"
-            ? { status: "Verifying" }
-            : selectedMethod === "ShopdmPay"
-            ? { status: "Pending", note: "Shopdm Pay pending confirmation" }
-            : { status: "Not Paid" };
+        if (["COD", "CASH", "NBD", "ShopdmPay"].includes(selectedMethod)) {
 
-        const orderData = buildOrderData(selectedMethod, paymentInfo);
-        await createNewOrder(orderData).unwrap();
-      }
+            const paymentInfo =
+                selectedMethod === "NBD"
+                    ? { status: "Verifying" }
+                    : selectedMethod === "ShopdmPay"
+                    ? {
+                        status: "Pending",
+                        note: "Shopdm Pay pending confirmation",
+                    }
+                    : { status: "Not Paid" };
+
+            // Build the order using your existing function
+            const orderData = buildOrderData(
+                selectedMethod,
+                paymentInfo
+            );
+
+            // Create the order and KEEP the response
+            const result = await createNewOrder(orderData).unwrap();
+
+            // ==========================================
+            // SHOPDM PAY
+            // ==========================================
+            if (selectedMethod === "ShopdmPay") {
+
+                if (!result?.success || !result?.order?._id) {
+                    throw new Error(
+                        "Order was created but no order ID was returned."
+                    );
+                }
+
+                const orderId = result.order._id;
+
+                // Ask backend to generate the signed Shopdm URL
+                const payment = await shopdmCheckout({
+                    orderId,
+                }).unwrap();
+
+                if (!payment?.checkoutUrl) {
+                    throw new Error(
+                        "Shopdm payment URL was not returned."
+                    );
+                }
+
+                // Send customer to Shopdm Pay
+                window.location.href = payment.checkoutUrl;
+
+                return;
+            }
+
+            // ==========================================
+            // OTHER PAYMENT METHODS
+            // ==========================================
+            navigate("/me/orders?order_success=true");
+            toast.success("Order Completed!");
+        }
+
     } catch (err) {
-      toast.error(err?.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+        console.error("Payment processing error:", err);
 
-  const handleShopdmPay = () => {
-    submitHandler("ShopdmPay");
-  };
+        toast.error(
+            err?.data?.message ||
+            err?.message ||
+            "Unable to process your order."
+        );
+    } finally {
+        setLoading(false);
+    }
+};
+
+
+
+  
 
   const handleMobankingConfirm = async () => {
     setShowBankingModal(false);
@@ -194,16 +253,10 @@ const PaymentMethod = () => {
                 Mobanking
               </button>
 
-              <ShopdmPay
-                amount={totalPrice}
-                invoiceId={`order-${user?._id || Date.now()}`}
-                reason={`Order ${user?._id || "checkout"}`}
-                custom={user?._id}
-                orderId={null}
-                onPay={handleShopdmPay}
-                disabled={loading}
-                label="Shopdm Pay"
-              />
+              <ShopdmPay amount={totalPrice} 
+              onPay={() => submitHandler("ShopdmPay")} 
+              disabled={loading || isShopdmLoading} 
+              label="Shopdm Pay" />
             </div>
 
             {loading && <div className="text-center mt-3">Processing...</div>}
