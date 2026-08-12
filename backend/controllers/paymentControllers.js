@@ -1,5 +1,5 @@
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
-import order from "../models/order.js";
+import Order from "../models/order.js";
 import Stripe from "stripe";
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -809,7 +809,7 @@ export const stripeWebhook = catchAsyncErrors(
                     user,
                 };
 
-                await order.create(orderData);
+                await Order.create(orderData);
 
                 
 
