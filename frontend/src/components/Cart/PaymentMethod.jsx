@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import MetaData from "../layout/MetaData";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CheckoutSteps from "./CheckoutSteps";
 import { calculateOrderCost } from "../../helpers/helpers";
 import {
@@ -12,12 +12,17 @@ import { useNavigate } from "react-router-dom";
 import ShopdmPay from "../payment/ShopdmPay";
 import Price from "../Price/Price";
 
+// IMPORTANT:
+// Change this import path if your cartSlice is located somewhere else.
+import { clearCart } from "../../redux/features/cartSlice";
+
 const PaymentMethod = () => {
     const [method, setMethod] = useState("");
     const [loading, setLoading] = useState(false);
     const [showBankingModal, setShowBankingModal] = useState(false);
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     // ==========================================
     // REDUX
@@ -86,7 +91,7 @@ const PaymentMethod = () => {
         if (orderError) {
             toast.error(
                 orderError?.data?.message ||
-                "Unable to create order."
+                    "Unable to create order."
             );
         }
     }, [orderError]);
@@ -100,25 +105,27 @@ const PaymentMethod = () => {
         paymentInfo = {}
     ) => ({
         shippingInfo,
-
         shippingOption,
-
         orderItems: cartItems,
 
         itemsPrice,
 
-        shippingAmount: shippingPrice,
+        shippingAmount:
+            shippingPrice,
 
-        taxAmount: taxPrice,
+        taxAmount:
+            taxPrice,
 
-        totalAmount: totalPrice,
+        totalAmount:
+            totalPrice,
 
         paymentInfo,
 
-        paymentMethod: selectedMethod,
+        paymentMethod:
+            selectedMethod,
 
-        // Shopdm orders remain pending until
-        // payment is confirmed by the webhook.
+        // Shopdm orders remain Pending
+        // until payment is confirmed.
         orderStatus:
             selectedMethod === "ShopdmPay"
                 ? "Pending"
@@ -188,13 +195,17 @@ const PaymentMethod = () => {
                 status: "Not Paid",
             };
 
-            if (selectedMethod === "NBD") {
+            if (
+                selectedMethod === "NBD"
+            ) {
                 paymentInfo = {
                     status: "Verifying",
                 };
             }
 
-            if (selectedMethod === "ShopdmPay") {
+            if (
+                selectedMethod === "ShopdmPay"
+            ) {
                 paymentInfo = {
                     status: "Pending",
                     provider: "ShopdmPay",
@@ -205,10 +216,11 @@ const PaymentMethod = () => {
             // BUILD ORDER
             // ==========================================
 
-            const orderData = buildOrderData(
-                selectedMethod,
-                paymentInfo
-            );
+            const orderData =
+                buildOrderData(
+                    selectedMethod,
+                    paymentInfo
+                );
 
             console.log(
                 "Creating order:",
@@ -216,7 +228,7 @@ const PaymentMethod = () => {
             );
 
             // ==========================================
-            // CREATE ORDER FIRST
+            // CREATE ORDER
             // ==========================================
 
             const result =
@@ -230,7 +242,7 @@ const PaymentMethod = () => {
             );
 
             // ==========================================
-            // VERIFY ORDER WAS CREATED
+            // VERIFY ORDER
             // ==========================================
 
             if (
@@ -258,12 +270,9 @@ const PaymentMethod = () => {
                 selectedMethod === "ShopdmPay"
             ) {
                 // --------------------------------------
-                // SAVE ORDER ID
+                // SAVE PENDING ORDER ID
                 // --------------------------------------
-                //
-                // We need this when the customer
-                // returns from Shopdm.
-                //
+
                 sessionStorage.setItem(
                     "shopdmPendingOrderId",
                     orderId
@@ -300,23 +309,16 @@ const PaymentMethod = () => {
                 }
 
                 // --------------------------------------
-                // DO NOT CLEAR CART HERE
+                // IMPORTANT
+                //
+                // DO NOT CLEAR CART HERE.
+                //
+                // Payment has not been confirmed.
                 // --------------------------------------
-                //
-                // The order exists, but payment has
-                // NOT been confirmed yet.
-                //
-                // The cart will be cleared only after
-                // the Shopdm webhook confirms payment.
-                //
 
                 console.log(
                     "Redirecting to Shopdm..."
                 );
-
-                // --------------------------------------
-                // REDIRECT CUSTOMER
-                // --------------------------------------
 
                 window.location.href =
                     payment.checkoutUrl;
@@ -344,10 +346,9 @@ const PaymentMethod = () => {
 
             toast.error(
                 err?.data?.message ||
-                err?.message ||
-                "Unable to process your order."
+                    err?.message ||
+                    "Unable to process your order."
             );
-
         } finally {
             setLoading(false);
         }
@@ -415,7 +416,7 @@ const PaymentMethod = () => {
     return (
         <>
             <MetaData
-                title={"Payment Method"}
+                title="Payment Method"
             />
 
             <CheckoutSteps
@@ -431,6 +432,7 @@ const PaymentMethod = () => {
                     justifyContent: "center",
                 }}
             >
+
                 {/* =====================================
                     ORDER SUMMARY
                 ====================================== */}
@@ -533,7 +535,6 @@ const PaymentMethod = () => {
                                 "1px solid #dcefe3",
                         }}
                     >
-
                         <p className="mb-2">
                             <strong>
                                 Delivery:
@@ -550,8 +551,8 @@ const PaymentMethod = () => {
                             {user?.name ||
                                 "Guest"}
                         </p>
-
                     </div>
+
                 </div>
 
                 {/* =====================================
@@ -646,7 +647,9 @@ const PaymentMethod = () => {
                         )}
 
                     </div>
+
                 </div>
+
             </div>
 
             {/* ==========================================
@@ -831,8 +834,10 @@ const PaymentMethod = () => {
                         </div>
 
                     </div>
+
                 </div>
             )}
+
         </>
     );
 };

@@ -21,6 +21,7 @@ import OrderDetails from "../order/OrderDetails";
 import Invoice from "../invoice/Invoice";
 import PropertyHub from "../property/PropertyHub";
 import ShippingAddress from "../user/ShippingAddress";
+import ShopdmPaymentSuccess from "../payment/ShopdmPaymentSuccess";
 
 
 const userRoutes = () => {
@@ -56,6 +57,7 @@ const userRoutes = () => {
       <Route path="/me/orders" element={<ProtectedRoute> <MyOrders /> </ProtectedRoute>} />
       <Route path="/me/order/:id" element={<ProtectedRoute> <OrderDetails /> </ProtectedRoute>} />
       <Route path="/invoice/order/:id" element={<ProtectedRoute> <Invoice /> </ProtectedRoute>} />
+      <Route path="/payment/shopdm/success" element={<ProtectedRoute> <ShopdmPaymentSuccess /> </ProtectedRoute>} />
      
      
       
