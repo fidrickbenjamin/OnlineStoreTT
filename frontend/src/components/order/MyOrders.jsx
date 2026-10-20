@@ -1,102 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import { useMyOrdersQuery } from "../../redux/api/OrderApi";
-import Loader from "../layout/Loader";
-import toast from "react-hot-toast";
-import { MDBDataTable } from "mdbreact";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import MetaData from "../layout/MetaData";
-import { useDispatch } from "react-redux";
-import { clearCart } from "../../redux/features/cartSlice";
-import { useCancelOrderMutation } from "../../redux/api/OrderApi";
-
-const MyOrders = () => {
-    const { data, isLoading, error } = useMyOrdersQuery();
-    const [searchParams] = useSearchParams();
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const orderSuccess = searchParams.get("order_success");
-
-    useEffect(() => {    
-        if (error) {
-            toast.error(error?.data?.message);
-        }
-        if (orderSuccess) {
-            dispatch(clearCart());
-            navigate("/me/orders");
-        }
-    }, [error, orderSuccess]);
-
-const [cancelOrder] = useCancelOrderMutation();
-
-    const cancelOrderHandler = async (orderId) => {
-    try {
-        await cancelOrder(orderId).unwrap(); // ✅ RTK QUERY USED PROPERLY
-
-        toast.success("Order cancelled successfully");
-        navigate("/me/orders");
-
-    } catch (err) {
-        toast.error(err?.data?.message || "Error canceling the order");
-    }
-};
-
-    const setOrders = () => {
-        const orders = {
-            columns: [
-                { label: "ID", field: "id", sort: "asc" },
-                { label: "Amount Paid", field: "amount", sort: "asc" },
-                { label: "Payment Status", field: "paymentStatus", sort: "asc" },
-                { label: "Order Status", field: "orderStatus", sort: "asc" },
-                { label: "Actions", field: "actions", sort: "asc" },
-            ],
-            rows: [],
-        };
-
-        data?.orders?.forEach((order) => {
-            orders.rows.push({
-                id: order?._id,
-                amount: `$${order?.totalAmount}`,
-                paymentStatus: order?.paymentInfo?.status?.toUpperCase(),
-                orderStatus: order?.orderStatus,
-                actions: (
-                    <>
-                        <Link to={`/me/order/${order?._id}`} className="btn btn-primary">
-                        <i class="bi bi-eye"></i>
-                        </Link>
-                        <Link to={`/invoice/order/${order?._id}`} className="btn btn-success ms-2">
-                        <i class="bi bi-printer"></i>
-                        </Link>
-                        <button
-                            className="btn btn-danger ms-2"
-                            onClick={() => cancelOrderHandler(order?._id)}
-                            disabled={order?.orderStatus === 'Delivered'}
-                        >
-                            <i class="bi bi-x-lg"></i> Cancel Order
-                        </button>
-                    </>
-                ),
-            });
-        });
-
-        return orders;
-    };
-
-    if (isLoading) return <Loader />;
-
-    return (
-        <div>
-            <MetaData title={"My Orders"} />
-            <h1 className="my-5">{data?.orders?.length} Orders</h1>
-
-            <MDBDataTable 
-                data={setOrders()}
-                className="px-3"
-                bordered
-                striped
-                hover
-            />
-        </div>
-    );
-};
-
-export default MyOrders;
+import Loader from "../layout/Loader";
+import { StatusBadge, money, orderNumber } from "../shared/OrderUI";
+export default function MyOrders() {
+ const {data,isLoading,error}=useMyOrdersQuery(undefined,{refetchOnMountOrArgChange:true});const [search,setSearch]=useState(""),[payment,setPayment]=useState("");
+ if(isLoading)return <Loader/>;
+ const orders=(data?.orders||[]).filter(order=>(!payment||order.paymentInfo?.status===payment)&&`${orderNumber(order)} ${order._id} ${order.paymentMethod}`.toLowerCase().includes(search.toLowerCase()));
+ return <main className="tt-page"><MetaData title="My Orders"/><h1>Your orders</h1><p>Track payment and delivery separately. Resume unpaid orders without creating duplicates.</p>{error&&<p role="alert">{error?.data?.message||"Orders could not be loaded."}</p>}<div className="tt-toolbar"><label>Search<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Order number or method"/></label><label>Payment<select value={payment} onChange={event=>setPayment(event.target.value)}><option value="">All payments</option>{["Not Paid","Pending","Verifying","Paid","Failed","Refunded"].map(status=><option key={status}>{status}</option>)}</select></label></div>{orders.map(order=><section className="tt-box" key={order._id}><div className="d-flex justify-content-between flex-wrap gap-2"><h2>{orderNumber(order)}</h2><strong>{money(order.totalAmount)}</strong></div><p className="text-muted">{new Date(order.createdAt).toLocaleDateString()} · {order.paymentMethod}</p><div className="d-flex flex-wrap gap-3 mb-3"><span>Payment <StatusBadge value={order.paymentInfo?.status}/></span><span>Fulfilment <StatusBadge value={order.orderStatus}/></span></div>{order.cancelRequestedAt&&<p>Cancellation requested</p>}<div className="tt-actions"><Link className="btn btn-success" to={`/me/order/${order._id}`}>{!["Paid","Refunded"].includes(order.paymentInfo?.status)&&order.orderStatus!=="Cancelled"?"View / continue payment":"View order"}</Link><Link className="btn btn-outline-secondary" to={`/invoice/order/${order._id}`}>Invoice</Link></div></section>)}{!orders.length&&<p className="tt-empty">No matching orders. <Link to="/">Continue shopping</Link></p>}</main>;
+}

@@ -633,6 +633,9 @@ export const shopdmPayWebhook = catchAsyncErrors(
         // 12. Save order
         // -------------------------------------------------------
 
+        order.orderStatus = "Processing";        
+
+
         await order.save();
 
         // -------------------------------------------------------

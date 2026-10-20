@@ -1,7 +1,7 @@
 import React from "react";
 import MetaData from "../layout/MetaData";
 import { useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { calculateOrderCost } from "../../helpers/helpers";
 import CheckoutSteps from "./CheckoutSteps";
 import Price from "../Price/Price";
@@ -13,15 +13,15 @@ const ConfirmOrder = () => {
     const { cartItems, shippingInfo, shippingOption } = useSelector((state) => state.cart);
     const {user } = useSelector((state) => state.auth);
 
-    const navigate = useNavigate();
 
   const {
   itemsPrice,
-  shippingPrice,
   taxPrice,
   totalPrice,
 } = calculateOrderCost(cartItems, shippingOption);
   
+
+    const ready = ["roseau", "portsmouth", "pickup"].includes(shippingOption) && shippingInfo?.address && shippingInfo?.city && shippingInfo?.phoneNo && cartItems.length > 0;
 
     return (
         <>
@@ -39,9 +39,12 @@ const ConfirmOrder = () => {
   
           <hr />
           <h4 className="mt-4">Your Cart Items:</h4>
+          <p>Landmark: {shippingInfo?.landmark || "Not provided"}</p>
+          {shippingInfo?.deliveryNotes && <p>Delivery notes: {shippingInfo.deliveryNotes}</p>}
+          <p>Delivery or collection time will be confirmed by the store.</p>
   
             {cartItems?.map((item) => (
-                <> 
+                <React.Fragment key={item.product}> 
                 <hr />
           <div className="cart-item my-1">
             <div className="row">
@@ -59,12 +62,12 @@ const ConfirmOrder = () => {
               </div>
   
               <div className="col-4 col-lg-4 mt-4 mt-lg-0">
-                <p>{item?.quantity} x $ {item?.price}  = <Price amount={itemsPrice} size="small"/> </p>
+                <p>{item?.quantity} x $ {item?.price}  = <Price amount={Number(item.price) * item.quantity} size="small"/> </p>
               </div>
             </div>
           </div>
           <hr />
-                </>
+                </React.Fragment>
             ))}
 
           
@@ -87,8 +90,8 @@ const ConfirmOrder = () => {
             <p>Total: <span className="order-summary-values"> <Price amount={totalPrice} /> </span></p>
   
             <hr />
-            <Link to="/payment_method" id="checkout_btn" className="btn btn-primary w-100" >
-              Proceed to Payment
+            <Link to={ready ? "/payment_method" : "/shipping"} id="checkout_btn" className="btn btn-primary w-100" >
+              {ready ? "Proceed to Payment" : "Complete shipping details"}
             </Link>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MetaData from "../layout/MetaData";
-import StarRatings from "react-star-ratings";
+import StarRatings from "../shared/StarRatings";
 import { useCanUserReviewQuery, useSubmitReviewMutation } from "../../redux/api/productsApi";
 import toast from "react-hot-toast";
 

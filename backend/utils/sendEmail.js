@@ -1,11 +1,12 @@
 import nodemailer from "nodemailer";
 import { MailtrapTransport } from "mailtrap";
 
-const transport = nodemailer.createTransport(
+let transport;
+const getTransport = () => transport || (transport = nodemailer.createTransport(
     MailtrapTransport({
         token: process.env.MAILTRAP_API_TOKEN,
     })
-);
+));
 
 const sendEmail = async (options) => {
     if (!options?.email) {
@@ -16,7 +17,9 @@ const sendEmail = async (options) => {
         throw new Error("Email subject is required");
     }
 
-    if (!options?.html) {
+    const html = options?.html || (options?.isHtml ? options?.message : undefined);
+    const text = !options?.isHtml ? (options?.text || options?.message) : options?.text;
+    if (!html && !text) {
         throw new Error("Email HTML content is required");
     }
 
@@ -34,11 +37,12 @@ const sendEmail = async (options) => {
 
         subject: options.subject,
 
-        html: options.html,
+        ...(html ? { html } : {}),
+        ...(text ? { text } : {}),
     };
 
     try {
-        const info = await transport.sendMail(message);
+        const info = await getTransport().sendMail(message);
 
         console.log("Email sent successfully:", {
             messageId: info.messageId,

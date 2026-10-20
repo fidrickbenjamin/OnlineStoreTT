@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import MetaData from "../layout/MetaData";
 import { useDispatch, useSelector } from "react-redux";
 import CheckoutSteps from "./CheckoutSteps";
@@ -9,17 +9,107 @@ import {
 } from "../../redux/api/OrderApi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import ShopdmPay from "../payment/ShopdmPay";
 import Price from "../Price/Price";
 
 // IMPORTANT:
 // Change this import path if your cartSlice is located somewhere else.
 import { clearCart } from "../../redux/features/cartSlice";
+import { PayPalButtons, PayPalScriptProvider, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+import { useCreatePayPalOrderMutation, useCapturePayPalOrderMutation } from "../../redux/api/OrderApi";
 
 const PaymentMethod = () => {
-    const [method, setMethod] = useState("");
+    const paypalClientId = (process.env.REACT_APP_PAYPAL_CLIENT_ID || "").trim();
+    const [retry, setRetry] = useState({ key: 0, automatic: 0 });
+    const onPayPalRetry = useCallback(() => {
+        setRetry((previous) => ({ key: previous.key + 1, automatic: 0 }));
+    }, []);
+    const onAutoRetry = useCallback(() => {
+        setRetry((previous) => previous.automatic >= 2 ? previous : ({ key: previous.key + 1, automatic: previous.automatic + 1 }));
+    }, []);
+    return <PaymentMethodShell key={retry.key} paypalClientId={paypalClientId} onPayPalRetry={onPayPalRetry} onAutoRetry={onAutoRetry} automaticRetries={retry.automatic} />;
+};
+
+const PaymentMethodShell = ({ paypalClientId, ...retryProps }) => {
+    if (!paypalClientId) return <PaymentMethodContent paypalClientId="" />;
+    return (
+        <PayPalScriptProvider options={{ "client-id": paypalClientId, currency: process.env.REACT_APP_PAYPAL_CURRENCY || "USD", intent: "capture", components: "buttons" }}>
+            <PayPalReadyContent paypalClientId={paypalClientId} {...retryProps} />
+        </PayPalScriptProvider>
+    );
+};
+
+const PayPalReadyContent = (props) => {
+    const [{ isResolved, isRejected }] = usePayPalScriptReducer();
+    const [scriptSlow, setScriptSlow] = useState(false);
+    useEffect(() => {
+        if (isResolved || isRejected) return;
+        const timer = setTimeout(() => setScriptSlow(true), 15000);
+        return () => clearTimeout(timer);
+    }, [isResolved, isRejected]);
+    return <PaymentMethodContent {...props} paypalReady={isResolved} paypalFailed={isRejected} paypalSlow={scriptSlow && !isResolved} />;
+};
+
+// Script loading and button rendering are separate steps. Keep a visible status
+// until the SDK initializes the real button; never leave an empty payment panel.
+const DirectPayPalButtons = ({ busy, createOrder, onApprove, onCancel, onRetry, onAutoRetry, automaticRetries }) => {
+    const checkoutStarted = useRef(false);
+    const [initialized, setInitialized] = useState(false);
+    const [buttonError, setButtonError] = useState("");
+    const [renderSlow, setRenderSlow] = useState(false);
+    useEffect(() => {
+        if (initialized || buttonError) return;
+        const timer = setTimeout(() => setRenderSlow(true), 15000);
+        return () => clearTimeout(timer);
+    }, [initialized, buttonError]);
+    useEffect(() => {
+        // Only retry loading. Never remount the SDK after checkout has started.
+        if (initialized || busy || checkoutStarted.current || (!renderSlow && !buttonError) || automaticRetries >= 2) return;
+        const timer = setTimeout(onAutoRetry, 2000);
+        return () => clearTimeout(timer);
+    }, [initialized, busy, renderSlow, buttonError, automaticRetries, onAutoRetry]);
+    return (
+        <div className="tt-paypal-buttons">
+            {!initialized && !buttonError && !renderSlow && <p role="status" className="tt-sdk-status">Preparing secure PayPal button…</p>}
+            <PayPalButtons
+                fundingSource="paypal"
+                style={{ layout: "vertical", color: "gold", shape: "rect", label: "paypal", height: 48, tagline: false }}
+                disabled={busy}
+                createOrder={(...args) => {
+                    checkoutStarted.current = true;
+                    return createOrder(...args);
+                }}
+                onApprove={onApprove}
+                onCancel={onCancel}
+                onInit={() => { setInitialized(true); setRenderSlow(false); setButtonError(""); }}
+                onError={(error) => {
+                    console.error("PayPal button/checkout error:", error);
+                    setButtonError("PayPal could not complete loading or checkout. Please check My Orders before trying again.");
+                    toast.error(error?.data?.message || error?.message || "PayPal checkout could not be completed.");
+                }}
+            >
+                <p className="tt-sdk-status" role="status">PayPal is not available for this checkout. Please choose another payment method.</p>
+            </PayPalButtons>
+            {(buttonError || (renderSlow && !initialized)) && (
+                <div className="tt-paypal-alert" role="alert">
+                    <p>{buttonError || "PayPal’s button is taking longer than expected. Check your connection and whether your browser or an extension is blocking PayPal."}</p>
+                    {!checkoutStarted.current && automaticRetries < 2 && <p role="status">Retrying automatically in a moment… ({automaticRetries + 1}/2)</p>}
+                    <button type="button" onClick={onRetry} disabled={busy} className="tt-paypal-retry">Retry PayPal</button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const PaymentIcon = ({ kind }) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {kind === "bank" ? <><path d="M3 9l9-6 9 6H3zM3 21h18M5 11v7m7-7v7m7-7v7" /></> : kind === "cash" ? <><rect x="2" y="5" width="20" height="14" rx="3" /><circle cx="12" cy="12" r="3" /><path d="M6 12h.01M18 12h.01" /></> : <><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 9h18m-13 6h3m4 0h1" /></>}
+    </svg>
+);
+
+const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFailed = false, paypalSlow = false, onPayPalRetry, onAutoRetry, automaticRetries = 0 }) => {
     const [loading, setLoading] = useState(false);
     const [showBankingModal, setShowBankingModal] = useState(false);
+    const paypalCheckout = useRef(null);
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -53,6 +143,15 @@ const PaymentMethod = () => {
             isLoading: isShopdmLoading,
         },
     ] = useShopdmCheckoutMutation();
+    const [createPayPalOrder] = useCreatePayPalOrderMutation();
+    const [capturePayPalOrder] = useCapturePayPalOrderMutation();
+
+    useEffect(() => {
+        if (paypalReady || (!paypalFailed && !paypalSlow) || loading || isShopdmLoading || paypalCheckout.current || automaticRetries >= 2) return;
+        const timer = setTimeout(onAutoRetry, 2000);
+        return () => clearTimeout(timer);
+    }, [paypalReady, paypalFailed, paypalSlow, loading, isShopdmLoading, automaticRetries, onAutoRetry]);
+
 
     // ==========================================
     // ORDER COST
@@ -127,7 +226,7 @@ const PaymentMethod = () => {
         // Shopdm orders remain Pending
         // until payment is confirmed.
         orderStatus:
-            selectedMethod === "ShopdmPay"
+            selectedMethod === "ShopdmPay" || selectedMethod === "PayPal"
                 ? "Pending"
                 : "Processing",
     });
@@ -139,7 +238,6 @@ const PaymentMethod = () => {
     const submitHandler = async (
         selectedMethod
     ) => {
-        setMethod(selectedMethod);
 
         // ------------------------------------------
         // CHECK CART
@@ -147,6 +245,7 @@ const PaymentMethod = () => {
 
         if (!cartItems.length) {
             toast.error("Cart is empty");
+            if (selectedMethod === "PayPal") throw new Error("Cart is empty");
             return;
         }
 
@@ -167,6 +266,7 @@ const PaymentMethod = () => {
 
             navigate("/shipping");
 
+            if (selectedMethod === "PayPal") throw new Error("Please complete your shipping details and select delivery.");
             return;
         }
 
@@ -181,6 +281,7 @@ const PaymentMethod = () => {
 
             navigate("/shipping");
 
+            if (selectedMethod === "PayPal") throw new Error("Please complete your shipping details and select delivery.");
             return;
         }
 
@@ -211,6 +312,8 @@ const PaymentMethod = () => {
                     provider: "ShopdmPay",
                 };
             }
+
+            if (selectedMethod === "PayPal") paymentInfo = { status: "Pending", provider: "PayPal" };
 
             // ==========================================
             // BUILD ORDER
@@ -326,17 +429,21 @@ const PaymentMethod = () => {
                 return;
             }
 
+            if (selectedMethod === "PayPal") {
+                const paypal = await createPayPalOrder({ orderId }).unwrap();
+                if (!paypal?.id) throw new Error("PayPal did not return an order reference.");
+                sessionStorage.setItem("paypalPendingOrderId", orderId);
+                paypalCheckout.current = { orderId, paypalOrderId: paypal.id };
+                return paypal.id;
+            }
+
             // ==========================================
             // OTHER PAYMENT METHODS
             // ==========================================
 
-            toast.success(
-                "Order Completed!"
-            );
-
-            navigate(
-                "/me/orders?order_success=true"
-            );
+            dispatch(clearCart());
+            toast.success("Order received. View your payment and delivery details below.");
+            navigate(`/me/order/${orderId}?created=true`);
 
         } catch (err) {
             console.error(
@@ -349,6 +456,25 @@ const PaymentMethod = () => {
                     err?.message ||
                     "Unable to process your order."
             );
+            if (selectedMethod === "PayPal") throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const onPayPalApprove = async (data) => {
+        setLoading(true);
+        try {
+            if (!paypalCheckout.current || data.orderID !== paypalCheckout.current.paypalOrderId) throw new Error("PayPal order reference does not match checkout.");
+            const orderId = paypalCheckout.current?.orderId;
+            if (!orderId) throw new Error("Your pending order could not be found. Please check My Orders before retrying.");
+            await capturePayPalOrder({ orderId, paypalOrderId: data.orderID }).unwrap();
+            sessionStorage.removeItem("paypalPendingOrderId");
+            dispatch(clearCart());
+            toast.success("PayPal payment completed.");
+            navigate(`/me/order/${orderId}`);
+        } catch (err) {
+            toast.error(err?.data?.message || err?.message || "PayPal could not confirm payment.");
         } finally {
             setLoading(false);
         }
@@ -374,47 +500,50 @@ const PaymentMethod = () => {
     // BUTTON STYLES
     // ==========================================
 
-    const buttonStyles = {
-        COD: {
-            backgroundColor: "#8593ff",
-            color: "#000000",
-        },
-
-        CASH: {
-            backgroundColor: "#FFB84D",
-            color: "#000000",
-        },
-
-        NBD: {
-            backgroundColor: "#66bb66",
-            color: "#000000",
-        },
-
-        ShopdmPay: {
-            backgroundColor: "#28a745",
-            color: "#ffffff",
-        },
-    };
-
-    const baseStyle = {
-        borderRadius: "50px",
-        padding: "12px 25px",
-        fontSize: "16px",
-        fontWeight: "700",
-        border: "none",
-        cursor: "pointer",
-        width: "100%",
-        maxWidth: "300px",
-        marginBottom: "10px",
-        transition: "all 0.3s ease",
-    };
-
     // ==========================================
     // RENDER
     // ==========================================
 
     return (
         <>
+            <style>{`
+                .tt-payment-layout { align-items: flex-start; row-gap: 24px; padding: 24px 0 40px; }
+                .tt-payment-options { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 440px; margin: 0 auto; }
+                .tt-paypal-panel { padding: 22px; border: 1px solid #d9e5f4; border-radius: 16px; background: linear-gradient(145deg, #fff, #f1f6fd); box-shadow: 0 5px 18px rgba(0,48,135,.05); }
+                .tt-paypal-title { font-size: 19px; font-weight: 750; color: #003087; margin: 0 0 7px; }
+                .tt-payment-note { font-size: 14px; line-height: 1.5; color: #536477; margin: 0 0 18px; }
+                .tt-paypal-buttons { position: relative; width: 100%; min-width: 0; min-height: 48px; }
+                .tt-paypal-buttons > div { width: 100%; }
+                .tt-sdk-status { font-size: 13px; color: #536477; line-height: 1.5; margin: 10px 0; }
+                .tt-paypal-alert { padding: 12px; border: 1px solid #e7cf8b; border-radius: 9px; background: #fff9e9; color: #634d19; font-size: 13px; line-height: 1.5; }
+                .tt-paypal-alert p { margin: 0 0 10px; }
+                .tt-paypal-retry { border: 1px solid #003087; background: white; color: #003087; font-weight: 700; padding: 8px 14px; border-radius: 7px; }
+                .tt-other-payments { display: flex; flex-direction: column; gap: 16px; }
+                .tt-payment-divider { display: flex; align-items: center; gap: 12px; color: #64748b; font-size: 12px; letter-spacing: .04em; margin: 2px 0; }
+                .tt-payment-divider::before, .tt-payment-divider::after { content: ""; height: 1px; background: #e2e8f0; flex: 1; }
+                .tt-payment-card { width: 100%; min-height: 88px; display: flex; align-items: center; gap: 14px; padding: 18px; border: 1px solid; border-radius: 14px; text-align: left; cursor: pointer; position: relative; overflow: hidden; transition: transform .18s ease, box-shadow .18s ease; }
+                .tt-payment-card:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 9px 20px rgba(15,45,32,.13); }
+                .tt-payment-card .tt-method-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 12px; }
+                .tt-method-copy { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; }
+                .tt-method-name { font-size: 17px; font-weight: 750; line-height: 1.2; }
+                .tt-method-detail { font-size: 12px; font-weight: 400; line-height: 1.5; }
+                .tt-method-arrow { font-size: 24px; font-weight: 400; flex-shrink: 0; }
+                .tt-cash-card { background: linear-gradient(120deg, #fff8e9, #ffe3ad); border-color: #edcf96; color: #64420c; box-shadow: 0 3px 9px rgba(135,93,15,.06); }
+                .tt-cash-card .tt-method-icon { background: #fffaf0; border: 1px solid #ebd7ad; color: #9b6a12; }
+                .tt-nbd-card { background: linear-gradient(115deg, #06482e, #087b49); border-color: #09673f; color: white; box-shadow: 0 4px 12px rgba(4,82,47,.15); }
+                .tt-nbd-card::after { content: ""; width: 120px; height: 120px; border: 18px solid rgba(255,255,255,.045); border-radius: 50%; position: absolute; right: -40px; top: -50px; pointer-events: none; }
+                .tt-nbd-card .tt-method-icon { background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.27); }
+                .tt-nbd-card .tt-method-detail { color: #e0f4e6; }
+                .tt-method-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 4px; vertical-align: middle; margin-left: 7px; background: rgba(255,255,255,.17); letter-spacing: .06em; }
+                .tt-shopdm-card { background: linear-gradient(115deg, #fcfdfd 0%, #dce4e3 58%, #f7f9f9 100%); border-color: #c3d0cb; color: #145639; box-shadow: 0 3px 10px rgba(35,62,49,.08); }
+                .tt-shopdm-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(#39b66e,#087244); }
+                .tt-shopdm-card .tt-method-icon { color: white; background: linear-gradient(145deg,#2ba968,#087244); box-shadow: 0 3px 7px rgba(8,114,68,.2); }
+                .tt-shopdm-card .tt-method-detail { color: #52675d; }
+                .tt-payment-options button:disabled { cursor: not-allowed; opacity: .6; }
+                .tt-payment-options button:focus-visible { outline: 3px solid #0070ba; outline-offset: 3px; }
+                @media (prefers-reduced-motion: reduce) { .tt-payment-card { transition: none; } .tt-payment-card:not(:disabled):hover { transform: none; } }
+                @media (max-width: 575px) { .tt-paypal-panel { padding: 18px 14px; } .tt-payment-card { padding: 16px 14px; gap: 11px; } .tt-method-name { font-size: 16px; } }
+            `}</style>
             <MetaData
                 title="Payment Method"
             />
@@ -426,7 +555,7 @@ const PaymentMethod = () => {
             />
 
             <div
-                className="row wrapper"
+                className="row wrapper tt-payment-layout"
                 style={{
                     display: "flex",
                     justifyContent: "center",
@@ -579,62 +708,52 @@ const PaymentMethod = () => {
                             Select Payment Method
                         </h2>
 
-                        <div className="d-flex flex-column align-items-center">
+                        <p className="text-center tt-payment-note">Choose how you would like to pay for your order.</p>
+                        <div className="tt-payment-options">
+                            <section className="tt-paypal-panel" aria-labelledby="tt-paypal-title">
+                                <h3 id="tt-paypal-title" className="tt-paypal-title">PayPal</h3>
+                                <p className="tt-payment-note">Pay securely with the options available through PayPal.</p>
+                                {!paypalClientId ? (
+                                    <p role="status" className="mb-0 tt-payment-note">PayPal is currently unavailable. Please choose another payment method.</p>
+                                ) : paypalFailed || paypalSlow ? (
+                                    <div className="tt-paypal-alert" role="alert">
+                                        <p>PayPal could not load. Check your connection and whether your browser or an extension is blocking PayPal, or choose another payment method.</p>
+                                        {automaticRetries < 2 && <p role="status">Retrying automatically in a moment… ({automaticRetries + 1}/2)</p>}
+                                        <button type="button" className="tt-paypal-retry" onClick={onPayPalRetry}>Retry PayPal</button>
+                                    </div>
+                                ) : !paypalReady ? (
+                                    <p role="status" className="mb-0 tt-sdk-status">Loading secure PayPal checkout…</p>
+                                ) : (
+                                    <DirectPayPalButtons
+                                        busy={loading || isShopdmLoading || !cartItems.length}
+                                        createOrder={() => submitHandler("PayPal")}
+                                        onApprove={onPayPalApprove}
+                                        onCancel={() => toast("PayPal checkout cancelled. Your pending order remains in My Orders.")}
+                                        onRetry={onPayPalRetry}
+                                        onAutoRetry={onAutoRetry}
+                                        automaticRetries={automaticRetries}
+                                    />
+                                )}
+                            </section>
 
-                            {/* CASH */}
-
-                            <button
-                                onClick={() =>
-                                    submitHandler(
-                                        "CASH"
-                                    )
-                                }
-                                disabled={
-                                    loading
-                                }
-                                style={{
-                                    ...baseStyle,
-                                    ...buttonStyles.CASH,
-                                }}
-                            >
-                                Cash Payment
-                            </button>
-
-                            {/* MOBANKING */}
-
-                            <button
-                                onClick={
-                                    handleMobankingSelection
-                                }
-                                disabled={
-                                    loading
-                                }
-                                style={{
-                                    ...baseStyle,
-                                    ...buttonStyles.NBD,
-                                }}
-                            >
-                                Mobanking
-                            </button>
-
-                            {/* SHOPDM PAY */}
-
-                            <ShopdmPay
-                                amount={
-                                    totalPrice
-                                }
-                                onPay={() =>
-                                    submitHandler(
-                                        "ShopdmPay"
-                                    )
-                                }
-                                disabled={
-                                    loading ||
-                                    isShopdmLoading
-                                }
-                                label="Shopdm Pay"
-                            />
-
+                            <div className="tt-payment-divider">Other payment methods</div>
+                            <div className="tt-other-payments">
+                                <button type="button" className="tt-payment-card tt-cash-card" onClick={() => submitHandler("CASH")} disabled={loading || isShopdmLoading}>
+                                    <span className="tt-method-icon"><PaymentIcon kind="cash" /></span>
+                                    <span className="tt-method-copy"><span className="tt-method-name">Cash Payment</span><span className="tt-method-detail">Complete your order and arrange payment</span></span>
+                                    <span className="tt-method-arrow" aria-hidden="true">›</span>
+                                </button>
+                                <button type="button" className="tt-payment-card tt-nbd-card" onClick={handleMobankingSelection} disabled={loading || isShopdmLoading}>
+                                    <span className="tt-method-icon"><PaymentIcon kind="bank" /></span>
+                                    <span className="tt-method-copy"><span className="tt-method-name">Mobanking <span className="tt-method-badge">NBD</span></span><span className="tt-method-detail">National Bank of Dominica · Bank transfer</span></span>
+                                    <span className="tt-method-arrow" aria-hidden="true">›</span>
+                                </button>
+                                <button type="button" className="tt-payment-card tt-shopdm-card" onClick={() => submitHandler("ShopdmPay")} disabled={loading || isShopdmLoading}>
+                                    <span className="tt-method-icon"><PaymentIcon kind="card" /></span>
+                                    <span className="tt-method-copy"><span className="tt-method-name">ShopDM Pay</span><span className="tt-method-detail">Continue to ShopDM to complete payment</span></span>
+                                    <span className="tt-method-arrow" aria-hidden="true">›</span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* LOADING */}

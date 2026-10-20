@@ -1,65 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
-
-const CheckoutSteps = ( { shipping, ConfirmOrder, Payment }) => {
-    
-    return (
-        
-        <div className="checkout-progress d-flex justify-content-center mt-5 flex-nowrap">
-            {shipping ? ( 
-<Link to="/shipping" className="checkout-item float-right mt-2 mt-md-0">
-    <div className="triangle2-active"></div>
-    <div className="step active-step">Shipping</div>
-    <div className="triangle-active"></div>
-  </Link>
-
-            ): (
-              <Link to="#!" className="checkout-item float-right mt-2 mt-md-0" disabled>
-    <div className="triangle2-incomplete"></div>
-    <div className="step incomplete">Shipping</div>
-    <div className="triangle-incomplete"></div>
-  </Link>   
-            )}
-  
-
- {ConfirmOrder ? (
-<Link to="/confirm_order" className="checkout-item float-right mt-2 mt-md-0">
-    <div className="triangle2-active"></div>
-    <div className="step active-step">Confirm Order</div>
-    <div className="triangle-active"></div>
-  </Link>
- ): (
-<Link to="#!" className="checkout-item float-right mt-2 mt-md-0" disabled>
-    <div className="triangle2-incomplete"></div>
-    <div className="step incomplete">Confirm Order</div>
-    <div className="triangle-incomplete"></div>
-  </Link>
- )}
-
-  
-
-  
-{Payment ? (
-<Link to="/payment_method" className="checkout-item float-right mt-2 mt-md-0">
-    <div className="triangle2-active"></div>
-    <div className="step active-step">Payment</div>
-    <div className="triangle-active"></div>
-  </Link>
-): (
- <Link to="#!" className="checkout-item float-right mt-2 mt-md-0" disabled>
-    <div className="triangle2-incomplete"></div>
-    <div className="step incomplete">Payment</div>
-    <div className="triangle-incomplete"></div>
-  </Link>
-)}
-  
-
- 
-</div>
-
-        
-    );
-};
-
-export default CheckoutSteps;
+export default function CheckoutSteps({shipping,ConfirmOrder,Payment}){
+ const steps=[{label:"Shipping",href:"/shipping",enabled:shipping},{label:"Confirm order",href:"/confirm_order",enabled:ConfirmOrder},{label:"Payment",href:"/payment_method",enabled:Payment}];const current=Payment?2:ConfirmOrder?1:0;
+ return <><style>{`.tt-checkout-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:720px;margin:32px auto 12px;padding:0 12px;list-style:none}.tt-checkout-steps li{min-width:0}.tt-checkout-step{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none!important;border-radius:10px;padding:12px 8px;background:#f0f3f1;color:#627068;font-size:14px;font-weight:600;height:100%;border:1px solid #e0e7e2}.tt-checkout-step.is-active{background:#e9f6ed;color:#17613c;border-color:#b8dcc4}.tt-checkout-step.is-current{background:#17613c;color:white;border-color:#17613c}.tt-step-number{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:23px;height:23px;border-radius:50%;background:#ffffff55;font-size:12px;border:1px solid currentColor}@media(max-width:575px){.tt-checkout-step{flex-direction:column;font-size:12px;gap:6px;padding:10px 4px}.tt-checkout-steps{gap:7px;margin-top:24px}}`}</style><ol className="tt-checkout-steps" aria-label="Checkout progress">{steps.map((step,index)=><li key={step.href} aria-current={index===current?"step":undefined}>{step.enabled?<Link className={`tt-checkout-step is-active ${index===current?"is-current":""}`} to={step.href}><span className="tt-step-number" aria-hidden="true">{index+1}</span>{step.label}</Link>:<span className="tt-checkout-step" aria-disabled="true"><span className="tt-step-number" aria-hidden="true">{index+1}</span>{step.label}</span>}</li>)}</ol></>;
+}

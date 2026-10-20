@@ -1,106 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import AdminLayout from "../layout/AdminLayout";
-
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import SalesChart from "../charts/SalesChart";
-import { useLazyGetDashboardSalesQuery } from "../../redux/api/OrderApi";
-import toast from "react-hot-toast";
-import Loader from "../layout/Loader";
 import MetaData from "../layout/MetaData";
-
-const Dashboard = () => {
-
-    const [startDate, setStartDate] = useState(new Date().setDate(1));
-    const [endDate, setEndDate] = useState(new Date());
-
-    const [getDashboardSales, { error, isLoading, data } ] = useLazyGetDashboardSalesQuery();
-
-
-    useEffect(() => {
-      if (error) {
-        toast.error(error?.data?.message);
-      }
-
-     if (startDate && endDate && !data) {
-      getDashboardSales({
-        startDate:new Date(startDate).toISOString(),
-        endDate:endDate.toISOString(),
-      });
-     }
-
-    }, [ error ]);
-
-
-    const submitHandler = () => {
-       
-      getDashboardSales({
-        startDate:new Date(startDate).toISOString(),
-        endDate:endDate.toISOString(),
-      });
-    };
-
-    
-    if(isLoading) return <Loader />
-
-    return(
-       <AdminLayout> 
-        <MetaData title={"Admin Dashboard"} />
-        <div className="d-flex justify-content-start align-items-center">
-       <div className="mb-3 me-4">
-         <label className="form-label d-block">Start Date</label>
-         <DatePicker
-        selected={startDate}
-        onChange={(date) => setStartDate(date)}
-        selectsStart
-        startDate={startDate}
-        endDate={endDate}
-        className="form-control"
-      />
-       </div>
-       <div className="mb-3">
-         <label className="form-label d-block">End Date</label>
-         <DatePicker
-        selected={endDate}
-        onChange={(date) => setEndDate(date)}
-        selectsEnd
-        startDate={startDate}
-        endDate={endDate}
-        minDate={startDate}
-        className="form-control"
-      />
-       </div>
-       <button className="btn fetch-btn ms-4 mt-3 px-5" onClick={submitHandler}>Fetch</button>
-     </div>
- 
-     <div className="row pr-4 my-5">
-       <div className="col-xl-6 col-sm-12 mb-3">
-         <div className="card text-white bg-success o-hidden h-100">
-           <div className="card-body">
-             <div className="text-center card-font-size">
-               Sales
-               <br />
-               <b>$ {data?.totalSales?.toFixed(2)}</b>
-             </div>
-           </div>
-         </div>
-       </div>
- 
-       <div className="col-xl-6 col-sm-12 mb-3">
-         <div className="card text-white bg-danger o-hidden h-100">
-           <div className="card-body">
-             <div className="text-center card-font-size">
-               Orders
-               <br />
-               <b>{data?.totalNumOrders}</b>
-             </div>
-           </div>
-         </div>
-       </div>
-     </div>
-            <SalesChart salesData={data?.sales} />
-     <div className="mb-5"></div> </AdminLayout>   
-    );
-};
-
-export default Dashboard;
+import { useGetDashboardSalesQuery } from "../../redux/api/OrderApi";
+import { money } from "../shared/OrderUI";
+import SalesChart from "../charts/SalesChart";
+function localDay(date){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;}
+export default function Dashboard(){
+ const now=new Date();const [start,setStart]=useState(localDay(new Date(now.getFullYear(),now.getMonth(),1))),[end,setEnd]=useState(localDay(now));const [range,setRange]=useState({startDate:start,endDate:end});const {data,error,isFetching,refetch}=useGetDashboardSalesQuery(range,{refetchOnMountOrArgChange:true});
+ const payments=data?.payments||[];const unpaid=payments.filter(row=>!["Paid","Refunded"].includes(row._id)).reduce((sum,row)=>sum+row.count,0),cancelled=data?.statuses?.find(row=>row._id==="Cancelled")?.count||0;
+ function exportCsv(){const rows=[["Product","Units","Product revenue XCD"],...(data?.bestSellers||[]).map(row=>[row.name,row.units,Number(row.revenue).toFixed(2)])];const encode=value=>{let text=String(value);if(/^[=+\-@\t\r]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};const url=URL.createObjectURL(new Blob([rows.map(row=>row.map(encode).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download=`sales-${range.startDate}-${range.endDate}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ return <AdminLayout><MetaData title="Sales dashboard"/><h1 className="mt-4">Sales dashboard</h1><p>Revenue includes confirmed paid orders only. Refunded and unpaid orders are excluded.</p><form className="tt-toolbar" onSubmit={event=>{event.preventDefault();setRange({startDate:start,endDate:end});}}><label>From<input type="date" required value={start} max={end} onChange={event=>setStart(event.target.value)}/></label><label>To<input type="date" required value={end} min={start} onChange={event=>setEnd(event.target.value)}/></label><button className="btn btn-success" disabled={isFetching}>Apply</button><button className="btn btn-outline-secondary" type="button" onClick={()=>refetch()} disabled={isFetching}>Refresh</button><button className="btn btn-outline-secondary" type="button" onClick={exportCsv} disabled={!data}>Export best sellers</button></form>{error&&<p role="alert">{error?.data?.message||"Could not load report."}</p>}{isFetching&&<p role="status">Updating report…</p>}<div className="tt-stat-grid">{[["Confirmed revenue",money(data?.totalSales)],["Paid orders",data?.totalNumOrders||0],["Average paid order",money(data?.averageOrderValue)],["Unpaid / cancelled",`${unpaid} / ${cancelled}`]].map(([label,value])=><div className="tt-stat" key={label}>{label}<strong>{value}</strong></div>)}</div><p className="text-muted">Paid revenue uses the payment date, falling back to the order date for legacy records. Unpaid and cancelled counts use the order creation date.</p><SalesChart salesData={data?.sales||[]}/><section className="tt-box"><h2>Best sellers</h2><p>Product revenue excludes tax and delivery.</p><div className="table-responsive"><table className="tt-table"><thead><tr><th>Product</th><th>Units</th><th>Revenue</th></tr></thead><tbody>{data?.bestSellers?.map(row=><tr key={row._id}><td>{row.name}</td><td>{row.units}</td><td>{money(row.revenue)}</td></tr>)}</tbody></table></div>{!data?.bestSellers?.length&&<p>No paid sales in this period.</p>}</section></AdminLayout>;
+}

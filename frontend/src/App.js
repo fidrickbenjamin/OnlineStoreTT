@@ -1,3 +1,5 @@
+import React from "react";
+import Loader from "./components/layout/Loader";
 import "./App.css";
 
 import {Route, BrowserRouter as Router, Routes,} from "react-router-dom";
@@ -32,15 +34,15 @@ function App() {
 
       
 
-      <div className= "col-12 col-sm-6 col-md-12" >
+      <div className= "col-12" >
       <div className="container"> 
-      <Routes> 
+      <React.Suspense fallback={<Loader />}><Routes> 
 
         {userRoutes} {adminRoutes} <Route  path="*" element={<NotFound />} />  
 
         
 
-      </Routes>
+      </Routes></React.Suspense>
       
        
           </div>

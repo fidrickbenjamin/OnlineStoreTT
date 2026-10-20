@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import  Loader  from "../layout/Loader";
 import toast from "react-hot-toast";
-import {MDBDataTable} from "mdbreact";
+import MDBDataTable from "../shared/DataTable";
 import { Link  } from "react-router-dom";
 import MetaData from "../layout/MetaData";
 import AdminLayout from "../layout/AdminLayout";

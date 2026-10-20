@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import StarRatings from "react-star-ratings";
+import StarRatings from "../shared/StarRatings";
 import "./ProductItem.css";
 import Price from "../Price/Price";
 
@@ -43,10 +43,11 @@ const ProductItem = ({ product, columnSize }) => {
         {/* Product Image */}
         <img
           className="card-img-top"
-          src={
-            product?.images?.[0]?.url ||
-            "/images/default_product.png"
-          }
+          src={product?.images?.[0]?.url?.includes("res.cloudinary.com/") ? product.images[0].url.replace("/upload/", "/upload/f_auto,q_auto,w_600,c_limit/") : product?.images?.[0]?.url || "/images/default_product.png"}
+          loading="lazy"
+          decoding="async"
+          width="600"
+          height="450"
           alt={product?.name || "Product image"}
         />
 
@@ -126,6 +127,7 @@ const ProductItem = ({ product, columnSize }) => {
               </div>
 
 
+              <p className="mt-2 mb-0"><small className={product.stock > 0 ? "text-success" : "text-danger"}>{product.stock > 0 ? "In stock" : "Out of stock"}</small></p>
               <p className="card-text mt-2">
                 <Price amount={product?.price} />
               </p>

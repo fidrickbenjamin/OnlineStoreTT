@@ -18,10 +18,26 @@ const orderSchema = new mongoose.Schema({
             type: String,
             required: true,
         },
+        landmark: { type: String, maxlength: 200 },
+        deliveryNotes: { type: String, maxlength: 500 },
         country: {
             type: String,
             required: true,
         },
+    },
+    dedupeKey: { type: String },
+    expiresAt: Date,
+    inventoryTracked: { type: Boolean, default: false },
+    inventoryState: { type: String, enum: ["Unallocated", "Reserved", "Released"], default: "Unallocated" },
+    inventoryLock: { token: String, until: Date },
+    archived: { type: Boolean, default: false },
+    cancelRequestedAt: Date,
+    internalNotes: [{ text: { type: String, maxlength: 2000 }, author: String, createdAt: { type: Date, default: Date.now } }],
+    timeline: [{ message: String, createdAt: { type: Date, default: Date.now } }],
+    paymentProof: {
+      proofId: String, data: { type: Buffer, select: false }, mime: String,
+      uploadedAt: Date, reference: String, reviewStatus: { type: String, enum: ["Pending", "Approved", "Rejected"] },
+      reviewReason: String, reviewedAt: Date, reviewedBy: String,
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -61,8 +77,8 @@ paymentMethod: {
     type: String,
     required: [true, " Please select a payment method"],
     enum: {
-        values: ["COD", "Card", "NBD", "CASH", "ShopdmPay"],
-        message: "Please select COD, Card, NBD, CASH or ShopdmPay",
+        values: ["COD", "Card", "NBD", "CASH", "ShopdmPay", "PayPal"],
+        message: "Please select a supported payment method",
     },
 },
 
@@ -136,4 +152,8 @@ deliveredAt: Date,
 }, { timestamps: true}
 );
 
+orderSchema.index({ dedupeKey: 1 }, { unique: true, partialFilterExpression: { dedupeKey: { $type: "string" } } });
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ "paymentInfo.status": 1, createdAt: -1 });
+orderSchema.index({ expiresAt: 1 });
 export default mongoose.model("order", orderSchema);

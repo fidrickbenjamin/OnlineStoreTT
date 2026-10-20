@@ -1,54 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams} from "react-router-dom"; 
-import Pagination from "react-js-pagination";
-
-const CustomPagination = ({resPerPage, filteredProductsCount}) => {
-
-    const [currentPage, setCurrentPage] = useState();
-
-    let [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-
-    const page = Number(searchParams.get("page")) || 1;
-
-        useEffect(() => {
-            setCurrentPage(page);
-        }, [page]);
-
-        const setCurrentPageNo = (pageNumber) => {
-            setCurrentPage(pageNumber);
-
-            if(searchParams.has("page")) {
-                     searchParams.set("page", pageNumber);
-            } else { 
-                searchParams.append("page", pageNumber);
-            }
-            
-            const path = window.location.pathname + "?" + searchParams.toString();
-            navigate(path);
-         };
-
-
-    return  ( <div className="d-flex justify-content-center my-5"> 
-        {filteredProductsCount > resPerPage && (
-            <Pagination 
-            activePage={currentPage}
-            itemsCountPerPage={resPerPage}
-            totalItemsCount={filteredProductsCount}
-            onChange={setCurrentPageNo}
-            nextPageText={"Next"}
-            prevPageText={"Prev"}
-            firstPageText={"First"}
-            lastPageText={"Last"}
-            itemClass="page-item"
-            linkClass="page-link"
-
-            />
-        )}
-    </div> 
-    );
-
-    
-};
-
-export default CustomPagination;
+import React from "react";
+import { useSearchParams } from "react-router-dom";
+export default function CustomPagination({resPerPage,filteredProductsCount}) {
+ const [params,setParams]=useSearchParams(); const pages=Math.ceil((filteredProductsCount||0)/(resPerPage||20));const current=Math.max(1,Number(params.get("page"))||1);
+ if(pages<=1)return null;
+ const go=page=>{const next=new URLSearchParams(params);next.set("page",String(page));setParams(next);document.getElementById("products_heading")?.scrollIntoView({block:"start"});};
+ return <nav className="d-flex justify-content-center flex-wrap gap-2 my-4" aria-label="Product pages"><button className="btn btn-outline-success" disabled={current<=1} onClick={()=>go(1)}>First</button><button className="btn btn-outline-success" disabled={current<=1} onClick={()=>go(current-1)}>Previous</button><span className="align-self-center">{current} / {pages}</span><button className="btn btn-outline-success" disabled={current>=pages} onClick={()=>go(current+1)}>Next</button><button className="btn btn-outline-success" disabled={current>=pages} onClick={()=>go(pages)}>Last</button></nav>;
+}

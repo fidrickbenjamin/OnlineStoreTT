@@ -38,14 +38,14 @@ export default function SalesChart({ salesData }) {
         plugins: {
             title:{
                 display: true,
-                text: "Sales and Order Data",
+                text: "Confirmed paid sales and orders",
             },
         },
     
         scales: {
             y: {
                 type: "linear",
-                dsplay: true,
+                display: true,
                 position: "left",
             },
             y1: {
@@ -64,17 +64,17 @@ export default function SalesChart({ salesData }) {
       const data = {
         labels,
         datasets: [ {
-            label: "Sales",
+            label: "Paid revenue (XCD)",
             data: salesData?.map((data) => data?.sales),
             borderColor: "#198753",
             yAxisID: "y",
         },
         {
-            label: "Orders",
+            label: "Paid orders",
             data: salesData?.map((data) => data?.numOrders),
             borderColor: "rgb(220,52,69)",
             backgroundColor: "rgba(201,68,82, 0.5)",
-            yAxisID: "y",
+            yAxisID: "y1",
         },
     ],
     };

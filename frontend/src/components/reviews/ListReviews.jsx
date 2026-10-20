@@ -1,6 +1,6 @@
 import React from "react";
 import MetaData from "../layout/MetaData";
-import StarRatings from "react-star-ratings";
+import StarRatings from "../shared/StarRatings";
 
 
 const ListReviews = ({ reviews }) => {

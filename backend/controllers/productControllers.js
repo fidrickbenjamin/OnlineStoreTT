@@ -10,28 +10,19 @@ export const getProducts = catchAsyncErrors(async (req, res, next) => {
 
     const resPerPage = 20;
     const apiFilters = new APIFilters(Product, req.query).search().filters();
-
-    
-
-    let products = await apiFilters.query;
-    let filteredProductsCount = products.length;
-
-   
-
+    const filter = apiFilters.query.getFilter();
+    const filteredProductsCount = await Product.countDocuments(filter);
+    apiFilters.query = apiFilters.query.select("-reviews");
     apiFilters.pagination(resPerPage);
-   products = await apiFilters.query.clone();
-
-    res.status(200).json({
-        resPerPage,
-        filteredProductsCount,
-       products,
-    });
+    const products = await apiFilters.query.lean();
+    res.json({ resPerPage, filteredProductsCount, products });
 });
 
 
 // Create new Product => /api/v2/admin/products
 export const newProduct = catchAsyncErrors(async (req, res) => {
 
+    delete req.body.inventoryAllocations;
     req.body.user = req.user._id;
     
     const product = await Product.create(req.body)
@@ -77,6 +68,7 @@ export const getAdminProducts = catchAsyncErrors(async (req, res, next ) => {
 // Update Product Details => /api/v2/products/:id
 export const updateProduct = catchAsyncErrors(async (req, res) => {
     
+    delete req.body.inventoryAllocations;
     let product = await Product.findById(req?.params?.id);
 
     if (!product) {
@@ -144,7 +136,8 @@ export const deleteProductImage = catchAsyncErrors(async (req, res) => {
 
 
 // Delete Product  => /api/v2/products/:id
-export const deleteProduct = catchAsyncErrors(async (req, res) => {
+export const deleteProduct = catchAsyncErrors(async (req, res, next) => {
+    if (await Product.exists({ _id: req.params.id, "inventoryAllocations.0": { $exists: true } })) throw new ErrorHandler("This product has order stock allocations. Set its available stock to zero instead of deleting it.", 409);
     
     const product = await Product.findById(req?.params?.id);
 

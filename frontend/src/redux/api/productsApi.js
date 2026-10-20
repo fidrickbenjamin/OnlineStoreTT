@@ -10,6 +10,9 @@ export const productApi = createApi ({
                 url: "/products",
             params: {
                 page: params?.page,
+                sort: params?.sort,
+                inStock: params?.inStock,
+                listingType: params?.listingType,
                 keyword: params?.keyword,
                 category: params?.category,
                 "price[gte]": params.min,

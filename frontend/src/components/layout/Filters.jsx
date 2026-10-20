@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PRODUCT_CATEGORIES } from "../../constants/constants";
-import StarRatings from "react-star-ratings";
+import StarRatings from "../shared/StarRatings";
 
 const Filters = () => {
 

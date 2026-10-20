@@ -1,80 +1,27 @@
 class APIFilters {
-    constructor(query, queryStr) {
-        this.query = query;
-        this.queryStr = queryStr;
-    }
-
-    search() {
-        const rawKeyword = this.queryStr.keyword;
-
-        if (!rawKeyword || !String(rawKeyword).trim()) {
-            this.query = this.query.find({});
-            return this;
-        }
-
-        const keyword = String(rawKeyword).trim();
-        const keywordRegex = {
-            $regex: keyword,
-            $options: "i",
-        };
-
-        const searchConditions = [
-            { name: keywordRegex },
-            { description: keywordRegex },
-        ];
-
-        const numericKeyword = Number(keyword);
-        if (!Number.isNaN(numericKeyword)) {
-            searchConditions.push({ price: numericKeyword });
-        }
-
-        this.query = this.query.find({ $or: searchConditions });
-        return this;
-    }
-
-filters() {
-    const queryCopy = { ...this.queryStr };
-
-   // Fields to remove
-   const fieldsToRemove = ["keyword", "page"];
-   fieldsToRemove.forEach((el) => delete queryCopy[el]);
-
-   let filterQuery = {};
-   const categoryValue = queryCopy.category;
-
-   if (categoryValue) {
-       delete queryCopy.category;
-       filterQuery = {
-           ...queryCopy,
-           $or: [
-               { "category.main": categoryValue },
-               { "category.sub": categoryValue },
-               { category: categoryValue },
-           ],
-       };
-   } else {
-       filterQuery = queryCopy;
-   }
-
-   // Advance Filter for Price, Ratings, ets
-   let queryStr = JSON.stringify(filterQuery);
-   queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
-
-   this.query = this.query.find(JSON.parse(queryStr));
-   return this;
-}
-
-pagination(resPerPage) { 
-
-    const currentPage = Number(this.queryStr.page) || 1;
-    const skip = resPerPage * (currentPage - 1 );
-
-    this.query = this.query.limit(resPerPage).skip(skip);
+  constructor(query, queryStr) { this.query = query; this.queryStr = queryStr; }
+  search() {
+    const keyword = String(this.queryStr.keyword || "").trim().slice(0,120).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (keyword) this.query = this.query.find({ $or: [{ name: { $regex: keyword, $options: "i" } }, { description: { $regex: keyword, $options: "i" } }] });
     return this;
-
+  }
+  filters() {
+    const filter = {};
+    const category = String(this.queryStr.category || "").slice(0,100);
+    if (category) filter.$and = [{ $or: [{ "category.main": category }, { "category.sub": category }] }];
+    for (const field of ["price", "ratings"]) {
+      for (const op of ["gte", "lte"]) {
+        const value = this.queryStr[field]?.[op] ?? this.queryStr[`${field}[${op}]`];
+        if (value !== undefined && Number.isFinite(Number(value)) && Number(value) >= 0) { filter[field] ||= {}; filter[field][`$${op}`] = Number(value); }
+      }
+    }
+    if (this.queryStr.listingType === "retail") { filter.listingType = { $ne: "property" }; filter["category.main"] = { $ne: "Property or Real Estate" }; }
+    if (this.queryStr.listingType === "property") filter.listingType = "property";
+    if (this.queryStr.inStock === "true") filter.stock = { $gt: 0 };
+    const sort = { newest: { createdAt: -1, _id: -1 }, priceAsc: { price: 1, _id: 1 }, priceDesc: { price: -1, _id: 1 }, rating: { ratings: -1, _id: -1 } };
+    this.query = this.query.find(filter).sort(sort[this.queryStr.sort] || sort.newest);
+    return this;
+  }
+  pagination(size) { const page = Math.max(1, Math.min(100000, Math.floor(Number(this.queryStr.page) || 1))); this.query = this.query.limit(size).skip(size*(page-1)); return this; }
 }
-
-}
-
-
 export default APIFilters;

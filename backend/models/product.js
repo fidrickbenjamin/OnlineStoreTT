@@ -123,6 +123,8 @@ const productSchema = new mongoose.Schema({
     },
   },
 
+  inventoryAllocations: { type: [{ order: mongoose.Schema.Types.ObjectId, quantity: Number }], select: false, default: [] },
+
   stock: {
     type: Number,
     required: [true, "Please enter product stock"],

@@ -1,8 +1,12 @@
 import express from "express";
 import { authorizeRoles, isAuthenticatedUser } from "../middlewares/auth.js";
-import { allOrders, deleteOrder, getOrderDetails, getSales, myOrders, newOrder, updateOrder, cancelOrder } from "../controllers/orderControllers.js";
+import { allOrders, deleteOrder, getOrderDetails, getSales, myOrders, newOrder, updateOrder, cancelOrder, uploadPaymentProof, getPaymentProof, reviewPaymentProof, deliverySettings } from "../controllers/orderControllers.js";
 
 const router = express.Router();
+
+router.get("/delivery/options", deliverySettings);
+router.route("/orders/:id/payment-proof").post(isAuthenticatedUser, uploadPaymentProof).get(isAuthenticatedUser, getPaymentProof);
+router.post("/admin/orders/:id/payment-proof/review", isAuthenticatedUser, authorizeRoles("admin"), reviewPaymentProof);
 
 router.route("/orders/new").post(isAuthenticatedUser, newOrder);
 router.route("/orders/:id").get(isAuthenticatedUser, getOrderDetails);

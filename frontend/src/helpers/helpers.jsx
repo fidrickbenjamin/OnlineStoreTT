@@ -25,8 +25,8 @@ export const calculateOrderCost = (cartItems, shippingOption) => {
         shippingPrice = 15;
     }
 
-    const taxPrice = 0.15 * itemsPrice;
-    const totalPrice = itemsPrice + shippingPrice + taxPrice;
+    const taxPrice = Math.round((0.15 * itemsPrice + Number.EPSILON) * 100) / 100;
+    const totalPrice = Math.round((itemsPrice + shippingPrice + taxPrice + Number.EPSILON) * 100) / 100;
 
     return {
         itemsPrice,

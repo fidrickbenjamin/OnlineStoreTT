@@ -13,6 +13,7 @@ import errorMiddleware from "./middlewares/errors.js";
 import path from "path";
 import {fileURLToPath} from "url";
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const envFile = process.env.NODE_ENV === "PRODUCTION"
@@ -33,9 +34,10 @@ dotenv.config({ path: envFile });
 // Connectin to Database
 connectDatabase();
 
-app.use(express.json({limit : "10mb", verify: (req, res, buf) => {
+app.use(express.json({limit : "1mb", verify: (req, res, buf) => {
     req.rawBody = buf.toString();
 } }));
+//app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(cookieParser());
 
 

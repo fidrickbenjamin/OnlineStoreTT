@@ -1,17 +1,21 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import MetaData from "./layout/MetaData";
 import { useGetProductsQuery } from "../redux/api/productsApi";
 import ProductItem from "./product/ProductItem";
 import Loader from "./layout/Loader";
 import toast from "react-hot-toast";
 import CustomPagination from "./layout/CustomPagination";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Filters from "./layout/Filters";
 import Hero from "./Hero";
 import CategorySplash from "./CategorySplash";
+import { useSelector } from "react-redux";
+import "./shared/store-upgrade.css";
 
 const Home = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const { cartItems = [] } = useSelector(state => state.cart);
 
   const page = searchParams.get("page") || 1;
   const keyword = searchParams.get("keyword") || "";
@@ -23,6 +27,9 @@ const Home = () => {
   const params = {
     page,
     keyword,
+    listingType: "retail",
+    sort: searchParams.get("sort") || "newest",
+    inStock: searchParams.get("inStock") || "",
   };
 
   if (min !== null) params.min = min;
@@ -48,7 +55,7 @@ const Home = () => {
 
   // Detect if any filter/search is active
   const hasActiveFilters = Boolean(
-    keyword || category || min || max || ratings
+    keyword || category || min || max || ratings || searchParams.get("inStock")
   );
 
   // Use larger cards whenever filters are visible
@@ -64,10 +71,10 @@ const Home = () => {
 
   const headingText = headingLabel
     ? category
-      ? `${retailProducts.length} Products in ${headingLabel}`
+      ? `${data?.filteredProductsCount || 0} Products in ${headingLabel}`
       : ratings
-      ? `${retailProducts.length} Products with ${headingLabel}`
-      : `${retailProducts.length} Products found with keyword: ${headingLabel}`
+      ? `${data?.filteredProductsCount || 0} Products with ${headingLabel}`
+      : `${data?.filteredProductsCount || 0} Products found with keyword: ${headingLabel}`
     : "Latest Products";
 
   if (isLoading) return <Loader />;
@@ -76,11 +83,12 @@ const Home = () => {
     <>
       <MetaData title={"Tactical Trends Market Place"} />
 
-      <CategorySplash />
-      <Hero />
+      {!hasActiveFilters && <><CategorySplash /><Hero /></>}
+      <div className="tt-toolbar"><button className="btn btn-outline-success" onClick={() => setFiltersOpen(value => !value)} aria-expanded={filtersOpen}>Filters</button><label>Sort<select value={params.sort} onChange={event => { const next = new URLSearchParams(searchParams); next.set("sort", event.target.value); next.set("page", "1"); setSearchParams(next); }}><option value="newest">Newest</option><option value="priceAsc">Price: low to high</option><option value="priceDesc">Price: high to low</option><option value="rating">Highest rated</option></select></label><label><input type="checkbox" checked={params.inStock === "true"} onChange={event => { const next = new URLSearchParams(searchParams); if (event.target.checked) next.set("inStock", "true"); else next.delete("inStock"); next.set("page", "1"); setSearchParams(next); }} style={{display:"inline", marginRight:8}}/> In stock only</label><button className="btn btn-outline-secondary" onClick={() => setSearchParams({})}>Clear filters</button></div>
+      {filtersOpen && <div className="tt-filter-panel"><Filters /></div>}
 
       <div className="row">
-        {hasActiveFilters && (
+        {hasActiveFilters && !filtersOpen && (
           <div className="col-12 col-md-3 mt-5 hide-on-mobile">
             <Filters />
           </div>
@@ -88,14 +96,15 @@ const Home = () => {
 
         <div
           className={`${
-            hasActiveFilters ? "col-12 col-md-9" : "col-12"
+            hasActiveFilters && !filtersOpen ? "col-12 col-md-9" : "col-12"
           } products-container filters-products-container`}
         >
           <h1 id="products_heading" className="text-secondary">
             {headingText}
           </h1>
 
-          <section id="products" className="mt-5">
+          <section id="products" className="mt-4 tt-product-grid">
+            {!retailProducts.length && <p className="tt-empty">No products match these filters. Try a wider search.</p>}
             <div className="row">
               {retailProducts.map((product) => (
                 <ProductItem
@@ -113,6 +122,7 @@ const Home = () => {
           />
         </div>
       </div>
+      {cartItems.length > 0 && <Link to="/cart" className="tt-mobile-cart">Cart · {cartItems.reduce((sum, item) => sum + Number(item.quantity), 0)} items</Link>}
     </>
   );
 };

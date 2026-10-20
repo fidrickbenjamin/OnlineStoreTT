@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useGetProductDetailsQuery } from "../../redux/api/productsApi";
 import toast from "react-hot-toast";
 import Loader from "../layout/Loader";
-import StarRatings from "react-star-ratings";
+import StarRatings from "../shared/StarRatings";
 import { useDispatch, useSelector } from "react-redux";
 import { setCartItem } from "../../redux/features/cartSlice";
 import MetaData from "../layout/MetaData";

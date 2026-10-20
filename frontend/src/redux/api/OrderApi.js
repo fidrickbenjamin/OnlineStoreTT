@@ -3,11 +3,20 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const orderApi = createApi({
     reducerPath: "orderApi",
-    baseQuery: fetchBaseQuery({ baseUrl: "/api/v2" }),
-    tagTypes: ["Order", "Orders", "AdminOrders"],
+    baseQuery: fetchBaseQuery({ baseUrl: "/api/v2", credentials: "include" }),
+    tagTypes: ["Order", "Orders", "AdminOrders", "Sales"],
 
     endpoints: (builder) => ({
 
+        deliveryOptions: builder.query({ query: () => "/delivery/options" }),
+        uploadPaymentProof: builder.mutation({
+            query: ({id, ...body}) => ({ url: `/orders/${id}/payment-proof`, method: "POST", body }),
+            invalidatesTags: ["Order", "Orders", "AdminOrders"],
+        }),
+        reviewPaymentProof: builder.mutation({
+            query: ({id, ...body}) => ({ url: `/admin/orders/${id}/payment-proof/review`, method: "POST", body }),
+            invalidatesTags: ["Order", "Orders", "AdminOrders", "Sales"],
+        }),
         createNewOrder: builder.mutation({
             query(body) {
                 return {
@@ -55,7 +64,17 @@ export const orderApi = createApi({
             }),
         }),
 
+        createPayPalOrder: builder.mutation({
+            query: ({ orderId }) => ({ url: "/payment/paypal/create-order", method: "POST", body: { orderId } }),
+        }),
+
+        capturePayPalOrder: builder.mutation({
+            query: ({ orderId, paypalOrderId }) => ({ url: `/payment/paypal/capture/${orderId}`, method: "POST", body: { paypalOrderId } }),
+            invalidatesTags: ["Order", "Orders", "AdminOrders", "Sales"],
+        }),
+
         getDashboardSales: builder.query({
+            providesTags: ["Sales"],
             query: ({ startDate, endDate }) =>
                 `/admin/get_sales/?startDate=${startDate}&endDate=${endDate}`,
         }),
@@ -73,7 +92,7 @@ export const orderApi = createApi({
                     body,
                 };
             },
-            invalidatesTags: ["Order", "AdminOrders"],
+            invalidatesTags: ["Order", "Orders", "AdminOrders", "Sales"],
         }),
 
         deleteOrder: builder.mutation({
@@ -90,15 +109,21 @@ export const orderApi = createApi({
 });
 
 export const {
+    useDeliveryOptionsQuery,
+    useUploadPaymentProofMutation,
+    useReviewPaymentProofMutation,
     useCreateNewOrderMutation,
     useStripeCheckoutSessionMutation,
     useMyOrdersQuery,
     useOrderDetailsQuery,
     useLazyGetDashboardSalesQuery,
+    useGetDashboardSalesQuery,
     useGetAdminOrdersQuery,
     useUpdateOrderMutation,
     useDeleteOrderMutation,
     useCancelOrderMutation,
     useShopdmCheckoutMutation,
+    useCreatePayPalOrderMutation,
+    useCapturePayPalOrderMutation,
 } = orderApi;
 

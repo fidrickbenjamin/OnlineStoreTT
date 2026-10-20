@@ -1,17 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const readStored = (key, fallback) => {
+  try { const value = JSON.parse(localStorage.getItem(key)); return value === null ? fallback : value; }
+  catch { localStorage.removeItem(key); return fallback; }
+};
 const initialState = {
-  cartItems: localStorage.getItem("cartItems")
-    ? JSON.parse(localStorage.getItem("cartItems"))
-    : [],
-
-  shippingInfo: localStorage.getItem("shippingInfo")
-    ? JSON.parse(localStorage.getItem("shippingInfo"))
-    : {},
-
-  shippingOption: localStorage.getItem("shippingOption")
-    ? JSON.parse(localStorage.getItem("shippingOption"))
-    : "none",
+  cartItems: Array.isArray(readStored("cartItems", [])) ? readStored("cartItems", []) : [],
+  shippingInfo: readStored("shippingInfo", {}) || {},
+  shippingOption: readStored("shippingOption", "none"),
 };
 
 

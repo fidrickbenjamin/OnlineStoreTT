@@ -27,12 +27,15 @@ const Hero = () => {
   }, [data, isLoading, isError]);
 
   useEffect(() => {
+    if (randomProducts.length < 2) return;
     const intervalId = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % randomProducts.length);
     }, 5000); // Change image every 5 seconds
 
     return () => clearInterval(intervalId);
   }, [randomProducts]);
+
+  const activeProduct = randomProducts[currentIndex] || randomProducts[0];
 
   if (isLoading) return <div className="hero-loading">Loading hero images...</div>;
   if (isError) return <div className="hero-error">Error loading products</div>;
@@ -42,22 +45,22 @@ const Hero = () => {
   return (
     <section id="hero" className="hero-section">
       <div className="hero-container">
-        {randomProducts.length > 0 ? (
+        {activeProduct ? (
           <div className="hero-item">
             <img
-              src={randomProducts[currentIndex].images[0].url}
-              alt={randomProducts[currentIndex].name}
+              src={activeProduct.images?.[0]?.url || "/images/default_product.png"}
+              alt={activeProduct.name}
             />
             <div className="hero-overlay">
               <div className="price">
                 <Price
-                  amount={randomProducts[currentIndex].price}
+                  amount={activeProduct.price}
                   size={isMobile ? "medium" : "hero"}
                 />
               </div>
               <div className="hero-actions">
                 <a
-                  href={`/product/${randomProducts[currentIndex]._id}`}
+                  href={`/product/${activeProduct._id}`}
                   className="btn"
                 >
                   View Product

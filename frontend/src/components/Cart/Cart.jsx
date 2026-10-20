@@ -16,7 +16,7 @@ const Cart = () => {
   // =========================
   // SHIPPING STATE (SAFE)
   // =========================
-  const [selectedShipping, setSelectedShipping] = useState("");
+  const [selectedShipping, setSelectedShipping] = useState(["roseau", "portsmouth", "pickup"].includes(shippingOption) ? shippingOption : "");
 
   const validShippingOptions = ["roseau", "portsmouth", "pickup"];
 

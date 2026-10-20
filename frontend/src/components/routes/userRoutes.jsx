@@ -1,27 +1,27 @@
 import React from "react";
 import { Route} from "react-router-dom";
 import Home from "../Home";
-
-import ProductDetails from "../product/ProductDetails";
-import Login from "../auth/Login";
-import Register from "../auth/Register";
-import Profile from "../user/Profile";
-import UpdateProfile from "../user/UpdateProfile";
 import ProtectedRoute from "../auth/ProtectedRoute";
-import UploadAvatar from "../user/UploadAvatar";
-import UpdatePassword from "../user/UpdatePassword";
-import ForgotPassword from "../auth/ForgotPassword";
-import ResetPassword from "../auth/ResetPassword";
-import Cart from "../Cart/Cart";
-import Shipping from "../Cart/Shipping";
-import ConfirmOrder from "../Cart/ConfirmOrder";
-import PaymentMethod from "../Cart/PaymentMethod";
-import MyOrders from "../order/MyOrders";
-import OrderDetails from "../order/OrderDetails";
-import Invoice from "../invoice/Invoice";
-import PropertyHub from "../property/PropertyHub";
-import ShippingAddress from "../user/ShippingAddress";
-import ShopdmPaymentSuccess from "../payment/ShopdmPaymentSuccess";
+
+const ProductDetails = React.lazy(() => import("../product/ProductDetails"));
+const Login = React.lazy(() => import("../auth/Login"));
+const Register = React.lazy(() => import("../auth/Register"));
+const Profile = React.lazy(() => import("../user/Profile"));
+const UpdateProfile = React.lazy(() => import("../user/UpdateProfile"));
+const UploadAvatar = React.lazy(() => import("../user/UploadAvatar"));
+const UpdatePassword = React.lazy(() => import("../user/UpdatePassword"));
+const ForgotPassword = React.lazy(() => import("../auth/ForgotPassword"));
+const ResetPassword = React.lazy(() => import("../auth/ResetPassword"));
+const Cart = React.lazy(() => import("../Cart/Cart"));
+const Shipping = React.lazy(() => import("../Cart/Shipping"));
+const ConfirmOrder = React.lazy(() => import("../Cart/ConfirmOrder"));
+const PaymentMethod = React.lazy(() => import("../Cart/PaymentMethod"));
+const MyOrders = React.lazy(() => import("../order/MyOrders"));
+const OrderDetails = React.lazy(() => import("../order/OrderDetails"));
+const Invoice = React.lazy(() => import("../invoice/Invoice"));
+const PropertyHub = React.lazy(() => import("../property/PropertyHub"));
+const ShippingAddress = React.lazy(() => import("../user/ShippingAddress"));
+const ShopdmPaymentSuccess = React.lazy(() => import("../payment/ShopdmPaymentSuccess"));
 
 
 const userRoutes = () => {
@@ -58,6 +58,7 @@ const userRoutes = () => {
       <Route path="/me/order/:id" element={<ProtectedRoute> <OrderDetails /> </ProtectedRoute>} />
       <Route path="/invoice/order/:id" element={<ProtectedRoute> <Invoice /> </ProtectedRoute>} />
       <Route path="/payment/shopdm/success" element={<ProtectedRoute> <ShopdmPaymentSuccess /> </ProtectedRoute>} />
+      <Route path="/payment/shopdm/:orderId" element={<ProtectedRoute> <ShopdmPaymentSuccess /> </ProtectedRoute>} />
      
      
       

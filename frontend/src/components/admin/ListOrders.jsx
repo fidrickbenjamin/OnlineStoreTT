@@ -1,110 +1,15 @@
-import React, { useEffect } from "react";
-import  Loader  from "../layout/Loader";
-import toast from "react-hot-toast";
-import {MDBDataTable} from "mdbreact";
-import { Link  } from "react-router-dom";
-import MetaData from "../layout/MetaData";
-import {  useGetAdminproductsQuery } from "../../redux/api/productsApi";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import AdminLayout from "../layout/AdminLayout";
-import { useDeleteOrderMutation, useGetAdminOrdersQuery } from "../../redux/api/OrderApi";
-
-const ListOrders = () => {
-
-    const { data, isLoading, error } = useGetAdminOrdersQuery();
-    const [deleteOrder, { error: deleteError, isSuccess, isLoading:isDeleteLoading}] = useDeleteOrderMutation();
-    
-
-    
-    useEffect(() => {    
-        if(error) {
-            toast.error(error?.data?.message);
-        }
-
-      if(deleteError) {
-          toast.error(deleteError?.data?.message);
-        }
-
-       if(isSuccess) {
-           toast.success("Order Deleted");
-       } 
-
-    }, [error, deleteError, isSuccess ]);
-
-
-    const deleteOrderHandler = (id) => {
-        deleteOrder(id);
-    }
-
-
-    const setOrders = () => {
-          const orders = {
-            columns:[
-                {
-                    label:"ID",
-                    field:"id",
-                    sort:"asc",
-                },
-                {
-                    label:"Payment Status",
-                    field:"paymentStatus",
-                    sort:"asc",
-                },
-                {
-                    label:"Order Status",
-                    field:"orderStatus",
-                    sort:"asc",
-                },
-                {
-                    label:"Actions",
-                    field:"actions",
-                    sort:"asc",
-                },
-            ],
-            rows: [],
-          };
-
-          data?.orders?.forEach((order) => {
-            orders.rows.push({
-                id: order?._id,
-                paymentStatus: order?.paymentInfo?.status?.toUpperCase(),
-                orderStatus: order?.orderStatus,
-                actions: ( <> 
-                <Link to={ `/admin/orders/${order?._id}`} className="btn btn-outline-primary">  <i class="bi bi-pencil-square"></i>  </Link>
-                <button  className="btn btn-outline-danger ms-2" 
-                onClick={() => deleteOrderHandler(order?._id)} 
-                disabled={isDeleteLoading}
-                >  
-                
-                <i class="bi bi-trash"></i>  </button>
-                </> )
-            })
-          })
-          
-          return orders;
-    };
-
-
-    if(isLoading) return <Loader />
-
-    return ( 
-          
-        
-        <AdminLayout> 
-            <MetaData title={"All Orders"} />
-            <h1 className="my-5">{data?.orders?.length} Orders </h1>
-
-
-            <MDBDataTable 
-            
-            data={setOrders()}
-            className="px-3"
-            bordered
-            striped
-            hover
-            />
-             </AdminLayout>
-              
-    );
-};
-
-export default ListOrders;
+import MetaData from "../layout/MetaData";
+import Loader from "../layout/Loader";
+import { useGetAdminOrdersQuery, useUpdateOrderMutation } from "../../redux/api/OrderApi";
+import { StatusBadge, orderNumber, money } from "../shared/OrderUI";
+import toast from "react-hot-toast";
+export default function ListOrders(){
+ const {data,isLoading,error}=useGetAdminOrdersQuery(undefined,{refetchOnMountOrArgChange:true});const [update,{isLoading:saving}]=useUpdateOrderMutation();
+ const [search,setSearch]=useState(""),[payment,setPayment]=useState(""),[status,setStatus]=useState(""),[method,setMethod]=useState(""),[archive,setArchive]=useState("active"),[page,setPage]=useState(1);
+ const orders=(data?.orders||[]).filter(order=>(archive==="all"||(archive==="archived"?order.archived:!order.archived))&&(!payment||order.paymentInfo?.status===payment)&&(!status||order.orderStatus===status)&&(!method||order.paymentMethod===method)&&`${order._id} ${orderNumber(order)} ${order.user?.name||""} ${order.user?.email||""}`.toLowerCase().includes(search.toLowerCase()));
+ const pages=Math.max(1,Math.ceil(orders.length/20)),current=Math.min(page,pages);const change=setter=>event=>{setter(event.target.value);setPage(1);};
+ return <AdminLayout><MetaData title="Orders"/><h1 className="mt-4">Orders</h1><p>Payment and fulfilment are separate. Archive records to keep the active list organised.</p>{error&&<p role="alert">{error?.data?.message||"Unable to load orders."}</p>}<div className="tt-toolbar"><label>Search<input type="search" value={search} onChange={change(setSearch)} placeholder="Customer, email or order"/></label>{[["Payment",payment,setPayment,["Not Paid","Pending","Verifying","Paid","Failed","Refunded"]],["Fulfilment",status,setStatus,["Pending","Processing","Shipped","Delivered","Cancelled"]],["Method",method,setMethod,["CASH","COD","NBD","ShopdmPay","PayPal","Card"]]].map(([label,value,setter,options])=><label key={label}>{label}<select value={value} onChange={change(setter)}><option value="">All</option>{options.map(option=><option key={option}>{option}</option>)}</select></label>)}<label>Records<select value={archive} onChange={change(setArchive)}><option value="active">Active</option><option value="archived">Archived</option><option value="all">All records</option></select></label></div>{isLoading?<Loader/>:<><p>{orders.length} matching orders</p><div className="table-responsive"><table className="tt-table"><thead><tr>{["Order / customer","Total","Payment","Fulfilment","Actions"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{orders.slice((current-1)*20,current*20).map(order=><tr key={order._id}><td><strong>{orderNumber(order)}</strong><small>{order.user?.name||"Customer"} · {new Date(order.createdAt).toLocaleDateString()}</small>{order.cancelRequestedAt&&<small className="text-danger">Cancellation requested</small>}{order.paymentProof?.reviewStatus==="Pending"&&<small>Receipt awaiting review</small>}</td><td>{money(order.totalAmount)}</td><td><StatusBadge value={order.paymentInfo?.status}/><small>{order.paymentMethod}</small></td><td><StatusBadge value={order.orderStatus}/></td><td><div className="tt-actions"><Link className="btn btn-sm btn-outline-success" to={`/admin/orders/${order._id}`}>Manage</Link><Link className="btn btn-sm btn-outline-secondary" to={`/invoice/order/${order._id}`}>Invoice</Link><button className="btn btn-sm btn-outline-secondary" disabled={saving} onClick={async()=>{try{await update({id:order._id,body:{archived:!order.archived}}).unwrap();toast.success(order.archived?"Order restored.":"Order archived.");}catch(e){toast.error(e?.data?.message||"Unable to update order.");}}}>{order.archived?"Restore":"Archive"}</button></div></td></tr>)}</tbody></table></div>{!orders.length&&<p className="tt-empty">No matching orders.</p>}<div className="tt-actions my-3"><button className="btn btn-outline-secondary" disabled={current===1} onClick={()=>setPage(current-1)}>Previous</button><span className="align-self-center">{current} / {pages}</span><button className="btn btn-outline-secondary" disabled={current===pages} onClick={()=>setPage(current+1)}>Next</button></div></>}</AdminLayout>;
+}

@@ -1,17 +1,17 @@
 import React from "react";
 import { Route} from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute";
-import Dashboard from "../admin/Dashboard";
-import ListProducts from "../admin/ListProducts";
-import NewProduct from "../admin/NewProduct";
-import UpdateProduct from "../admin/UpdateProduct";
-import UploadImages from "../admin/UploadImages";
-import ListOrders from "../admin/ListOrders";
-import ProcessOrder from "../admin/ProcessOrder";
-import ListUsers from "../admin/ListUsers";
-import UpdateUser from "../admin/UpdateUser";
-import ProductReviews from "../admin/ProductReviews";
-import PropertyInquiries from "../admin/PropertyInquiries";
+const Dashboard = React.lazy(() => import("../admin/Dashboard"));
+const ListProducts = React.lazy(() => import("../admin/ListProducts"));
+const NewProduct = React.lazy(() => import("../admin/NewProduct"));
+const UpdateProduct = React.lazy(() => import("../admin/UpdateProduct"));
+const UploadImages = React.lazy(() => import("../admin/UploadImages"));
+const ListOrders = React.lazy(() => import("../admin/ListOrders"));
+const ProcessOrder = React.lazy(() => import("../admin/ProcessOrder"));
+const ListUsers = React.lazy(() => import("../admin/ListUsers"));
+const UpdateUser = React.lazy(() => import("../admin/UpdateUser"));
+const ProductReviews = React.lazy(() => import("../admin/ProductReviews"));
+const PropertyInquiries = React.lazy(() => import("../admin/PropertyInquiries"));
 
 const adminRoutes = () => {
 

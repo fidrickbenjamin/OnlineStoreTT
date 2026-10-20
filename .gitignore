@@ -1,0 +1,10 @@
+node_modules/
+frontend/node_modules/
+frontend/build/
+coverage/
+.env
+.env.*
+!.env.example
+backend/config/config.env
+npm-debug.log*
+.DS_Store
