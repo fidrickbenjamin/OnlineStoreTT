@@ -4,6 +4,7 @@ import SideMenu from "./SideMenu";
 const AdminLayout = ({children}) => {
 
     const menuItems = [
+        {name:"Promotions",url:"/admin/promotions",icon:"bi bi-tags"},
         {
                 name: "Dashboard",
                 url: "/admin/dashboard",

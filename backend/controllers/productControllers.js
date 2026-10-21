@@ -1,3 +1,4 @@
+import {activeCampaigns,priceProduct,priceExpression} from "../services/promotionPricing.js";
 import Product from "../models/product.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
@@ -8,14 +9,21 @@ import {delete_file, upload_file} from "../utils/cloudinary.js";
 // Create new product => /api/v2/products
 export const getProducts = catchAsyncErrors(async (req, res, next) => {
 
-    const resPerPage = 20;
-    const apiFilters = new APIFilters(Product, req.query).search().filters();
-    const filter = apiFilters.query.getFilter();
-    const filteredProductsCount = await Product.countDocuments(filter);
-    apiFilters.query = apiFilters.query.select("-reviews");
-    apiFilters.pagination(resPerPage);
-    const products = await apiFilters.query.lean();
-    res.json({ resPerPage, filteredProductsCount, products });
+    const resPerPage = 20, now = new Date(), campaigns = await activeCampaigns(now);
+    const query = new APIFilters(Product, req.query).search().filters().query;
+    const filter = query.getFilter(), priceFilter = filter.price; delete filter.price;
+    const sort = Object.fromEntries(Object.entries(query.getOptions().sort).map(([key,value])=>[key==="price"?"_promoPrice":key,value]));
+    const page=Math.max(1,Math.min(100000,Math.floor(Number(req.query.page)||1)));
+    const pipeline=[{$match:filter},{$addFields:{_promoPrice:priceExpression(campaigns,now)}}];
+    if(priceFilter)pipeline.push({$match:{_promoPrice:priceFilter}});
+    if(req.query.dealsOnly==="true")pipeline.push({$match:{$expr:{$lt:["$_promoPrice","$price"]}}});
+    if(req.query.campaign){
+      const campaign=campaigns.find(row=>String(row._id)===String(req.query.campaign));
+      pipeline.push({$match:campaign?(campaign.scope==="products"?{_id:{$in:campaign.products}}:{"category.main":campaign.category}):{_id:{$in:[]}}});
+    }
+    pipeline.push({$facet:{metadata:[{$count:"count"}],products:[{$sort:sort},{$skip:(page-1)*resPerPage},{$limit:resPerPage},{$project:{reviews:0,inventoryAllocations:0,_promoPrice:0}}]}});
+    const [result]=await Product.aggregate(pipeline);
+    res.set("Cache-Control","no-store").json({resPerPage,filteredProductsCount:result?.metadata?.[0]?.count||0,products:(result?.products||[]).map(product=>priceProduct(product,campaigns,now)),serverTime:now});
 });
 
 
@@ -23,6 +31,7 @@ export const getProducts = catchAsyncErrors(async (req, res, next) => {
 export const newProduct = catchAsyncErrors(async (req, res) => {
 
     delete req.body.inventoryAllocations;
+    delete req.body.directSale;
     req.body.user = req.user._id;
     
     const product = await Product.create(req.body)
@@ -44,9 +53,8 @@ export const getProductDetails = catchAsyncErrors(async (req, res, next ) => {
     }
 
 
-    res.status(200).json({
-        product,
-    });
+    const now = new Date();
+    res.set("Cache-Control","no-store").json({product:priceProduct(product,await activeCampaigns(now),now)});
 });
 
 
@@ -66,9 +74,10 @@ export const getAdminProducts = catchAsyncErrors(async (req, res, next ) => {
 
 
 // Update Product Details => /api/v2/products/:id
-export const updateProduct = catchAsyncErrors(async (req, res) => {
+export const updateProduct = catchAsyncErrors(async (req, res, next) => {
     
     delete req.body.inventoryAllocations;
+    delete req.body.directSale;
     let product = await Product.findById(req?.params?.id);
 
     if (!product) {

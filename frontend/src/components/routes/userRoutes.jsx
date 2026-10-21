@@ -3,6 +3,7 @@ import { Route} from "react-router-dom";
 import Home from "../Home";
 import ProtectedRoute from "../auth/ProtectedRoute";
 
+const Deals = React.lazy(() => import("../promotions/Deals"));
 const ProductDetails = React.lazy(() => import("../product/ProductDetails"));
 const Login = React.lazy(() => import("../auth/Login"));
 const Register = React.lazy(() => import("../auth/Register"));
@@ -31,6 +32,7 @@ const userRoutes = () => {
 
                     
       <Route path="/" element={<Home />} />
+      <Route path="/deals" element={<Deals />} />
       <Route path="/property-hub" element={<PropertyHub />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/login" element={<Login />} />

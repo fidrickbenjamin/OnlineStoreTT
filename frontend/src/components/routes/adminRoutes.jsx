@@ -1,6 +1,7 @@
 import React from "react";
 import { Route} from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute";
+const Promotions = React.lazy(() => import("../admin/Promotions"));
 const Dashboard = React.lazy(() => import("../admin/Dashboard"));
 const ListProducts = React.lazy(() => import("../admin/ListProducts"));
 const NewProduct = React.lazy(() => import("../admin/NewProduct"));
@@ -18,6 +19,7 @@ const adminRoutes = () => {
     return (
         < > 
         
+        <Route path="/admin/promotions" element={<ProtectedRoute admin={true}><Promotions/></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute admin={true}> <Dashboard /> </ProtectedRoute>} />
         <Route path="/admin/products" element={<ProtectedRoute admin={true}> <ListProducts /> </ProtectedRoute>} />
         <Route path="/admin/product/new" element={<ProtectedRoute admin={true}> <NewProduct /> </ProtectedRoute>} />

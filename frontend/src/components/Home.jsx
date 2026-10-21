@@ -8,6 +8,7 @@ import CustomPagination from "./layout/CustomPagination";
 import { Link, useSearchParams } from "react-router-dom";
 import Filters from "./layout/Filters";
 import Hero from "./Hero";
+import PromotionBanners from "./promotions/PromotionBanners";
 import CategorySplash from "./CategorySplash";
 import { useSelector } from "react-redux";
 import "./shared/store-upgrade.css";
@@ -37,7 +38,7 @@ const Home = () => {
   if (category !== null) params.category = category;
   if (ratings !== null) params.ratings = ratings;
 
-  const { data, isLoading, error, isError } = useGetProductsQuery(params);
+  const { data, isLoading, error, isError } = useGetProductsQuery(params, {pollingInterval:60000,refetchOnMountOrArgChange:true});
 
   const retailProducts = (data?.products || []).filter((product) => {
     const isProperty =
@@ -84,7 +85,8 @@ const Home = () => {
       <MetaData title={"Tactical Trends Market Place"} />
 
       {!hasActiveFilters && <><CategorySplash /><Hero /></>}
-      <div className="tt-toolbar"><button className="btn btn-outline-success" onClick={() => setFiltersOpen(value => !value)} aria-expanded={filtersOpen}>Filters</button><label>Sort<select value={params.sort} onChange={event => { const next = new URLSearchParams(searchParams); next.set("sort", event.target.value); next.set("page", "1"); setSearchParams(next); }}><option value="newest">Newest</option><option value="priceAsc">Price: low to high</option><option value="priceDesc">Price: high to low</option><option value="rating">Highest rated</option></select></label><label><input type="checkbox" checked={params.inStock === "true"} onChange={event => { const next = new URLSearchParams(searchParams); if (event.target.checked) next.set("inStock", "true"); else next.delete("inStock"); next.set("page", "1"); setSearchParams(next); }} style={{display:"inline", marginRight:8}}/> In stock only</label><button className="btn btn-outline-secondary" onClick={() => setSearchParams({})}>Clear filters</button></div>
+      <PromotionBanners/>
+      <div className="tt-toolbar"><Link className="btn btn-success" to="/deals">Shop deals</Link><button className="btn btn-outline-success" onClick={() => setFiltersOpen(value => !value)} aria-expanded={filtersOpen}>Filters</button><label>Sort<select value={params.sort} onChange={event => { const next = new URLSearchParams(searchParams); next.set("sort", event.target.value); next.set("page", "1"); setSearchParams(next); }}><option value="newest">Newest</option><option value="priceAsc">Price: low to high</option><option value="priceDesc">Price: high to low</option><option value="rating">Highest rated</option></select></label><label><input type="checkbox" checked={params.inStock === "true"} onChange={event => { const next = new URLSearchParams(searchParams); if (event.target.checked) next.set("inStock", "true"); else next.delete("inStock"); next.set("page", "1"); setSearchParams(next); }} style={{display:"inline", marginRight:8}}/> In stock only</label><button className="btn btn-outline-secondary" onClick={() => setSearchParams({})}>Clear filters</button></div>
       {filtersOpen && <div className="tt-filter-panel"><Filters /></div>}
 
       <div className="row">

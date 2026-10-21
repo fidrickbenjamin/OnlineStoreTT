@@ -1,3 +1,4 @@
+import {quoteCart} from "../services/promotionPricing.js";
 import crypto from "node:crypto";
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
 import Order from "../models/order.js";
@@ -41,16 +42,12 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
   let order = await Order.findOne({ dedupeKey });
   let reused = Boolean(order);
   if (!order) {
-    const products = await Product.find({ _id: { $in: grouped.map(item => item.product) } });
-    const verified = grouped.map(item => {
-      const product = products.find(row => String(row._id) === item.product);
-      if (!product || product.listingType === "property" || product.category?.main === "Property or Real Estate") throw new ErrorHandler("One or more products cannot be purchased online.", 400);
-      if (product.stock < item.quantity) throw new ErrorHandler(`${product.name} does not have enough stock.`, 409);
-      return { product: product._id, quantity: item.quantity, name: product.name, price: Number(product.price).toFixed(2), image: product.images?.[0]?.url || "/images/default_product.png" };
-    });
-    const totals = calculateTotals(verified, shippingOption);
+    const quote = await quoteCart(grouped,shippingOption,req.user._id);
+    if(req.body.quoteHash!==quote.quoteHash)return res.status(409).json({success:false,code:"PRICE_CHANGED",message:"Prices or offers changed, or your checkout needs reviewing. Return to Confirm Order to check the current total before paying."});
+    const {orderItems:verified,totalSavings,...totals}=quote;
+    delete totals.quoteHash;delete totals.quotedAt;
     try {
-      order = await Order.create({ orderItems: verified, shippingInfo, shippingOption, ...totals, user: req.user._id, paymentMethod, paymentInfo: { status: paymentMethod === "NBD" ? "Verifying" : online(paymentMethod) ? "Pending" : "Not Paid", provider: online(paymentMethod) ? paymentMethod : undefined }, orderStatus: "Pending", inventoryTracked: true, dedupeKey, expiresAt: new Date(Date.now()+86400000), timeline: [{ message: "Order received. Awaiting payment or store confirmation." }] });
+      order = await Order.create({ orderItems: verified, shippingInfo, shippingOption, ...totals, totalSavings, user: req.user._id, paymentMethod, paymentInfo: { status: paymentMethod === "NBD" ? "Verifying" : online(paymentMethod) ? "Pending" : "Not Paid", provider: online(paymentMethod) ? paymentMethod : undefined }, orderStatus: "Pending", inventoryTracked: true, dedupeKey, expiresAt: new Date(Date.now()+86400000), timeline: [{ message: "Order received. Awaiting payment or store confirmation." }] });
     } catch (error) { if (error.code !== 11000) throw error; order = await Order.findOne({ dedupeKey }); reused = true; }
   }
   if (!order) throw new ErrorHandler("Checkout is being created. Please retry shortly.", 409);
@@ -192,4 +189,9 @@ export const getSales = catchAsyncErrors(async (req, res) => {
   ]);
   const totalSales = daily.reduce((sum,row)=>sum+row.sales,0), totalNumOrders = daily.reduce((sum,row)=>sum+row.numOrders,0);
   res.json({ success: true, totalSales, totalNumOrders, sales: daily.map(row=>({date:row._id,sales:row.sales,numOrders:row.numOrders})), bestSellers, statuses: statusesData, payments: paymentData, averageOrderValue: totalNumOrders ? totalSales/totalNumOrders : 0 });
+});
+
+export const quoteOrder = catchAsyncErrors(async(req,res)=>{
+ const quote=await quoteCart(req.body.orderItems,req.body.shippingOption,req.user._id);
+ res.set("Cache-Control","no-store").json({success:true,quote});
 });

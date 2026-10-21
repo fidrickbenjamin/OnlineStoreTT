@@ -9,7 +9,7 @@
     "dev": "cross-env NODE_ENV=DEVELOPMENT nodemon backend/app.js",
     "prod": "cross-env NODE_ENV=PRODUCTION nodemon backend/app.js",
     "seeder": "node backend/seeder/seeder.js",
-    "test:orders": "node --test tests/*.test.mjs",
+    "test:orders": "node --test --test-concurrency=1 tests/*.test.mjs",
     "orders:maintenance": "node backend/scripts/orderMaintenance.js"
   },
   "author": "Fidrick Benjamin",

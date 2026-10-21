@@ -2,7 +2,14 @@ import express from "express";
 import { getProductDetails, getProducts, newProduct, updateProduct, deleteProduct, createProductReview, getProductReviews, deleteReview, canUserReview, getAdminProducts, uploadProductImages, deleteProductImage } from "../controllers/productControllers.js";
 import { createPropertyInquiry, getPropertyInquiries, updatePropertyInquiryStatus } from "../controllers/propertyInquiryController.js";
 import { isAuthenticatedUser, authorizeRoles } from "../middlewares/auth.js";
+import {listPromotions,savePromotion,promotionAction,previewPromotion,activePromotions,getDirectSale,saveDirectSale} from "../controllers/promotionControllers.js";
 const router = express.Router();
+router.get("/promotions/active", activePromotions);
+router.route("/admin/promotions").get(isAuthenticatedUser,authorizeRoles("admin"),listPromotions).post(isAuthenticatedUser,authorizeRoles("admin"),savePromotion);
+router.post("/admin/promotions/preview",isAuthenticatedUser,authorizeRoles("admin"),previewPromotion);
+router.put("/admin/promotions/:id",isAuthenticatedUser,authorizeRoles("admin"),savePromotion);
+router.post("/admin/promotions/:id/action",isAuthenticatedUser,authorizeRoles("admin"),promotionAction);
+router.route("/admin/products/:id/sale").get(isAuthenticatedUser,authorizeRoles("admin"),getDirectSale).put(isAuthenticatedUser,authorizeRoles("admin"),saveDirectSale);
 
 router.route("/products").get( getProducts);
 router.route("/admin/products").post(isAuthenticatedUser, authorizeRoles("admin"), newProduct);

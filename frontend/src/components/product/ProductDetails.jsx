@@ -12,6 +12,7 @@ import NewReview from "../reviews/NewReview";
 import ListReviews from "../reviews/ListReviews";
 import styles from './ProductDetails.module.css';
 import NotFound from "../layout/NotFound";
+import SalePrice from "../promotions/SalePrice";
 import Price from "../Price/Price";
 import { Modal, Form, Button } from "react-bootstrap";
 import { useCreatePropertyInquiryMutation } from "../../redux/api/productsApi";
@@ -29,7 +30,7 @@ const ProductDetails = () => {
         preferredViewingDate: "",
         message: "",
     });
-    const { data, isLoading, error, isError } = useGetProductDetailsQuery(params?.id);
+    const { data, isLoading, error, isError } = useGetProductDetailsQuery(params?.id, {pollingInterval:60000,refetchOnMountOrArgChange:true});
     const [createPropertyInquiry, { isLoading: isSubmittingInquiry }] = useCreatePropertyInquiryMutation();
 
     const product = data?.product;
@@ -96,6 +97,9 @@ const productSchema = {
             product: product._id,
             name: product.name,
             price: product.price,
+            regularPrice: product.regularPrice,
+            discountPerUnit: product.savings,
+            promotionName: product.promotion?.label,
             image: product.images[0]?.url,
             stock: product.stock,
             quantity,
@@ -281,7 +285,7 @@ const productSchema = {
                         <span id="no-of-reviews" className="pt-1 ps-2">({product?.numOfReviews} Reviews)</span>
                     </div>
                     <hr />
-                    <p id="product_price"> <Price amount={product.price} /> </p>
+                    <div id="product_price">{isProperty ? <Price amount={product.price}/> : <SalePrice product={product}/>}</div>
 
                     {isProperty ? (
                         <div className="mt-3">

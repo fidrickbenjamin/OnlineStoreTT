@@ -1,4 +1,5 @@
 
+import {setCheckoutQuote} from "../features/cartSlice";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const orderApi = createApi({
@@ -17,14 +18,16 @@ export const orderApi = createApi({
             query: ({id, ...body}) => ({ url: `/admin/orders/${id}/payment-proof/review`, method: "POST", body }),
             invalidatesTags: ["Order", "Orders", "AdminOrders", "Sales"],
         }),
+        quoteOrder: builder.mutation({
+            query: body => ({url:"/orders/quote",method:"POST",body}),
+        }),
         createNewOrder: builder.mutation({
-            query(body) {
-                return {
-                    url: "/orders/new",
-                    method: "POST",
-                    body,
-                };
+            async queryFn(body, api, extra, baseQuery) {
+                const result=await baseQuery({url:"/orders/new",method:"POST",body:{...body,quoteHash:api.getState().cart.checkoutQuote?.quoteHash}});
+                if(result.error?.status===409&&result.error?.data?.code==="PRICE_CHANGED")api.dispatch(setCheckoutQuote(null));
+                return result;
             },
+            invalidatesTags:["Order","Orders","AdminOrders"],
         }),
 
         myOrders: builder.query({
@@ -109,6 +112,7 @@ export const orderApi = createApi({
 });
 
 export const {
+    useQuoteOrderMutation,
     useDeliveryOptionsQuery,
     useUploadPaymentProofMutation,
     useReviewPaymentProofMutation,

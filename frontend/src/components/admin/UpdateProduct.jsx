@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ProductSaleEditor from "../promotions/ProductSaleEditor";
 import Loader from "../layout/Loader";
 import toast from "react-hot-toast";
 import MetaData from "../layout/MetaData";
@@ -33,7 +34,7 @@ const UpdateProduct = () => {
             setProduct({
                 name: data.product.name,
                 description: data.product.description,
-                price: data.product.price,
+                price: data.product.regularPrice ?? data.product.price,
                 mainCategory,
                 subCategory,
                 stock: data.product.stock,
@@ -191,6 +192,7 @@ const UpdateProduct = () => {
                             {isLoading ? "UPDATING..." : "UPDATE"}
                         </button>
                     </form>
+                    {data?.product?.listingType !== "property" && data?.product?.category?.main !== "Property or Real Estate" && <ProductSaleEditor id={params.id}/>}
                 </div>
             </div>
         </AdminLayout>

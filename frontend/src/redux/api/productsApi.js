@@ -3,13 +3,16 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const productApi = createApi ({
     reducerPath: "productApi",
     baseQuery: fetchBaseQuery({ baseUrl: "/api/v2"}),
-    tagTypes:["Product", "AdminProducts", "Reviews", "AdminReview", "PropertyInquiries"],
+    tagTypes:["Product", "AdminProducts", "Reviews", "AdminReview", "PropertyInquiries", "Promotions"],
     endpoints: (builder) => ({
         getProducts: builder.query({
+            providesTags: ["Product", "Promotions"],
             query: (params) => ({ 
                 url: "/products",
             params: {
                 page: params?.page,
+                dealsOnly: params?.dealsOnly,
+                campaign: params?.campaign,
                 sort: params?.sort,
                 inStock: params?.inStock,
                 listingType: params?.listingType,

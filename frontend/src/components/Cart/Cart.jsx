@@ -24,6 +24,7 @@ const Cart = () => {
 
   const setItemToCart = (item, newQty) => {
     const cartItem = {
+      ...item,
       product: item?.product,
       name: item?.name,
       price: item?.price,
@@ -89,6 +90,7 @@ const Cart = () => {
             Your Cart: <b>{cartItems?.length} items</b>
           </h2>
 
+          <p className="text-muted">Prices and active offers are checked again on the order review page before payment.</p>
           <div className="row d-flex justify-content-between">
 
             {/* ================= CART ITEMS ================= */}

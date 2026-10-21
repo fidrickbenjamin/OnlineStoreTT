@@ -46,6 +46,11 @@ const orderSchema = new mongoose.Schema({
     },
     orderItems: [{
 
+        regularPrice: Number,
+        discountPerUnit: Number,
+        promotionId: String,
+        promotionName: String,
+        campaignId: {type:mongoose.Schema.Types.ObjectId,ref:"Promotion"},
         name: {
           type: String,
           required: true,
@@ -106,6 +111,8 @@ paymentInfo: {
     amountPaidByCustomerXcd: Number,
     paidAt: Date,
 },
+
+totalSavings: {type:Number,default:0},
 
 itemsPrice: {
     type: Number,

@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import StarRatings from "../shared/StarRatings";
 import "./ProductItem.css";
+import SalePrice from "../promotions/SalePrice";
 import Price from "../Price/Price";
 
 const ProductItem = ({ product, columnSize }) => {
@@ -128,9 +129,7 @@ const ProductItem = ({ product, columnSize }) => {
 
 
               <p className="mt-2 mb-0"><small className={product.stock > 0 ? "text-success" : "text-danger"}>{product.stock > 0 ? "In stock" : "Out of stock"}</small></p>
-              <p className="card-text mt-2">
-                <Price amount={product?.price} />
-              </p>
+              <div className="card-text mt-2 mb-3"><SalePrice product={product}/></div>
 
 
               <Link

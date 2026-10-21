@@ -1,0 +1,12 @@
+import React,{useEffect,useState} from "react";
+import {useProductSaleQuery,useSaveProductSaleMutation} from "../../redux/api/promotionsApi";
+import {toDominicaLocal,fromDominicaLocal} from "./promotionDates";
+import {money} from "../shared/OrderUI";
+import toast from "react-hot-toast";
+import "./promotions.css";
+export default function ProductSaleEditor({id}){
+ const {data,error}=useProductSaleQuery(id);const [save,{isLoading}]=useSaveProductSaleMutation();const [sale,setSale]=useState({enabled:false,price:"",label:"Sale",startsAt:"",endsAt:""});
+ useEffect(()=>{if(data?.product){const current=data.product.directSale||{};setSale({enabled:!!current.enabled,price:current.price||"",label:current.label||"Sale",startsAt:toDominicaLocal(current.startsAt),endsAt:toDominicaLocal(current.endsAt)});}},[data]);
+ const change=key=>event=>setSale({...sale,[key]:event.target.value});
+ return <section className="tt-sale-editor"><h3 className="h5">Individual item sale</h3><p>Regular price: {money(data?.product?.price)}. This sale is saved separately from the product form.</p>{error&&<p role="alert">Sale settings could not be loaded.</p>}<label><input type="checkbox" checked={sale.enabled} onChange={event=>setSale({...sale,enabled:event.target.checked})}/> Put this item on sale</label>{sale.enabled&&<div className="tt-promo-form my-3"><label>Sale price (XCD)<input className="form-control" type="number" min="0.01" step="0.01" value={sale.price} onChange={change("price")}/></label><label>Badge text<input className="form-control" value={sale.label} maxLength={40} onChange={change("label")}/></label><label>Starts (optional, Dominica time)<input className="form-control" type="datetime-local" value={sale.startsAt} onChange={change("startsAt")}/></label><label>Ends (optional, Dominica time)<input className="form-control" type="datetime-local" value={sale.endsAt} onChange={change("endsAt")}/></label></div>}<p className="text-muted mt-2">Leave dates blank to start immediately with no scheduled end. A better campaign price will take precedence.</p><button type="button" className="btn btn-outline-success" disabled={isLoading||!data} onClick={async()=>{try{await save({id,...sale,price:Number(sale.price),startsAt:fromDominicaLocal(sale.startsAt),endsAt:fromDominicaLocal(sale.endsAt)}).unwrap();toast.success("Item sale saved.");}catch(e){toast.error(e?.data?.message||e.message||"Could not save item sale.");}}}>{isLoading?"Saving sale…":"Save item sale"}</button></section>;
+}

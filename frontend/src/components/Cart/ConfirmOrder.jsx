@@ -1,103 +1,21 @@
-import React from "react";
-import MetaData from "../layout/MetaData";
-import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { calculateOrderCost } from "../../helpers/helpers";
+import React,{useEffect,useMemo,useState} from "react";
+import {useSelector,useDispatch} from "react-redux";
+import {Link,useNavigate} from "react-router-dom";
+import {useQuoteOrderMutation} from "../../redux/api/OrderApi";
+import {setCheckoutQuote} from "../../redux/features/cartSlice";
 import CheckoutSteps from "./CheckoutSteps";
-import Price from "../Price/Price";
-
-
-const ConfirmOrder = () => {
-
-
-    const { cartItems, shippingInfo, shippingOption } = useSelector((state) => state.cart);
-    const {user } = useSelector((state) => state.auth);
-
-
-  const {
-  itemsPrice,
-  taxPrice,
-  totalPrice,
-} = calculateOrderCost(cartItems, shippingOption);
-  
-
-    const ready = ["roseau", "portsmouth", "pickup"].includes(shippingOption) && shippingInfo?.address && shippingInfo?.city && shippingInfo?.phoneNo && cartItems.length > 0;
-
-    return (
-        <>
-     <MetaData title={"Confirm Order Info"} />
-     <CheckoutSteps shipping ConfirmOrder />
-        <div className="row d-flex justify-content-between">
-        <div className="col-12 col-lg-8 mt-5 order-confirm">
-          <h4 className="mb-3">Shipping Info</h4>
-          <p><b>Name:</b> {user?.name}</p>
-          <p><b>Email:</b> {user?.email}</p>
-          <p><b>Phone:</b> {shippingInfo?.phoneNo}</p>
-          <p className="mb-4">
-            <b>Address:</b> {shippingInfo?.address}, {shippingInfo?.city}, {shippingInfo?.zipCode}, {shippingInfo?.country}
-          </p>
-  
-          <hr />
-          <h4 className="mt-4">Your Cart Items:</h4>
-          <p>Landmark: {shippingInfo?.landmark || "Not provided"}</p>
-          {shippingInfo?.deliveryNotes && <p>Delivery notes: {shippingInfo.deliveryNotes}</p>}
-          <p>Delivery or collection time will be confirmed by the store.</p>
-  
-            {cartItems?.map((item) => (
-                <React.Fragment key={item.product}> 
-                <hr />
-          <div className="cart-item my-1">
-            <div className="row">
-              <div className="col-4 col-lg-2">
-                <img
-                  src={item?.image}
-                  alt="Laptop"
-                  height="45"
-                  width="65"
-                />
-              </div>
-  
-              <div className="col-5 col-lg-6">
-                <Link to ={`/product/${item.product}`}>{item?.name}</Link>
-              </div>
-  
-              <div className="col-4 col-lg-4 mt-4 mt-lg-0">
-                <p>{item?.quantity} x $ {item?.price}  = <Price amount={Number(item.price) * item.quantity} size="small"/> </p>
-              </div>
-            </div>
-          </div>
-          <hr />
-                </React.Fragment>
-            ))}
-
-          
-        </div>
-  
-        <div className="col-12 col-lg-3 my-4">
-          <div id="order_summary">
-            <h4>Order Summary</h4>
-            <hr />
-<p>Subtotal: <span className="order-summary-values"> <Price amount={itemsPrice}/> </span></p>
-            <hr />
-            <p>Tax: <span className="order-summary-values"> <Price amount={taxPrice}/> </span></p>
-            <hr />
-            <p> Delivery: <span className="order-summary-values"> {" "} {shippingOption === "roseau" ? "Roseau Delivery ($15)" : shippingOption === "portsmouth" ? "Portsmouth Delivery ($15)" : "Pickup ($0)"}
-</span> </p>
-            
-  
-            <hr />
-
-            <p>Total: <span className="order-summary-values"> <Price amount={totalPrice} /> </span></p>
-  
-            <hr />
-            <Link to={ready ? "/payment_method" : "/shipping"} id="checkout_btn" className="btn btn-primary w-100" >
-              {ready ? "Proceed to Payment" : "Complete shipping details"}
-            </Link>
-          </div>
-        </div>
-      </div>
-      </>
-    );
-};
-
-export default ConfirmOrder;
+import MetaData from "../layout/MetaData";
+import {money} from "../shared/OrderUI";
+export default function ConfirmOrder(){
+ const dispatch=useDispatch(),navigate=useNavigate();const {cartItems,shippingInfo,shippingOption,checkoutQuote}=useSelector(state=>state.cart);const {user}=useSelector(state=>state.auth);
+ const cartKey=JSON.stringify(cartItems.map(item=>[String(item.product),Number(item.quantity)]).sort((a,b)=>a[0].localeCompare(b[0])));const lines=useMemo(()=>JSON.parse(cartKey).map(([product,quantity])=>({product,quantity})),[cartKey]);
+ const [getQuote]=useQuoteOrderMutation();const [quote,setQuote]=useState(null),[loading,setLoading]=useState(false),[error,setError]=useState(""),[refresh,setRefresh]=useState(0);
+ const shippingReady=["roseau","portsmouth","pickup"].includes(shippingOption)&&shippingInfo?.address&&shippingInfo?.city&&shippingInfo?.phoneNo&&cartItems.length>0;
+ useEffect(()=>{
+  dispatch(setCheckoutQuote(null));setQuote(null);setError("");if(!shippingReady)return;
+  let cancelled=false;setLoading(true);const request=getQuote({orderItems:lines,shippingOption});
+  request.unwrap().then(result=>{if(cancelled)return;setQuote(result.quote);dispatch(setCheckoutQuote(result.quote));}).catch(e=>{if(!cancelled)setError(e?.data?.message||"Current prices could not be checked.");}).finally(()=>{if(!cancelled)setLoading(false);});
+  return()=>{cancelled=true;request.abort();};
+ },[getQuote,lines,shippingOption,shippingReady,refresh,dispatch]);
+ return <><MetaData title="Review order"/><CheckoutSteps shipping ConfirmOrder/><main className="tt-page"><h1>Review your order</h1><p>These prices include the best active offer per item. Please check the current total before continuing.</p>{!shippingReady&&<p className="tt-notice">Complete your delivery details first. <Link to="/shipping">Edit shipping</Link></p>}{loading&&<p role="status">Checking current prices and offers…</p>}{error&&<p className="tt-notice" role="alert">{error} <Link to="/me/orders">My Orders</Link></p>}<div className="tt-order-grid"><section className="tt-box"><h2>Customer / delivery</h2><p>{user?.name} · {user?.email}<br/>{shippingInfo?.phoneNo}<br/>{shippingInfo?.address}, {shippingInfo?.city}</p>{shippingInfo?.landmark&&<p>Landmark: {shippingInfo.landmark}</p>}{shippingInfo?.deliveryNotes&&<p>{shippingInfo.deliveryNotes}</p>}<Link to="/shipping">Edit delivery details</Link><h2 className="mt-4">Your items</h2>{(quote?.orderItems||cartItems).map(item=><div className="d-flex gap-3 border-bottom py-3" key={String(item.product)}><img src={item.image} alt="" width="60" height="60" style={{objectFit:"contain"}}/><div><Link to={`/product/${item.product}`}>{item.name}</Link><p className="mb-1">{item.quantity} × {money(item.price)} = {money(item.quantity*Number(item.price))}</p>{item.discountPerUnit>0&&<small className="text-success">{item.promotionName} · Save {money(item.discountPerUnit*item.quantity)} <span className="text-muted">(regular {money(item.regularPrice)} each)</span></small>}</div></div>)}</section><section className="tt-box align-self-start"><h2>Confirmed total</h2>{quote&&<>{[["Items",quote.itemsPrice],["Tax",quote.taxAmount],["Delivery / collection",quote.shippingAmount],["Total",quote.totalAmount]].map(([label,amount])=><div className="tt-total-row" key={label}><span>{label}</span><strong>{money(amount)}</strong></div>)}{quote.totalSavings>0&&<p className="tt-promo-summary">You save {money(quote.totalSavings)} on items.</p>}</>}<p className="text-muted">Tax is calculated on the discounted item subtotal. Delivery / collection time is confirmed by the store.</p><div className="tt-actions"><button className="btn btn-success" disabled={!quote||loading||!shippingReady||checkoutQuote?.quoteHash!==quote.quoteHash} onClick={()=>navigate("/payment_method")}>Proceed to payment</button><button className="btn btn-outline-secondary" disabled={loading||!shippingReady} onClick={()=>setRefresh(value=>value+1)}>Refresh prices</button></div></section></div></main></>;
+}
