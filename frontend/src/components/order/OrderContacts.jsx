@@ -1,0 +1,6 @@
+import React from 'react';
+import '../account/account.css';
+export default function OrderContacts({order,compact=false}){
+ const shipping=order.shippingInfo||{},buyer=order.buyerInfo||{},name=buyer.name||order.user?.name||'Customer',email=buyer.email||order.user?.email;
+ return <div className="tt-order-contacts"><div className={compact?'':'tt-contact-grid'}><div><h3>Purchased by</h3><p><strong>{name}</strong>{email&&<><br/>{email}</>}{buyer.country&&<><br/>{buyer.country}</>}{buyer.phoneNo&&<><br/>{buyer.phoneNo}</>}</p></div><div><h3>{order.shippingOption==='pickup'?'Collecting in Dominica':'Deliver to'}</h3><p><strong>{shipping.recipientName||name}</strong><br/>{shipping.phoneNo}<br/>{shipping.address}, {shipping.city}<br/>{shipping.country||'Dominica'}</p>{shipping.landmark&&<p>Landmark: {shipping.landmark}</p>}{shipping.deliveryNotes&&<p>Instructions: {shipping.deliveryNotes}</p>}</div></div>{shipping.contactPreference&&<p className="tt-account-muted">Contact for delivery: <strong>{shipping.contactPreference==='buyer'?`${name} (buyer)`:`${shipping.recipientName||name} (recipient)`}</strong></p>}{shipping.isGift&&<div className="tt-account-destination"><strong>Gift order · packing slip without prices</strong>{shipping.giftMessage&&<p className="mb-0 mt-2">{shipping.giftMessage}</p>}</div>}</div>;
+}

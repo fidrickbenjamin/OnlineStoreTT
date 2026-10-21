@@ -1,0 +1,6 @@
+export const blankAddress={address:'',city:'',phoneNo:'',zipCode:'',country:'Dominica',landmark:'',deliveryNotes:''};
+export const blankRecipient=()=>({...blankAddress,label:'',recipientName:''});
+export const localPhone=value=>{let phone=String(value||'').replace(/[\s()+.-]/g,'');if(phone.length===7)phone=`1767${phone}`;else if(phone.length===10&&phone.startsWith('767'))phone=`1${phone}`;return /^1767\d{7}$/.test(phone)?`+${phone}`:null;};
+export function addressErrors(value,{recipient=false}={}){const errors={};for(const [key,label] of [['address','Address'],['city','Community / village']])if(!String(value[key]||'').trim())errors[key]=`${label} is required.`;if(!localPhone(value.phoneNo))errors.phoneNo='Enter a Dominica number, e.g. +1 767 555 0123.';if(recipient){if(!value.recipientName?.trim())errors.recipientName='Enter the recipient’s name.';if(!value.label?.trim())errors.label='Add a label, such as Mum — Wesley.';}return errors;}
+export const hasAddress=address=>!!(address?.address&&address?.city&&address?.phoneNo&&String(address.country||'Dominica').toLowerCase()==='dominica');
+export const buyerPhoneValid=value=>/^\+?[\d\s().-]+$/.test(value||'')&&String(value).replace(/\D/g,'').length>=7&&String(value).replace(/\D/g,'').length<=15;

@@ -25,7 +25,12 @@ export function calculateTotals(items, option) {
 export function checkoutFingerprint(user, items, shippingInfo, shippingOption, paymentMethod) {
   const fields = ["address", "city", "zipCode", "phoneNo", "country", "landmark", "deliveryNotes"];
   const shipping = Object.fromEntries(fields.map(key => [key, String(shippingInfo[key] || "").trim()]));
-  return crypto.createHash("sha256").update(JSON.stringify([String(user), groupItems(items), shipping, shippingOption, paymentMethod])).digest("hex");
+  // Preserve the legacy fingerprint for self-delivery. Add recipient identity for
+  // overseas/gift purchases so a different recipient can never reuse an order.
+  const extended=shippingInfo.deliveryFor==="other"||shippingInfo.isGift;
+  const context=extended?[String(shippingInfo.recipientName||"").trim(),shippingInfo.deliveryFor,shippingInfo.contactPreference||"recipient",Boolean(shippingInfo.isGift),String(shippingInfo.giftMessage||"").trim()]:null;
+  const parts=[String(user), groupItems(items), shipping, shippingOption, paymentMethod];if(context)parts.push(context);
+  return crypto.createHash("sha256").update(JSON.stringify(parts)).digest("hex");
 }
 export const statuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 export const paymentStatuses = ["Not Paid", "Pending", "Verifying", "Paid", "Failed", "Refunded"];

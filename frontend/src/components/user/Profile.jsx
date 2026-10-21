@@ -1,55 +1,14 @@
-import React, { useState } from "react";
-import UserLayout from "../layout/UserLayout";
-import { useSelector } from "react-redux";
-import MetaData from "../layout/MetaData";
-import Select from 'react-select'; // If you choose to use react-select
-import countryList from 'react-select-country-list'; // For country selection
-
-const Profile = () => {
-    const { user } = useSelector((state) => state.auth);
-
-    return (
-        <UserLayout>
-            <MetaData title={"Your Profile"} />
-            <div className="row justify-content-around mt-5 user-info">
-                <div className="col-12 col-md-3">
-                    <figure className="avatar avatar-profile">
-                        <img
-                            className="rounded-circle img-fluid"
-                            src={user?.avatar ? user?.avatar?.url : "/images/default_avatar.jpg"}
-                            alt={user?.name}
-                        />
-                    </figure>
-                </div>
-
-                <div className="col-12 col-md-5">
-                    <h4>Full Name</h4>
-                    <p>{user?.name}</p>
-
-                    <h4>Email Address</h4>
-                    <p>{user?.email}</p>
-
-                    <h4>Joined On</h4>
-                    <p>{user?.createdAt?.substring(0, 10)}</p>
-
-                    {/* Address Information */}
-                    <h4>Address Information</h4>
-                    <div className="address-info-profile">
-                        <p><strong>Address:</strong> {user?.shippingInfo?.address || "N/A"}</p>
-                        <p><strong>City:</strong> {user?.shippingInfo?.city || "N/A"}</p>
-                        <p><strong>Zip Code:</strong> {user?.shippingInfo?.zipCode || "N/A"}</p>
-                        <p><strong>Phone No:</strong> {user?.shippingInfo?.phoneNo || "N/A"}</p>
-                        <p><strong>Country:</strong> {user?.shippingInfo?.country || "N/A"}</p>
-                    </div>
-
-                    {/* You can remove the form for updating address here */}
-                    {/* <form onSubmit={handleAddressUpdate}>
-                        ... Your form fields ...
-                    </form> */}
-                </div>
-            </div>
-        </UserLayout>
-    );
-};
-
-export default Profile;
+import React from 'react';
+import {Link} from 'react-router-dom';
+import {useSelector} from 'react-redux';
+import UserLayout from '../layout/UserLayout';
+import MetaData from '../layout/MetaData';
+import {useMyOrdersQuery} from '../../redux/api/OrderApi';
+import {orderNumber,money,StatusBadge} from '../shared/OrderUI';
+import {hasAddress} from '../account/accountHelpers';
+export default function Profile(){
+ const {user}=useSelector(state=>state.auth),{data,isLoading,error,refetch}=useMyOrdersQuery(undefined,{refetchOnMountOrArgChange:true});
+ const orders=data?.orders||[],active=orders.filter(order=>!['Cancelled','Delivered'].includes(order.orderStatus)),unpaid=active.filter(order=>!['Paid','Refunded'].includes(order.paymentInfo?.status)),defaultRecipient=user?.savedRecipients?.find(row=>String(row._id)===user.defaultRecipientId),delivery=defaultRecipient||user?.shippingInfo;
+ const completeContact=!!(user?.contactPhone&&user?.countryOfResidence),completeDelivery=hasAddress(delivery);
+ return <UserLayout><MetaData title="My account"/><section className="tt-account-welcome"><span className="tt-account-kicker">Your marketplace, closer to home</span><h2>Hello, {user?.name?.split(' ')[0]||'there'}.</h2><p>Shop from wherever you are. Send a little something to someone in Dominica.</p></section><div className="tt-account-stats">{[['Orders',orders.length],['In progress',active.length],['Awaiting payment',unpaid.length]].map(([label,value])=><div className="tt-account-stat" key={label}><strong>{isLoading||error?'—':value}</strong><span>{label}</span></div>)}</div>{(!completeContact||!completeDelivery)&&<section className="tt-account-card"><h3>Make your next checkout easier</h3><p className="tt-account-description">Save your details once and choose who receives each order.</p><ul className="tt-account-checklist">{!completeContact&&<li><Link to="/me/update_profile">Add your contact number and country of residence</Link></li>}{!completeDelivery&&<li><Link to="/me/address">Add a Dominica delivery address or saved recipient</Link></li>}</ul></section>}<div className="tt-account-duo"><section className="tt-account-card"><div className="tt-account-card-title"><h3>Personal details</h3><Link to="/me/update_profile">Edit</Link></div><strong>{user?.name}</strong><p className="tt-account-description mb-0">{user?.email}<br/>{user?.contactPhone||'Add a contact number'}<br/>{user?.countryOfResidence||'Add your country of residence'}</p></section><section className="tt-account-card"><div className="tt-account-card-title"><h3>Default recipient</h3><Link to="/me/address">Manage</Link></div>{completeDelivery?<><strong>{defaultRecipient?.label||'Deliver to me'}</strong><p className="tt-account-description mb-0">{defaultRecipient?.recipientName||user?.name}<br/>{delivery.address}, {delivery.city}<br/>Dominica · {delivery.phoneNo}</p></>:<p className="tt-account-description">Buying for someone at home? Save their address in Dominica for your next order.</p>}</section></div><section className="tt-account-card"><div className="tt-account-card-title"><h3>Recent orders</h3><Link to="/me/orders">View all orders →</Link></div>{isLoading&&<p role="status">Loading your orders…</p>}{error&&<p role="alert" className="tt-account-error">Orders could not be loaded. <button className="btn btn-sm btn-outline-secondary" onClick={()=>refetch()}>Retry</button></p>}{!isLoading&&!error&&orders.slice(0,3).map(order=><div className="tt-account-recent" key={order._id}><div><strong>{orderNumber(order)} · {money(order.totalAmount)}</strong><small>{new Date(order.createdAt).toLocaleDateString()} · {order.paymentMethod}</small></div><StatusBadge value={order.orderStatus}/><Link to={`/me/order/${order._id}`}>{unpaid.some(row=>row._id===order._id)?'View / continue payment':'View order'} →</Link></div>)}{!isLoading&&!error&&!orders.length&&<p className="tt-account-description">Your first find is waiting. <Link to="/">Explore the shop</Link>.</p>}</section></UserLayout>;
+}

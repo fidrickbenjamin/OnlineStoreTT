@@ -1,100 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { useUpdateProfileMutation } from "../../redux/api/userApi";
-import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
-import UserLayout from "../layout/UserLayout";
-import MetaData from "../layout/MetaData";
-import { useNavigate } from "react-router-dom";
-
-const UpdateProfile = () => {
-    const [user, setUser] = useState({
-        name: "",
-        email: ""
-    });
-
-    const navigate = useNavigate();
-    
-    const [updateProfile, { isLoading, error, isSuccess }] = useUpdateProfileMutation();
-    const { user: currentUser } = useSelector((state) => state.auth);
-    
-    // State to track if success message has been shown
-    const [messageShown, setMessageShown] = useState(false);
-
-    // Populate the form fields when the component loads
-    useEffect(() => {
-        if (currentUser) {
-            setUser({
-                name: currentUser?.name,
-                email: currentUser?.email
-            });
-        }
-
-        if (error) {
-            toast.error(error?.data?.message);
-        }
-
-        if (isSuccess && !messageShown) {
-            toast.success("Profile Updated");
-            setMessageShown(true); // Mark the message as shown
-            navigate("/me/update_profile");
-        }
-    }, [currentUser, error, isSuccess, messageShown]);
-
-    // Handler for form submission
-    const submitHandler = (e) => {
-        e.preventDefault();
-        updateProfile(user); // Update profile with name and email
-        setMessageShown(false); // Reset message shown state for future updates
-    };
-
-    // Handler for input changes
-    const onChange = (e) => {
-        setUser({ ...user, [e.target.name]: e.target.value });
-    };
-
-    return (
-        <UserLayout>
-            <MetaData title={"Update Profile"} />
-            <div className="row wrapper">
-                <div className="col-10 col-lg-8">
-                    {/* Form for Name and Email */}
-                    <form className="shadow rounded bg-body mb-4" onSubmit={submitHandler}>
-                        <h2 className="mb-4">Update Profile</h2>
-
-                        {/* Name and Email Section */}
-                        <div className="mb-3">
-                            <label htmlFor="name_field" className="form-label"> Name </label>
-                            <input
-                                type="text"
-                                id="name_field"
-                                className="form-control"
-                                name="name"
-                                value={user.name}
-                                onChange={onChange}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="email_field" className="form-label"> Email </label>
-                            <input
-                                type="email"
-                                id="email_field"
-                                className="form-control"
-                                name="email"
-                                value={user.email}
-                                onChange={onChange}
-                            />
-                        </div>
-
-                        {/* Submit Button for Name and Email */}
-                        <button type="submit" className="btn update-btn w-100" disabled={isLoading}>
-                            {isLoading ? "Updating..." : "Update Name & Email"}
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </UserLayout>
-    );
-};
-
-export default UpdateProfile;
+import React,{useState,useRef} from 'react';
+import {preparePhoto} from '../account/preparePhoto';
+import {useDispatch,useSelector} from 'react-redux';
+import {useUpdateProfileMutation,useUploadAvatarMutation} from '../../redux/api/userApi';
+import {setUser} from '../../redux/features/userSlice';
+import UserLayout from '../layout/UserLayout';
+import MetaData from '../layout/MetaData';
+import {CountryField,SaveFeedback,useUnsavedWarning} from '../account/AccountFields';
+import {buyerPhoneValid} from '../account/accountHelpers';
+export default function UpdateProfile(){
+ const {user}=useSelector(state=>state.auth),dispatch=useDispatch();
+ const base={name:user?.name||'',email:user?.email||'',contactPhone:user?.contactPhone||user?.shippingInfo?.phoneNo||'',countryOfResidence:user?.countryOfResidence||user?.shippingInfo?.country||'Dominica'};
+ const [form,setForm]=useState(base),[saved,setSaved]=useState(base),[currentPassword,setCurrentPassword]=useState(''),[errors,setErrors]=useState({}),[message,setMessage]=useState(''),[error,setError]=useState(''),[avatar,setAvatar]=useState(''),[photoMessage,setPhotoMessage]=useState(''),[photoError,setPhotoError]=useState(''),[preparing,setPreparing]=useState(false);const photoRequest=useRef(0);
+ const [update,{isLoading}]=useUpdateProfileMutation(),[upload,{isLoading:uploading}]=useUploadAvatarMutation();const dirty=JSON.stringify(form)!==JSON.stringify(saved);useUnsavedWarning(dirty||!!avatar);
+ const change=(key,value)=>{setForm({...form,[key]:value});setMessage('');setError('');setErrors({...errors,[key]:''});};
+ const onPhotoChange=async event=>{
+  const file=event.target.files?.[0],request=++photoRequest.current;
+  setPhotoMessage('');setPhotoError('');setAvatar('');
+  if(!file){setPreparing(false);return;}
+  setPreparing(true);
+  try{const photo=await preparePhoto(file);if(request===photoRequest.current)setAvatar(photo);}
+  catch(e){if(request===photoRequest.current)setPhotoError(e.message);}
+  finally{if(request===photoRequest.current)setPreparing(false);}
+ };
+ return <UserLayout><MetaData title="Personal details"/><h2>Personal details</h2><p className="tt-account-description">Your details belong to you. The person receiving your order can have a different address in Dominica.</p><section className="tt-account-card"><h3>Profile photo</h3><div className="tt-account-photo"><img src={avatar||user?.avatar?.url||'/images/default_avatar.jpg'} alt="Your profile preview"/><div><label htmlFor="account-photo">Choose a photo<input id="account-photo" className="form-control mt-2" type="file" disabled={uploading} accept="image/jpeg,image/png,image/webp" onChange={onPhotoChange}/></label><p className="mb-0 mt-2">PNG, JPEG or WebP · up to 10 MB · resized automatically</p></div></div><SaveFeedback message={photoMessage} error={photoError}/><button className="btn btn-outline-success" disabled={!avatar||uploading||preparing} onClick={async()=>{try{const result=await upload({avatar}).unwrap();if(result.user)dispatch(setUser(result.user));setAvatar('');setPhotoMessage('Your profile photo has been saved.');}catch(e){setPhotoError(e?.data?.message||'Your photo could not be saved.');}}}>{preparing?'Preparing photo…':uploading?'Uploading…':'Save photo'}</button></section><form className="tt-account-card" onSubmit={async event=>{event.preventDefault();const fields={};if(!form.name.trim())fields.name='Enter your name.';if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))fields.email='Enter a valid email address.';if(form.contactPhone&&!buyerPhoneValid(form.contactPhone))fields.contactPhone='Include your country code, e.g. +1 202 555 0123.';if(form.email.toLowerCase()!==saved.email.toLowerCase()&&!currentPassword)fields.currentPassword='Enter your current password to change your email.';setErrors(fields);if(Object.keys(fields).length)return;setError('');try{const result=await update({...form,currentPassword}).unwrap();dispatch(setUser(result.user));const clean={name:result.user.name,email:result.user.email,contactPhone:result.user.contactPhone,countryOfResidence:result.user.countryOfResidence};setForm(clean);setSaved(clean);setCurrentPassword('');setMessage('Your personal details have been saved.');}catch(e){setError(e?.data?.message||'Your details could not be saved.');}}}><h3>Contact information</h3><div className="tt-account-form-grid">{[['name','Full name','name',50],['email','Email address','email',254],['contactPhone','Your phone / WhatsApp','tel',40]].map(([key,label,autocomplete,max])=><label className="tt-account-field" key={key}>{label}<input className={`form-control ${errors[key]?'is-invalid':''}`} maxLength={max} type={key==='email'?'email':key==='contactPhone'?'tel':'text'} autoComplete={autocomplete} value={form[key]} onChange={event=>change(key,event.target.value)} aria-invalid={!!errors[key]}/>{errors[key]&&<small className="tt-field-error">{errors[key]}</small>}{key==='contactPhone'&&<small>Include your country code if you live overseas.</small>}</label>)}<CountryField value={form.countryOfResidence} onChange={value=>change('countryOfResidence',value)}/></div>{form.email.toLowerCase()!==saved.email.toLowerCase()&&<label className="tt-account-field mt-3">Current password<input className="form-control" type="password" autoComplete="current-password" value={currentPassword} onChange={event=>setCurrentPassword(event.target.value)}/>{errors.currentPassword&&<small className="tt-field-error">{errors.currentPassword}</small>}</label>}<SaveFeedback message={message} error={error}/><div className="tt-account-actions"><button className="btn btn-success" disabled={!dirty||isLoading}>{isLoading?'Saving…':'Save personal details'}</button><small>{dirty?'You have unsaved changes.':'Your details are up to date.'}</small></div></form></UserLayout>;
+}

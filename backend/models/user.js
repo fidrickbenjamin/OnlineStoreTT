@@ -28,28 +28,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "user",
     },
-    shippingInfo: {
-        address: {
-            type: String,
-            required: true,
-        },
-        city: {
-            type: String,
-            required: true,
-        },
-        phoneNo: {
-            type: String,
-            required: true,
-        },
-        zipCode: {
-            type: String,
-            required: true,
-        },
-        country: {
-            type: String,
-            required: true,
-        },
-    },
+    contactPhone: {type:String,maxlength:40,default:""},
+    countryOfResidence: {type:String,maxlength:80,default:""},
+    shippingInfo: {type:new mongoose.Schema({address:String,city:String,phoneNo:String,zipCode:String,country:String,landmark:String,deliveryNotes:String},{_id:false}),default:undefined},
+    savedRecipients: {type:[new mongoose.Schema({label:{type:String,maxlength:40},recipientName:{type:String,maxlength:80},address:String,city:String,phoneNo:String,zipCode:String,country:String,landmark:String,deliveryNotes:String})],default:[]},
+    defaultRecipientId: {type:String,default:"self"},
+    recipientRevision: {type:Number,default:0},
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 }, 
@@ -57,12 +41,9 @@ const userSchema = new mongoose.Schema({
 );
 
 // Encrypting Password before saving the user
-userSchema.pre("save", async function (next) {
-     if(!this.isModified("password")) {
-          next();
-     }
-     
-     this.password = await bcrypt.hash(this.password, 10)
+userSchema.pre("save", async function () {
+     if(!this.isModified("password")) return;
+     this.password = await bcrypt.hash(this.password, 10);
 });
 
 //Return JWT Token

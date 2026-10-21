@@ -1,3 +1,4 @@
+import {checkoutContacts} from "../utils/accountRules.js";
 import {quoteCart} from "../services/promotionPricing.js";
 import crypto from "node:crypto";
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
@@ -32,14 +33,18 @@ async function announce(order, subject) {
 export const newOrder = catchAsyncErrors(async (req, res) => {
   await Order.init();
   await expireOrders();
-  const { shippingInfo = {}, shippingOption, paymentMethod } = req.body;
+  const { shippingOption, paymentMethod } = req.body;
+  let contacts;try{contacts=checkoutContacts(req.user,req.body);}catch(error){throw new ErrorHandler(error.message,400);}
+  const {shippingInfo,buyerInfo}=contacts;
   if (!methods.includes(paymentMethod) || !deliveryOptions[shippingOption]) throw new ErrorHandler("Choose a supported payment and delivery method.", 400);
   for (const key of ["address", "city", "phoneNo", "zipCode", "country"]) if (!String(shippingInfo[key] || "").trim() || String(shippingInfo[key]).length > 250) throw new ErrorHandler("Complete shipping information is required.", 400);
   let grouped;
   try { grouped = groupItems(req.body.orderItems); } catch (error) { throw new ErrorHandler(error.message, 400); }
   const dedupeKey = checkoutFingerprint(req.user._id, grouped, shippingInfo, shippingOption, paymentMethod);
-  await Order.updateMany({ dedupeKey, $or: [{ "paymentInfo.status": { $in: ["Paid", "Refunded"] } }, { orderStatus: "Cancelled" }] }, { $unset: { dedupeKey: 1 } });
-  let order = await Order.findOne({ dedupeKey });
+  const legacyKey=checkoutFingerprint(req.user._id,grouped,req.body.shippingInfo||{},shippingOption,paymentMethod);
+  const keys=[...new Set([dedupeKey,legacyKey])];
+  await Order.updateMany({ dedupeKey:{$in:keys}, $or: [{ "paymentInfo.status": { $in: ["Paid", "Refunded"] } }, { orderStatus: "Cancelled" }] }, { $unset: { dedupeKey: 1 } });
+  let order = await Order.findOne({ dedupeKey:{$in:keys} });
   let reused = Boolean(order);
   if (!order) {
     const quote = await quoteCart(grouped,shippingOption,req.user._id);
@@ -47,7 +52,7 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
     const {orderItems:verified,totalSavings,...totals}=quote;
     delete totals.quoteHash;delete totals.quotedAt;
     try {
-      order = await Order.create({ orderItems: verified, shippingInfo, shippingOption, ...totals, totalSavings, user: req.user._id, paymentMethod, paymentInfo: { status: paymentMethod === "NBD" ? "Verifying" : online(paymentMethod) ? "Pending" : "Not Paid", provider: online(paymentMethod) ? paymentMethod : undefined }, orderStatus: "Pending", inventoryTracked: true, dedupeKey, expiresAt: new Date(Date.now()+86400000), timeline: [{ message: "Order received. Awaiting payment or store confirmation." }] });
+      order = await Order.create({ orderItems: verified, shippingInfo, shippingOption, ...totals, totalSavings, buyerInfo, user: req.user._id, paymentMethod, paymentInfo: { status: paymentMethod === "NBD" ? "Verifying" : online(paymentMethod) ? "Pending" : "Not Paid", provider: online(paymentMethod) ? paymentMethod : undefined }, orderStatus: "Pending", inventoryTracked: true, dedupeKey, expiresAt: new Date(Date.now()+86400000), timeline: [{ message: "Order received. Awaiting payment or store confirmation." }] });
     } catch (error) { if (error.code !== 11000) throw error; order = await Order.findOne({ dedupeKey }); reused = true; }
   }
   if (!order) throw new ErrorHandler("Checkout is being created. Please retry shortly.", 409);

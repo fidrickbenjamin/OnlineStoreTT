@@ -1,63 +1,10 @@
-import React from "react";
-import SideMenu from "./SideMenu";
-
-const UserLayout = ({children}) => {
-
-
-    const menuItems = [
-        {
-                name: "Profile",
-                url: "/me/profile",
-                icon: "bi bi-person-check-fill",
-        },
-
-        {
-            name:"Update Profile",
-            url: "/me/update_profile",
-            icon: "bi bi-person-check-fill",
-        },
-
-        {
-            name:"Shipping Address",
-            url: "/me/address",
-            icon: "bi bi-truck",
-        },
-
-        {
-            name: "Upload Avatar",
-            url: "/me/upload_avatar",
-            icon: "bi bi-person-bounding-box",
-        },
-
-        {
-            name: "Update Password",
-            url: "/me/update_password",
-            icon: "bi bi-file-lock2-fill",
-        },
-    ];
-
-
-    return (
-        <div> 
-            
-            <div className="mt-2 mb-4 py-4">
-                    <h2 className="text-center fw-bolder"> User Settings </h2>
-
-            </div>
-                        <div className="container">
-                            <div className="row justify-content-around">
-                                <div className="col-12 col-lg-3">
-                                   <SideMenu menuItems={menuItems}/>
-
-                                </div>
-                                <div className="col-12 col-lg-8 user-dashboard">
-                                    {children}
-                                </div>
-                            </div>
-                        </div>
-
-        </div>
-    );
-};
-
-export default UserLayout;
+import React,{useEffect,useRef} from 'react';
+import {Link,NavLink,useLocation} from 'react-router-dom';
+import {useSelector} from 'react-redux';
+import '../account/account.css';
+export default function UserLayout({children}){
+ const {user}=useSelector(state=>state.auth),nav=useRef(null),location=useLocation();
+ useEffect(()=>{const node=nav.current,active=node?.querySelector('a.active');if(node&&active&&node.scrollWidth>node.clientWidth)node.scrollLeft+=active.getBoundingClientRect().left-node.getBoundingClientRect().left-8;},[location.pathname]);
+ const links=[['Overview','/me/profile','person-circle'],['My Orders','/me/orders','box-seam'],['Personal Details','/me/update_profile','person'],['Delivery Details','/me/address','geo-alt'],['Security','/me/update_password','shield-lock']];
+ return <main className="tt-account"><div className="tt-account-heading"><div><span className="tt-account-kicker">Tactical Trends · Your space</span><h1>My account</h1></div><Link to="/">Continue shopping ↗</Link></div><div className="tt-account-shell"><aside className="tt-account-sidebar"><div className="tt-account-person"><img src={user?.avatar?.url||'/images/default_avatar.jpg'} alt="" onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src='/images/default_avatar.jpg';}}/><div><strong>{user?.name}</strong><small>Welcome back</small></div></div><nav ref={nav} className="tt-account-nav" aria-label="Account navigation">{links.map(([name,to,icon])=><NavLink end key={to} to={to}><i className={`bi bi-${icon}`} aria-hidden="true"/>{name}</NavLink>)}</nav></aside><div className="tt-account-main">{children}</div></div></main>;
+}

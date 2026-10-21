@@ -1,87 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useUpdatePasswordMutation } from "../../redux/api/userApi";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import UserLayout from "../layout/UserLayout";
-import MetaData from "../layout/MetaData";
-
-const UpdatePassword = () => {
-
-const [oldPassword, setOldPassword] = useState("");
-const [password, setPassword] = useState("");
-
-const navigate = useNavigate();
-
-   const [UpdatePassword, { isLoading, error, isSuccess} ] = useUpdatePasswordMutation();
-
-
- 
-
-useEffect(() => {
-    
-    if(error) {
-        toast.error(error?.data?.message);
-        
-    }
-    if(isSuccess) {
-        toast.success("Password Updated");
-        navigate("/me/profile");
-    }
-
-}, [ error, isSuccess]);
-
-
-const submitHandler = (e) => {
-    e.preventDefault();
-
-    const userData = {
-        oldPassword,
-        password,      
-    };
-
-    UpdatePassword(userData);
-};
-    return (
-        <UserLayout> 
-            
-            <MetaData title={"Update Password "} />
-        <div className="row wrapper">
-      <div className="col-10 col-lg-8">
-        <form className="shadow rounded bg-body" onSubmit={submitHandler}>
-          <h2 className="mb-4">Update Password</h2>
-          <div className="mb-3">
-            <label htmlFor="old_password_field" className="form-label">
-              Old Password
-            </label>
-            <input
-              type="password"
-              id="old_password_field"
-              className="form-control"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="new_password_field" className="form-label">
-              New Password
-            </label>
-            <input
-              type="password"
-              id="new_password_field"
-              className="form-control"
-              value={password}
-              onChange={(e) =>setPassword(e.target.value)}
-            />
-          </div>
-
-          <button type="submit" className="btn update-btn w-100" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Password"}
-          </button>
-        </form>
-      </div>
-    </div> </UserLayout>
-    );
-};
-
-export default UpdatePassword;
+import React,{useState} from 'react';
+import {useUpdatePasswordMutation} from '../../redux/api/userApi';
+import UserLayout from '../layout/UserLayout';
+import MetaData from '../layout/MetaData';
+import {SaveFeedback,useUnsavedWarning} from '../account/AccountFields';
+export default function UpdatePassword(){
+ const [values,setValues]=useState({oldPassword:'',password:'',confirm:''}),[show,setShow]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');const [update,{isLoading}]=useUpdatePasswordMutation();useUnsavedWarning(Object.values(values).some(Boolean));
+ return <UserLayout><MetaData title="Account security"/><h2>Security</h2><p className="tt-account-description">Keep your account protected with a password you do not use elsewhere.</p><form className="tt-account-card" onSubmit={async event=>{event.preventDefault();setError('');setMessage('');if(values.password.length<6||values.password.length>128){setError('Use a password between 6 and 128 characters.');return;}if(values.password!==values.confirm){setError('Your new passwords do not match.');return;}try{await update({oldPassword:values.oldPassword,password:values.password}).unwrap();setValues({oldPassword:'',password:'',confirm:''});setMessage('Your password has been changed.');}catch(e){setError(e?.data?.message||'Your password could not be changed.');}}}><h3>Change password</h3>{[['oldPassword','Current password'],['password','New password'],['confirm','Confirm new password']].map(([key,label])=><label className="tt-account-field mb-3" key={key}>{label}<input className="form-control" required maxLength={128} type={show?'text':'password'} autoComplete={key==='oldPassword'?'current-password':'new-password'} value={values[key]} onChange={event=>setValues({...values,[key]:event.target.value})}/></label>)}<label className="tt-account-muted"><input type="checkbox" checked={show} onChange={event=>setShow(event.target.checked)}/> Show passwords</label><p className="tt-account-muted mt-3">At least 6 characters. A longer, unique passphrase is recommended.</p><SaveFeedback error={error} message={message}/><div className="tt-account-actions"><button className="btn btn-success" disabled={isLoading}>{isLoading?'Updating…':'Change password'}</button></div></form></UserLayout>;
+}

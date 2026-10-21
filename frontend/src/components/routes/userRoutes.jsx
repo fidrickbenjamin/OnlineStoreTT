@@ -1,5 +1,5 @@
 import React from "react";
-import { Route} from "react-router-dom";
+import { Route, Navigate} from "react-router-dom";
 import Home from "../Home";
 import ProtectedRoute from "../auth/ProtectedRoute";
 
@@ -9,7 +9,7 @@ const Login = React.lazy(() => import("../auth/Login"));
 const Register = React.lazy(() => import("../auth/Register"));
 const Profile = React.lazy(() => import("../user/Profile"));
 const UpdateProfile = React.lazy(() => import("../user/UpdateProfile"));
-const UploadAvatar = React.lazy(() => import("../user/UploadAvatar"));
+const PackingSlip = React.lazy(() => import("../order/PackingSlip"));
 const UpdatePassword = React.lazy(() => import("../user/UpdatePassword"));
 const ForgotPassword = React.lazy(() => import("../auth/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("../auth/ResetPassword"));
@@ -48,7 +48,7 @@ const userRoutes = () => {
       } />
 
       <Route path="/me/update_profile" element={<ProtectedRoute> <UpdateProfile /> </ProtectedRoute>} />
-      <Route path="/me/upload_avatar" element={<ProtectedRoute> <UploadAvatar /> </ProtectedRoute>} />
+      <Route path="/me/upload_avatar" element={<ProtectedRoute> <Navigate to="/me/update_profile" replace /> </ProtectedRoute>} />
       <Route path="/me/update_password" element={<ProtectedRoute> <UpdatePassword /> </ProtectedRoute>} />
       <Route path="/me/address" element={<ProtectedRoute> <ShippingAddress /> </ProtectedRoute>} />
 
@@ -58,6 +58,7 @@ const userRoutes = () => {
       <Route path="/payment_method" element={<ProtectedRoute> <PaymentMethod /> </ProtectedRoute>} />
       <Route path="/me/orders" element={<ProtectedRoute> <MyOrders /> </ProtectedRoute>} />
       <Route path="/me/order/:id" element={<ProtectedRoute> <OrderDetails /> </ProtectedRoute>} />
+      <Route path="/packing-slip/order/:id" element={<ProtectedRoute><PackingSlip/></ProtectedRoute>} />
       <Route path="/invoice/order/:id" element={<ProtectedRoute> <Invoice /> </ProtectedRoute>} />
       <Route path="/payment/shopdm/success" element={<ProtectedRoute> <ShopdmPaymentSuccess /> </ProtectedRoute>} />
       <Route path="/payment/shopdm/:orderId" element={<ProtectedRoute> <ShopdmPaymentSuccess /> </ProtectedRoute>} />

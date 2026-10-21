@@ -62,6 +62,10 @@ export const cartSlice = createSlice({
             state.checkoutQuote = null;
             localStorage.removeItem("cartItems");
             state.cartItems = [];
+            state.shippingInfo = {};
+            state.shippingOption = "none";
+            localStorage.removeItem("shippingInfo");
+            localStorage.removeItem("shippingOption");
     },
 
         saveShippingInfo: (state, action) => {

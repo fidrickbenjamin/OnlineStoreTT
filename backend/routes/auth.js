@@ -1,6 +1,10 @@
 import express from "express";
 import { registerUser, loginUser, logout, forgotPassword, resetPassword, getUserProfile, updatePassword, updateProfile, allUsers, getUserDetails, updateUser, deleteUser, uploadAvatar, updateShippingInfo } from "../controllers/authControllers.js";
+import {saveRecipient,deleteRecipient,setDefaultRecipient} from "../controllers/recipientControllers.js";
 const router = express.Router();
+router.post("/me/recipients",isAuthenticatedUser,saveRecipient);
+router.route("/me/recipients/:id").put(isAuthenticatedUser,saveRecipient).delete(isAuthenticatedUser,deleteRecipient);
+router.put("/me/delivery-default",isAuthenticatedUser,setDefaultRecipient);
 
 import { authorizeRoles, isAuthenticatedUser} from "../middlewares/auth.js";
 

@@ -1,7 +1,14 @@
 import mongoose from "mongoose"; 
 
 const orderSchema = new mongoose.Schema({
+    buyerInfo: {name:String,email:String,country:String,phoneNo:String},
     shippingInfo: {
+        recipientName: {type:String,maxlength:80},
+        deliveryFor: {type:String,enum:["self","other"]},
+        contactPreference: {type:String,enum:["buyer","recipient"]},
+        deliveryArea: String,
+        isGift: Boolean,
+        giftMessage: {type:String,maxlength:300},
         address: {
             type: String,
             required: true,

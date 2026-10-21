@@ -1,111 +1,18 @@
-import React, { useState } from "react";
-import UserLayout from "../layout/UserLayout";
-import { useSelector } from "react-redux";
-import MetaData from "../layout/MetaData";
-import { useUpdateAddressMutation } from "../../redux/api/userApi"; // Ensure correct path
-import toast from "react-hot-toast";
-import Select from 'react-select'; // If you choose to use react-select
-import countryList from 'react-select-country-list'; // For country selection
-
-const ShippingAddress = () => {
-    const { user } = useSelector((state) => state.auth);
-    const [updateAddress] = useUpdateAddressMutation(); // Use the mutation hook
-
-    // State for address fields
-    const [address, setAddress] = useState(user?.shippingInfo?.address || "");
-    const [city, setCity] = useState(user?.shippingInfo?.city || "");
-    const [zipCode, setZipCode] = useState(user?.shippingInfo?.zipCode || "");
-    const [phoneNo, setPhoneNo] = useState(user?.shippingInfo?.phoneNo || "");
-    const [country, setCountry] = useState(user?.shippingInfo?.country || "");
-
-    // Create options for country select
-    const countryOptions = countryList().getData();
-
-    // Function to handle form submission
-    const handleAddressUpdate = async (e) => {
-        e.preventDefault();
-        const updatedInfo = { address, city, zipCode, phoneNo, country };
-
-        try {
-            await updateAddress(updatedInfo).unwrap(); // Call the mutation
-            toast.success("Address updated successfully!");
-        } catch (error) {
-            console.error("Error updating address:", error);
-            const errorMessage = error?.data?.message || error?.message || "An error occurred";
-            toast.error("Failed to update address: " + errorMessage);
-        }
-    };
-
-    return (
-        <UserLayout>
-            <MetaData title={"Shipping Address"} />
-            <div className="row justify-content-around mt-5 user-info">
-                <div className="col-12 col-md-6">
-                    <h4>Update Shipping Address</h4>
-                    <form onSubmit={handleAddressUpdate}>
-                        <div className="mb-3">
-                            <label htmlFor="address_field" className="form-label">Address</label>
-                            <input
-                                type="text"
-                                id="address_field"
-                                className="form-control"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="city_field" className="form-label">City</label>
-                            <input
-                                type="text"
-                                id="city_field"
-                                className="form-control"
-                                value={city}
-                                onChange={(e) => setCity(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="zip_code_field" className="form-label">Zip Code</label>
-                            <input
-                                type="text"
-                                id="zip_code_field"
-                                className="form-control"
-                                value={zipCode}
-                                onChange={(e) => setZipCode(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="phone_field" className="form-label">Phone No</label>
-                            <input
-                                type="text"
-                                id="phone_field"
-                                className="form-control"
-                                value={phoneNo}
-                                onChange={(e) => setPhoneNo(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="country_field" className="form-label">Country</label>
-                            <input
-                                type="text"
-                                id="country_field"
-                                className="form-control"
-                                value={country}
-                                onChange={(e) => setCountry(e.target.value)}
-                            />
-                        </div>
-
-                        <button type="submit" className="btn btn-primary w-100">
-                            Update Address
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </UserLayout>
-    );
-};
-
-export default ShippingAddress;
+import React,{useState,useRef} from 'react';
+import {useSelector,useDispatch} from 'react-redux';
+import {useUpdateAddressMutation} from '../../redux/api/userApi';
+import {useSaveRecipientMutation,useDeleteRecipientMutation,useDefaultRecipientMutation} from '../../redux/api/accountApi';
+import {setUser} from '../../redux/features/userSlice';
+import UserLayout from '../layout/UserLayout';
+import MetaData from '../layout/MetaData';
+import {AddressFields,SaveFeedback,useUnsavedWarning} from '../account/AccountFields';
+import {blankAddress,blankRecipient,addressErrors,hasAddress} from '../account/accountHelpers';
+export default function ShippingAddress(){
+ const {user}=useSelector(state=>state.auth),dispatch=useDispatch();const initial={...blankAddress,...(hasAddress(user?.shippingInfo)?user.shippingInfo:{}),country:'Dominica'};
+ const [own,setOwn]=useState(initial),[savedOwn,setSavedOwn]=useState(initial),[recipient,setRecipient]=useState(null),[errors,setErrors]=useState({}),[ownErrors,setOwnErrors]=useState({}),[message,setMessage]=useState(''),[error,setError]=useState(''),[deleting,setDeleting]=useState('');const editor=useRef(null);
+ const [update,{isLoading:savingOwn}]=useUpdateAddressMutation(),[save,{isLoading:savingRecipient}]=useSaveRecipientMutation(),[remove,{isLoading:removing}]=useDeleteRecipientMutation(),[makeDefault,{isLoading:defaulting}]=useDefaultRecipientMutation();
+ const dirty=JSON.stringify(own)!==JSON.stringify(savedOwn);useUnsavedWarning(dirty||!!recipient);
+ const run=async operation=>{setError('');setMessage('');try{const result=await operation;dispatch(setUser(result.user));return result;}catch(e){setError(e?.data?.message||'Your delivery details could not be saved.');return null;}};
+ const revision=user?.recipientRevision||0;
+ return <UserLayout><MetaData title="Delivery details"/><h2>Delivery details</h2><p className="tt-account-description">Live overseas? Save someone in Dominica as your default recipient. You can choose a different recipient for each order.</p><SaveFeedback message={message} error={error}/><section className="tt-account-card"><div className="tt-account-card-title"><h3>Saved recipients</h3><span className="tt-recipient-badge">{user?.savedRecipients?.length||0} / 12</span></div>{!user?.savedRecipients?.length&&<p className="tt-account-description">Save Mum’s address, a friend’s details, or someone you regularly shop for.</p>}{user?.savedRecipients?.map(row=><article className={`tt-recipient-card ${user.defaultRecipientId===String(row._id)?'is-default':''}`} key={row._id}><div className="d-flex justify-content-between gap-2"><strong>{row.label}</strong>{user.defaultRecipientId===String(row._id)&&<span className="tt-recipient-badge">Default</span>}</div><p>{row.recipientName}<br/>{row.address}, {row.city}<br/>{row.phoneNo} · Dominica</p><div className="tt-recipient-buttons"><button type="button" onClick={()=>{setRecipient({...row});setErrors({});setDeleting('');setTimeout(()=>editor.current?.scrollIntoView({block:'start'}),0);}}>Edit</button><button disabled={defaulting} onClick={async()=>{if(await run(makeDefault({recipientId:String(row._id),revision}).unwrap()))setMessage(`${row.label} is now your default recipient.`);}}>Use by default</button><button disabled={removing} onClick={()=>setDeleting(String(row._id))}>Remove</button></div>{deleting===String(row._id)&&<div className="tt-account-error"><p>Remove this saved recipient? Existing orders will keep their delivery details.</p><button className="btn btn-sm btn-danger" disabled={removing} onClick={async()=>{if(await run(remove({id:String(row._id),revision}).unwrap())){setDeleting('');if(recipient?._id===row._id)setRecipient(null);setMessage('Saved recipient removed.');}}}>Remove recipient</button> <button className="btn btn-sm btn-outline-secondary" onClick={()=>setDeleting('')}>Keep recipient</button></div>}</article>)}<div className="tt-account-actions"><button className="btn btn-outline-success" disabled={(user?.savedRecipients?.length||0)>=12} onClick={()=>{setRecipient(blankRecipient());setErrors({});}}>Add recipient in Dominica</button></div>{recipient&&<form className="tt-recipient-card" ref={editor} onSubmit={async event=>{event.preventDefault();const fields=addressErrors(recipient,{recipient:true});setErrors(fields);if(Object.keys(fields).length)return;if(await run(save({...recipient,id:recipient._id,revision}).unwrap())){setRecipient(null);setMessage('Recipient saved. Choose “Use by default” if this is your usual destination.');}}}><h3>{recipient._id?'Edit recipient':'New recipient'}</h3><AddressFields recipient value={recipient} onChange={setRecipient} errors={errors} prefix="recipient"/><div className="tt-account-actions"><button className="btn btn-success" disabled={savingRecipient}>{savingRecipient?'Saving…':'Save recipient'}</button><button type="button" className="btn btn-outline-secondary" onClick={()=>setRecipient(null)}>Cancel</button></div></form>}</section><form className="tt-account-card" onSubmit={async event=>{event.preventDefault();const fields=addressErrors(own);setOwnErrors(fields);if(Object.keys(fields).length)return;const result=await run(update(own).unwrap());if(result){setOwn({...blankAddress,...result.user.shippingInfo});setSavedOwn({...blankAddress,...result.user.shippingInfo});setMessage('Your personal delivery address has been saved.');}}}><div className="tt-account-card-title"><h3>My delivery address in Dominica</h3>{(!user?.defaultRecipientId||user.defaultRecipientId==='self')&&<span className="tt-recipient-badge">Default</span>}</div><p className="tt-account-description">Optional if you only buy for other people. This is a delivery address, separate from your country of residence.</p><AddressFields value={own} onChange={value=>{setOwn(value);setMessage('');}} errors={ownErrors} prefix="own"/><div className="tt-account-actions"><button className="btn btn-success" disabled={!dirty||savingOwn}>{savingOwn?'Saving…':'Save my delivery address'}</button>{hasAddress(user?.shippingInfo)&&<button className="btn btn-outline-secondary" type="button" disabled={defaulting} onClick={async()=>{if(await run(makeDefault({recipientId:'self',revision}).unwrap()))setMessage('Your own address is now the default.');}}>Deliver to me by default</button>}</div></form><p className="tt-account-muted">A saved address does not confirm delivery coverage. At checkout, select an available delivery area or pickup and review the fee.</p></UserLayout>;
+}

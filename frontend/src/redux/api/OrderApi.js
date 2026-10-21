@@ -23,7 +23,9 @@ export const orderApi = createApi({
         }),
         createNewOrder: builder.mutation({
             async queryFn(body, api, extra, baseQuery) {
-                const result=await baseQuery({url:"/orders/new",method:"POST",body:{...body,quoteHash:api.getState().cart.checkoutQuote?.quoteHash}});
+                const state=api.getState(),shippingInfo=body.shippingInfo||{};
+                if(shippingInfo._accountOwner&&shippingInfo._accountOwner!==String(state.auth.user?._id))return {error:{status:409,data:{message:"Return to delivery details to review this account’s recipient."}}};
+                const result=await baseQuery({url:"/orders/new",method:"POST",body:{...body,buyerInfo:shippingInfo.buyerContact,quoteHash:state.cart.checkoutQuote?.quoteHash}});
                 if(result.error?.status===409&&result.error?.data?.code==="PRICE_CHANGED")api.dispatch(setCheckoutQuote(null));
                 return result;
             },
