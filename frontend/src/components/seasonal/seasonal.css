@@ -5,7 +5,9 @@
 .tt-season-root[data-theme="newyear"]{--season-ink:#fff7e2;--season-bg:#fcfbf7;--season-dark:#242137;--season-gold:#edce8a;--season-accent:#6f5420}
 .tt-season-root[data-theme="easter"]{--season-ink:#233f32;--season-bg:#fcfaf6;--season-dark:#e7eee3;--season-gold:#e9c879;--season-accent:#326947;--season-pattern:repeating-linear-gradient(90deg,#b9d7bd 0 22px,#e4bcc9 22px 44px,#edd38f 44px 66px)}
 .tt-season-root[data-theme]:not([data-theme=""]){background:var(--season-bg)}
-.tt-season-header,.tt-season-content,.tt-season-welcome{position:relative;z-index:2}
+.tt-season-content,.tt-season-welcome{position:relative;z-index:2}
+/* Keep header dropdowns above seasonal trims, artwork and page content. */
+.tt-season-header{position:relative;z-index:30}
 .tt-season-content>.col-12>.container{min-height:35vh}
 .tt-season-trim{height:9px;background:var(--season-pattern);position:relative;z-index:2}
 .tt-season-root[data-theme="madras"] .tt-season-trim{height:15px}
