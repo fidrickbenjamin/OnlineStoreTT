@@ -101,13 +101,13 @@ export const orderApi = createApi({
         }),
 
         deleteOrder: builder.mutation({
-            query(id) {
+            query({ id, admin = false }) {
                 return {
-                    url: `/admin/orders/${id}`,
+                    url: `${admin ? '/admin' : ''}/orders/${id}`,
                     method: "DELETE",
                 };
             },
-            invalidatesTags: ["AdminOrders"],
+            invalidatesTags: ["Order", "Orders", "AdminOrders", "Sales"],
         }),
 
     }),

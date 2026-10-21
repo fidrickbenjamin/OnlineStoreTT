@@ -16,6 +16,7 @@ import "./shared/store-upgrade.css";
 const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [categoryRequest, setCategoryRequest] = useState(0);
   const { cartItems = [] } = useSelector(state => state.cart);
 
   const page = searchParams.get("page") || 1;
@@ -78,15 +79,16 @@ const Home = () => {
       : `${data?.filteredProductsCount || 0} Products found with keyword: ${headingLabel}`
     : "Latest Products";
 
-  if (isLoading) return <Loader />;
+
 
   return (
     <>
       <MetaData title={"Tactical Trends Market Place"} />
 
-      {!hasActiveFilters && <><CategorySplash /><Hero /></>}
+      <CategorySplash openRequest={categoryRequest} autoOpen={cartItems.length === 0}/>
+      {!hasActiveFilters && <Hero />}
       <PromotionBanners/>
-      <div className="tt-toolbar"><Link className="btn btn-success" to="/deals">Shop deals</Link><button className="btn btn-outline-success" onClick={() => setFiltersOpen(value => !value)} aria-expanded={filtersOpen}>Filters</button><label>Sort<select value={params.sort} onChange={event => { const next = new URLSearchParams(searchParams); next.set("sort", event.target.value); next.set("page", "1"); setSearchParams(next); }}><option value="newest">Newest</option><option value="priceAsc">Price: low to high</option><option value="priceDesc">Price: high to low</option><option value="rating">Highest rated</option></select></label><label><input type="checkbox" checked={params.inStock === "true"} onChange={event => { const next = new URLSearchParams(searchParams); if (event.target.checked) next.set("inStock", "true"); else next.delete("inStock"); next.set("page", "1"); setSearchParams(next); }} style={{display:"inline", marginRight:8}}/> In stock only</label><button className="btn btn-outline-secondary" onClick={() => setSearchParams({})}>Clear filters</button></div>
+      <div className="tt-toolbar"><button type="button" className="btn btn-outline-success" onClick={() => setCategoryRequest(value => value + 1)}><i className="bi bi-grid" aria-hidden="true"/> Browse categories</button><Link className="btn btn-success" to="/deals">Shop deals</Link><button className="btn btn-outline-success" onClick={() => setFiltersOpen(value => !value)} aria-expanded={filtersOpen}>Filters</button><label>Sort<select value={params.sort} onChange={event => { const next = new URLSearchParams(searchParams); next.set("sort", event.target.value); next.set("page", "1"); setSearchParams(next); }}><option value="newest">Newest</option><option value="priceAsc">Price: low to high</option><option value="priceDesc">Price: high to low</option><option value="rating">Highest rated</option></select></label><label><input type="checkbox" checked={params.inStock === "true"} onChange={event => { const next = new URLSearchParams(searchParams); if (event.target.checked) next.set("inStock", "true"); else next.delete("inStock"); next.set("page", "1"); setSearchParams(next); }} style={{display:"inline", marginRight:8}}/> In stock only</label><button className="btn btn-outline-secondary" onClick={() => setSearchParams({})}>Clear filters</button></div>
       {filtersOpen && <div className="tt-filter-panel"><Filters /></div>}
 
       <div className="row">
@@ -106,7 +108,8 @@ const Home = () => {
           </h1>
 
           <section id="products" className="mt-4 tt-product-grid">
-            {!retailProducts.length && <p className="tt-empty">No products match these filters. Try a wider search.</p>}
+            {isLoading && <Loader/>}
+            {!isLoading && !retailProducts.length && !isError && <p className="tt-empty">No products match these filters. Try a wider search.</p>}
             <div className="row">
               {retailProducts.map((product) => (
                 <ProductItem

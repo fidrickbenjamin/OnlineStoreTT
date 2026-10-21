@@ -1,266 +1,56 @@
 import React, { useEffect, useState } from "react";
+import { Modal } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { PRODUCT_CATEGORIES } from "../constants/constants";
+import { keepDialogFocus } from "./shared/dialogFocus";
+import "./CategorySplash.css";
 
-const categories = [
-  { key: "Smart Phones", label: "Smart Phones", icon: "📱", accent: "#2f6fed" },
-  { key: "Agro Sales", label: "Agro Sales", icon: "🌾", accent: "#2f8f4f" },
-  { key: "Hardware", label: "Hardware", icon: "🛠️", accent: "#8a4b12" },
-  { key: "Grocery", label: "Groceries", icon: "🛒", accent: "#d97706" },
-  { key: "School Supplies", label: "School Supplies", icon: "📚", accent: "#b45309" },
-  { key: "Tactical", label: "Tactical Gear", icon: "🪖", accent: "#1f6f42" },
-  { key: "Home & Living", label: "Home & Living", icon: "🏠", accent: "#7b5cf0" },
-  { key: "Fashion", label: "Fashion", icon: "👕", accent: "#c64077" },
-  { key: "Sports", label: "Sports", icon: "⚽", accent: "#dc2626" },
-  { key: "Property or Real Estate", label: "Property / Real Estate", icon: "🏡", accent: "#0f766e" },
-];
+const visitKey = "tt-category-welcome-seen-v2";
+let seenInMemory = false;
+function hasSeenWelcome() {
+  try { return seenInMemory || sessionStorage.getItem(visitKey) === "1"; }
+  catch { return seenInMemory; }
+}
+function rememberWelcome() {
+  seenInMemory = true;
+  try { sessionStorage.setItem(visitKey, "1"); } catch { /* Shopping also works with storage disabled. */ }
+}
+const featured = ["Smart Phones", "Agro Sales", "Hardware", "Grocery", "School Supplies", "Tactical", "Home & Living", "Fashion", "Sports", "Electronics"];
+const icons = { "Smart Phones": "phone", "Agro Sales": "flower1", Hardware: "tools", Grocery: "basket2", "School Supplies": "journal-bookmark", Tactical: "shield-check", "Home & Living": "house-heart", Fashion: "handbag", Sports: "trophy", Electronics: "speaker", Accessories: "plug", Laptops: "laptop", Tablets: "tablet", Headphones: "headphones", Desktops: "pc-display", "Gaming Accessories": "controller", Clothing: "bag", Utilities: "lamp", "Property or Real Estate": "houses" };
+const labels = { Grocery: "Groceries", Tactical: "Tactical gear", "Property or Real Estate": "Property & rentals" };
 
-const CategorySplash = () => {
+export default function CategorySplash({ openRequest = 0, autoOpen = true }) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [visible, setVisible] = useState(true);
-
+  const [params] = useSearchParams();
+  const [visible, setVisible] = useState(() => autoOpen && !params.toString() && !hasSeenWelcome());
+  const [search, setSearch] = useState("");
+  const [all, setAll] = useState(false);
+  useEffect(() => { rememberWelcome(); }, []);
   useEffect(() => {
-    const hasKeyword = Boolean(searchParams.get("keyword")?.trim());
-    const shouldHide = searchParams.get("skipSplash") === "true" || hasKeyword;
-
-    setVisible(!shouldHide);
-  }, [searchParams]);
-
-  const handleSelect = (categoryKey) => {
-    localStorage.setItem("tactical-trends-selected-category", categoryKey);
-    setVisible(false);
-    if (categoryKey === "Property or Real Estate") {
-      navigate(`/property-hub?skipSplash=true`);
-      return;
-    }
-    navigate(`/?category=${encodeURIComponent(categoryKey)}&skipSplash=true`);
-  };
-
-  const handleSkip = () => {
-    setVisible(false);
-    navigate("/?skipSplash=true");
-  };
-
-  if (!visible) return null;
-
-  return (
-    <>
-      <style>{`
-        .splash-overlay {
-          position: fixed;
-          inset: 0;
-          min-height: 100dvh;
-          background: radial-gradient(circle at top left, #3f3f3f 0%, #2a2a2a 35%, #1f1f1f 100%);
-          z-index: 9999;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          box-sizing: border-box;
-        }
-
-        .splash-card {
-          width: 100%;
-          max-width: 980px;
-          max-height: calc(100dvh - 24px);
-          overflow-y: auto;
-          background: rgba(255,255,255,0.82);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border-radius: 28px;
-          padding: 32px 24px;
-          box-shadow: 0 30px 80px rgba(0,0,0,0.28);
-          border: 1px solid rgba(255,255,255,0.4);
-          box-sizing: border-box;
-        }
-
-        .splash-header {
-          text-align: center;
-          margin-bottom: 24px;
-        }
-
-        .splash-brand {
-          width: 112px;
-          height: 84px;
-          object-fit: contain;
-          margin-bottom: 12px;
-        }
-
-        .splash-title {
-          margin: 0 0 10px;
-          color: #1f1f1f;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          font-size: clamp(1.35rem, 2.4vw, 1.9rem);
-        }
-
-        .splash-copy {
-          margin: 0 auto;
-          color: #4b4b4b;
-          max-width: 720px;
-          font-size: 1rem;
-          line-height: 1.6;
-        }
-
-        .splash-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 16px;
-        }
-
-        .splash-btn {
-          border: none;
-          border-radius: 18px;
-          padding: 16px 14px;
-          background: rgba(255,255,255,0.9);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          cursor: pointer;
-          box-shadow: 0 12px 24px rgba(0,0,0,0.14);
-          font-size: 16px;
-          font-weight: 700;
-          color: #2d2d2d;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          min-height: 112px;
-          touch-action: manipulation;
-        }
-
-        .splash-btn:hover,
-        .splash-btn:focus-visible {
-          transform: translateY(-2px);
-          box-shadow: 0 14px 28px rgba(0,0,0,0.18);
-          outline: none;
-        }
-
-        .splash-btn-icon {
-          font-size: 28px;
-          line-height: 1;
-        }
-
-        .splash-actions {
-          text-align: center;
-          margin-top: 24px;
-        }
-
-        .splash-skip-btn {
-          border: 1px solid rgba(0,0,0,0.08);
-          background: rgba(255,255,255,0.7);
-          color: #333333;
-          cursor: pointer;
-          font-weight: 700;
-          padding: 10px 18px;
-          border-radius: 999px;
-          min-width: 150px;
-        }
-
-        @media (max-width: 640px) {
-          .splash-overlay {
-            padding: 12px;
-            align-items: flex-start;
-          }
-
-          .splash-card {
-            padding: 20px 14px;
-            border-radius: 20px;
-            margin-top: 8px;
-            max-height: calc(100dvh - 16px);
-          }
-
-          .splash-brand {
-            width: 84px;
-            height: 64px;
-          }
-
-          .splash-title {
-            font-size: 1.3rem;
-            line-height: 1.2;
-          }
-
-          .splash-copy {
-            font-size: 0.95rem;
-            line-height: 1.5;
-          }
-
-          .splash-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-          }
-
-          .splash-btn {
-            padding: 14px 10px;
-            min-height: 96px;
-            font-size: 15px;
-          }
-
-          .splash-btn-icon {
-            font-size: 24px;
-          }
-
-          .splash-actions {
-            margin-top: 20px;
-          }
-        }
-
-        @media (max-width: 420px) {
-          .splash-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .splash-btn {
-            min-height: 84px;
-          }
-
-          .splash-skip-btn {
-            width: 100%;
-            max-width: 220px;
-          }
-        }
-      `}</style>
-
-      <div className="splash-overlay">
-        <div className="splash-card">
-          <div className="splash-header">
-            <img
-              src="/images/Tactical-Trends-Marketplace-Branding-Logol-Black.png"
-              alt="Tactical Trends"
-              className="splash-brand"
-            />
-            <h2 className="splash-title">Welcome to Tactical Trends Marketplace</h2>
-            <p className="splash-copy">
-              Browse by category and jump straight into the products that matter most to you.
-            </p>
-          </div>
-
-          <div className="splash-grid">
-            {categories.map((category) => (
-              <button
-                key={category.key}
-                onClick={() => handleSelect(category.key)}
-                className="splash-btn"
-                style={{ border: `1px solid ${category.accent}33` }}
-              >
-                <div className="splash-btn-icon">{category.icon}</div>
-                <div>{category.label}</div>
-              </button>
-            ))}
-          </div>
-
-          <div className="splash-actions">
-            <button onClick={handleSkip} className="splash-skip-btn">
-              Skip for now
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-export default CategorySplash;
+    if (openRequest > 0) { setSearch(""); setAll(false); setVisible(true); }
+  }, [openRequest]);
+  const close = () => { rememberWelcome(); setVisible(false); };
+  const go = path => { close(); navigate(path); };
+  const select = key => go(key === "Property or Real Estate" ? "/property-hub?skipSplash=true" : `/?category=${encodeURIComponent(key)}&skipSplash=true`);
+  const query = search.trim().toLowerCase();
+  const categories = (all || query ? Object.keys(PRODUCT_CATEGORIES) : featured).filter(key => `${key} ${labels[key] || ""} ${PRODUCT_CATEGORIES[key].join(" ")}`.toLowerCase().includes(query));
+  return <Modal show={visible} onHide={close} onKeyDown={keepDialogFocus} centered scrollable size="xl" className="tt-welcome-modal" aria-labelledby="tt-welcome-title" animation={false}>
+    <Modal.Header closeButton><span className="tt-welcome-eyebrow">TACTICAL TRENDS MARKETPLACE</span></Modal.Header>
+    <Modal.Body>
+      <aside className="tt-welcome-story" aria-label="Welcome to Tactical Trends">
+        <img src="/images/Tactical-Trends-Marketplace-Branding-Logol-Black.png" alt="Tactical Trends" width="140" height="100"/>
+        <span className="tt-welcome-island">ROOTED IN DOMINICA</span><h2>A little local.<br/>A lot to discover.</h2><p>Everyday essentials, fresh finds and something for everyone.</p>
+        <div className="tt-welcome-art" aria-hidden="true"><i className="bi bi-shop"/><span><i className="bi bi-heart-fill"/></span><span><i className="bi bi-bag-check"/></span></div>
+        <span className="tt-welcome-story-note"><i className="bi bi-geo-alt" aria-hidden="true"/> Shop for yourself or someone back home.</span>
+      </aside>
+      <section className="tt-welcome-shop"><h1 id="tt-welcome-title">What are you shopping for?</h1><p className="tt-welcome-subtitle">Pick a category and make yourself at home.</p>
+        <label className="tt-welcome-search"><i className="bi bi-search" aria-hidden="true"/><span className="visually-hidden">Find a category</span><input type="search" placeholder="Find a category…" value={search} onChange={event => setSearch(event.target.value)} maxLength={100}/></label>
+        <div className="tt-welcome-grid" aria-label="Shopping categories">{categories.map(key => <button type="button" key={key} onClick={() => select(key)}><span className="tt-welcome-icon"><i className={`bi bi-${icons[key] || "grid"}`} aria-hidden="true"/></span><span>{labels[key] || key}</span><i className="bi bi-arrow-up-right" aria-hidden="true"/></button>)}</div>
+        {!categories.length && <p className="tt-welcome-empty" role="status">No matching categories. Try “phones”, “groceries” or “home”. <button type="button" onClick={() => setSearch("")}>Clear search</button></p>}
+        {!query && <button type="button" className="tt-welcome-expand" onClick={() => setAll(value => !value)} aria-expanded={all}>{all ? "Show popular categories" : `View all ${Object.keys(PRODUCT_CATEGORIES).length} categories`} <i className={`bi bi-chevron-${all ? "up" : "down"}`} aria-hidden="true"/></button>}
+        <div className="tt-welcome-shortcuts"><button type="button" onClick={() => go("/deals")}><i className="bi bi-tag" aria-hidden="true"/><span>Shop the deals<small>Discover current offers</small></span><span aria-hidden="true">→</span></button><button type="button" onClick={() => select("Property or Real Estate")}><i className="bi bi-houses" aria-hidden="true"/><span>Property hub<small>Find your next space</small></span><span aria-hidden="true">→</span></button></div>
+      </section>
+    </Modal.Body>
+    <Modal.Footer><span>Once per visit. Reopen with “Browse categories”.</span><button type="button" className="btn btn-success" onClick={close}>Explore all products <span aria-hidden="true">→</span></button></Modal.Footer>
+  </Modal>;
+}

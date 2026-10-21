@@ -1,6 +1,7 @@
 import {checkoutContacts} from "../utils/accountRules.js";
 import {quoteCart} from "../services/promotionPricing.js";
 import crypto from "node:crypto";
+import { orderDeletion } from "../utils/orderDeletion.js";
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
 import Order from "../models/order.js";
 import Product from "../models/product.js";
@@ -24,6 +25,7 @@ function publicOrder(order, admin = false) {
   if (!admin) delete data.internalNotes;
   data.delivery = deliveryOptions[data.shippingOption];
   data.orderNumber = `TT-${String(data._id).slice(-8).toUpperCase()}`;
+  data.deletion = orderDeletion(order, admin);
   return data;
 }
 async function announce(order, subject) {
@@ -130,11 +132,22 @@ export const updateOrder = catchAsyncErrors(async (req, res) => {
   res.json({ success: true, order: publicOrder(order, true), emailSent });
 });
 export const deleteOrder = catchAsyncErrors(async (req, res) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) throw new ErrorHandler("Order not found", 404);
-  // Preserve audit and payment records. Existing delete clients now archive.
-  order.archived = true; await order.save();
-  res.json({ success: true, message: "Order archived. Financial and stock records were preserved." });
+  await visibleOrder(req);
+  await withOrderLock(req.params.id, async order => {
+    // Recheck permissions and payment state after taking the same lock used
+    // by checkout, receipt review and fulfilment updates.
+    if (!owns(order, req.user)) throw new ErrorHandler("Order not found", 404);
+    const deletion = orderDeletion(order, req.user.role === "admin");
+    if (!deletion.allowed) throw new ErrorHandler(deletion.reason, 409);
+    // Persist cancellation first so an interrupted release remains retryable
+    // and cannot reopen payment. Product allocation release is idempotent.
+    order.orderStatus = "Cancelled";
+    order.dedupeKey = undefined;
+    await order.save();
+    await releaseOrder(order);
+    await Order.deleteOne({ _id: order._id, "inventoryLock.token": order.inventoryLock.token });
+  });
+  res.json({ success: true, message: "Unpaid order deleted. Reserved stock has been returned." });
 });
 export const cancelOrder = catchAsyncErrors(async (req, res) => {
   await visibleOrder(req);

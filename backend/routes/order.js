@@ -10,7 +10,7 @@ router.post("/admin/orders/:id/payment-proof/review", isAuthenticatedUser, autho
 
 router.post("/orders/quote",isAuthenticatedUser,quoteOrder);
 router.route("/orders/new").post(isAuthenticatedUser, newOrder);
-router.route("/orders/:id").get(isAuthenticatedUser, getOrderDetails);
+router.route("/orders/:id").get(isAuthenticatedUser, getOrderDetails).delete(isAuthenticatedUser, deleteOrder);
 router.route("/me/orders").get(isAuthenticatedUser, myOrders);
 
 router.route("/admin/orders").get(isAuthenticatedUser, authorizeRoles("admin"), allOrders);
