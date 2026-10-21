@@ -1,4 +1,5 @@
 import React from "react";
+import SeasonalStorefront from "./components/seasonal/SeasonalStorefront";
 import Loader from "./components/layout/Loader";
 import "./App.css";
 
@@ -30,7 +31,7 @@ function App() {
     <Router> 
     <div className="App">
       <Toaster position="top-center" />
-      <Header />
+      <SeasonalStorefront header={<Header />} footer={<Footer />}>
 
       
 
@@ -55,7 +56,7 @@ function App() {
      
       
 
-      <Footer />
+      </SeasonalStorefront>
       
     </div>
     </Router>

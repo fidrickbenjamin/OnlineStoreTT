@@ -3,7 +3,11 @@ import { getProductDetails, getProducts, newProduct, updateProduct, deleteProduc
 import { createPropertyInquiry, getPropertyInquiries, updatePropertyInquiryStatus } from "../controllers/propertyInquiryController.js";
 import { isAuthenticatedUser, authorizeRoles } from "../middlewares/auth.js";
 import {listPromotions,savePromotion,promotionAction,previewPromotion,activePromotions,getDirectSale,saveDirectSale} from "../controllers/promotionControllers.js";
+import {activeSeason,adminSeasons,saveSeasons,previewSeasons} from "../controllers/seasonalControllers.js";
 const router = express.Router();
+router.get("/appearance/active",activeSeason);
+router.route("/admin/appearance").get(isAuthenticatedUser,authorizeRoles("admin"),adminSeasons).put(isAuthenticatedUser,authorizeRoles("admin"),saveSeasons);
+router.post("/admin/appearance/preview",isAuthenticatedUser,authorizeRoles("admin"),previewSeasons);
 router.get("/promotions/active", activePromotions);
 router.route("/admin/promotions").get(isAuthenticatedUser,authorizeRoles("admin"),listPromotions).post(isAuthenticatedUser,authorizeRoles("admin"),savePromotion);
 router.post("/admin/promotions/preview",isAuthenticatedUser,authorizeRoles("admin"),previewPromotion);
