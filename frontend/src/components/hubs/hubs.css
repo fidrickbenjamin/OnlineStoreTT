@@ -23,3 +23,25 @@
 /* The basket trigger is portalled to body: above seasonal page layers (2),
    below header dropdowns (30) and modal backdrops (1050). */
 .hub-floating-food-order{z-index:20}
+
+/* One menu section at a time; document scrolling remains natural on mobile. */
+.hub-restaurant-menu{min-width:0;position:relative;align-self:stretch}
+.hub-menu-navigation{position:sticky;top:0;z-index:3;background:#faf8ef;border:1px solid #d9e3d5;border-radius:16px;padding:8px;margin-bottom:22px;box-shadow:0 5px 14px #193c3010}
+.hub-menu-tablist{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;position:relative}
+.hub-menu-tablist>button{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 14px;border:0;border-bottom:3px solid transparent;border-radius:10px;background:transparent;color:#45614b;font-size:.9rem;font-weight:750;white-space:nowrap}
+.hub-menu-tablist>button[aria-selected=true]{background:#174e3b;color:#fff;border-bottom-color:#edbe59}
+.hub-menu-tablist small{font-size:.68rem;background:#e2eadd;color:#365641;border-radius:20px;padding:2px 7px}
+.hub-menu-tablist>button[aria-selected=true] small{background:#f0ca79;color:#244332}
+.hub-menu-tablist>button:focus-visible,.hub-menu-panel:focus-visible{outline:3px solid #b78b29;outline-offset:-3px}
+.hub-menu-swipe-hint{display:none;margin:9px 0 2px;text-align:center;font-size:.7rem;color:#657460}
+.hub-menu-panel{min-height:240px;touch-action:pan-y pinch-zoom}
+.hub-menu-panel>h2{font-size:1.35rem;font-weight:800;margin-bottom:5px;color:#234532}
+.hub-menu-section-count{font-size:.78rem;color:#657460;margin:0 0 18px}
+.hub-menu-panel .hub-dish h3{font-size:1.12rem;font-weight:800;line-height:1.4;margin:0 0 8px;color:#263e30}
+.hub-menu-panel .hub-dish{overflow-wrap:anywhere}
+@media(max-width:767px),(max-width:1200px) and (pointer:coarse){.hub-menu-swipe-hint{display:block}.hub-menu-navigation{border-radius:12px;margin-bottom:18px}.hub-menu-tablist>button{padding:10px 12px;font-size:.85rem}.hub-menu-panel{min-height:45vh}}
+@media(max-width:359px){.hub-menu-tablist>button{gap:5px;padding:10px 8px;font-size:.8rem}}
+
+/* The site's overflow-x:hidden creates a body scroll container that traps
+   sticky elements. Clip sideways overflow only while a restaurant is open. */
+html:has(.hub-restaurant-menu),body:has(.hub-restaurant-menu){overflow-x:clip}
