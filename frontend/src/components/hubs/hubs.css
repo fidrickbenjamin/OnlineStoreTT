@@ -19,3 +19,7 @@
 @media(max-width:767px),(max-width:1200px) and (pointer:coarse){.hub-restaurant-content{padding-bottom:105px}.hub-restaurant-content>.hub-split{grid-template-columns:1fr}.hub-food-sheet .hub-two{grid-template-columns:1fr}}
 @media(max-width:359px){.hub-food-sheet .modal-body{padding:16px}.hub-food-sheet .modal-header{padding:18px 16px 14px}.hub-food-sheet .modal-header h2{font-size:1.28rem}.hub-food-sheet .modal-footer{padding-left:16px;padding-right:16px}.hub-food-quantity{gap:6px}.hub-food-quantity>.hub-field{width:62px}.hub-food-quantity>button{min-width:38px}.hub-food-quantity>strong{font-size:.74rem}.hub-floating-food-order{right:12px;min-width:158px}}
 .hub-food-sheet .modal-header>div{flex:1;min-width:0}
+
+/* The basket trigger is portalled to body: above seasonal page layers (2),
+   below header dropdowns (30) and modal backdrops (1050). */
+.hub-floating-food-order{z-index:20}
