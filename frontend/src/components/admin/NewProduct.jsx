@@ -1,3 +1,4 @@
+import HeroFeatureFields from "./HeroFeatureFields";
 import React, { useEffect, useState } from "react";
 import Loader from "../layout/Loader";
 import toast from "react-hot-toast";
@@ -19,6 +20,8 @@ const NewProduct = () => {
         subCategory: "",
         stock: "",
         seller: "",
+        heroFeatured: false,
+        heroOrder: 0,
         listingType: "retail",
         propertyType: "",
         location: "",
@@ -84,6 +87,7 @@ const NewProduct = () => {
                 <div className="col-10 col-lg-10 mt-5 mt-lg-0">
                     <form className="shadow rounded bg-body" onSubmit={submitHandler}>
                         <h2 className="mb-4">New Product</h2>
+                        <HeroFeatureFields value={product} onChange={setProduct}/>
 
                         {/* Product Name Input */}
                         <div className="mb-3">

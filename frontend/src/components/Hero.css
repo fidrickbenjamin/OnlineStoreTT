@@ -1,186 +1,39 @@
-/* src/components/Hero.css */
-.hero-section {
-    position: relative;
-    overflow: hidden;
-    height: 400px; /* Default height */
-    width: 100%;
-    background: rgba(255, 255, 255, 0.1); /* Slightly transparent background */
-    border-radius: 10px; /* Rounded corners */
-    backdrop-filter: blur(10px); /* Frosted glass effect */
-    -webkit-backdrop-filter: blur(10px); /* Frosted glass effect for Safari */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-  }
-  
-  /* Orange gradient diagonal line at the top-left */
-  .hero-section::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 300px; /* Adjust width as needed */
-    height: 300px; /* Adjust height as needed */
-    background: linear-gradient(to bottom right, #ff8c00, #ff4500); /* Orange gradient */
-    transform: skewY(-45deg); /* Creates the diagonal effect */
-    transform-origin: top left; /* Origin for skewing */
-    z-index: 1; /* Ensure it is behind other content */
-  }
-  
-  /* Ensure content is above the diagonal line */
-  .hero-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    position: relative;
-    z-index: 2; /* Ensure content is above the diagonal line */
-  }
-  
-  /* Image container */
-  .hero-item {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    position: relative;
-  }
-  
-  /* Responsive image styling */
-  .hero-item img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: cover; /* Ensures the image covers the container */
-    display: block;
-  }
-  
-  /* Overlay for product information */
-  .hero-overlay {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    width: min(240px, 42vw);
-    max-width: 240px;
-    background: rgba(255, 255, 255, 0.2); /* Slightly transparent white background for the glass effect */
-    border-radius: 10px; /* Rounded corners */
-    backdrop-filter: blur(10px); /* Frosted glass effect */
-    -webkit-backdrop-filter: blur(10px); /* Frosted glass effect for Safari */
-    color: #fff;
-    padding: 16px 12px;
-    box-sizing: border-box;
-    text-align: center;
-    z-index: 2; /* Ensure it is above the images */
-    transform: translateY(-50%); /* Center vertically */
-  }
-  
-  /* Price styling */
-  .hero-overlay .price {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #000; /* Black color for price */
-    margin-bottom: 8px;
-  }
-
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-  }
-  
-  /* Button styling */
-  .hero-overlay .btn {
-    margin-top: 0;
-    padding: 8px 12px;
-    background-color: #ff8c00; /* Button color */
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.9rem;
-  }
-  
-  .hero-overlay .btn:hover {
-    background-color: #ff4500; /* Darker button color on hover */
-  }
-  
-  /* Loading, error, and no products styles */
-  .hero-loading, .hero-error, .hero-no-products {
-    text-align: center;
-    padding: 20px;
-    font-size: 1.2em;
-  }
-  
-  .hero-loading {
-    color: #666;
-  }
-  
-  .hero-error {
-    color: red;
-  }
-  
-  .hero-no-products {
-    color: #999;
-  }
-  
-  /* Specific styles for different screen sizes */
-  @media (max-width: 768px) {
-    .hero-section {
-      height: 300px; /* Adjust height for tablets and smaller devices */
-    }
-  
-    .hero-section::before {
-      width: 200px; /* Adjust width for tablets */
-      height: 200px; /* Adjust height for tablets */
-    }
-    
-    .hero-item img {
-      max-height: 80%; /* Ensure images fit well in smaller containers */
-    }
-  
-    .hero-overlay {
-      width: min(180px, 44vw);
-      padding: 12px 10px;
-      right: 8px;
-    }
-
-    .hero-overlay .price {
-      margin-bottom: 6px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .hero-section {
-      height: 200px; /* Further adjust height for mobile devices */
-      border-radius: 8px; /* Slightly smaller border radius */
-    }
-  
-    .hero-section::before {
-      width: 150px; /* Adjust width for mobile devices */
-      height: 150px; /* Adjust height for mobile devices */
-    }
-  
-    .hero-item img {
-      max-height: 70%; /* Ensure images fit well on very small screens */
-    }
-  
-    .hero-overlay {
-      width: min(142px, 46vw);
-      padding: 8px 7px;
-      font-size: 0.85em;
-      right: 6px;
-    }
-
-    .hero-actions {
-      gap: 6px;
-    }
-
-    .hero-overlay .btn {
-      width: 100%;
-      padding: 7px 8px;
-      font-size: 0.8rem;
-    }
-  }
-  
+.market-welcome{margin:22px 0 30px;color:#262e28}
+.market-hero{--mh-bg:linear-gradient(115deg,#fff5e9 0%,#ffe4c5 55%,#efac64 100%);--mh-ink:#292b24;--mh-muted:#64624f;--mh-accent:#ba4709;--mh-button:#b94c09;--mh-button-ink:#fff;--mh-line:#d2a773;display:grid;grid-template-columns:1.15fr 1fr;gap:40px;align-items:center;position:relative;isolation:isolate;overflow:hidden;border-radius:22px;padding:48px;background:var(--mh-bg);color:var(--mh-ink);border:1px solid #d6c5a42b;min-height:480px}
+.market-hero:before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 90% 10%,#fff5,transparent 50%),radial-gradient(ellipse at 15% 100%,#fff6,transparent 65%);z-index:-1;pointer-events:none}
+.market-hero[data-hero-theme=madras]{--mh-bg:linear-gradient(115deg,#f9f2db,#e2ebd7 58%,#b1cdb2);--mh-ink:#173d2e;--mh-muted:#4c6652;--mh-accent:#1a6241;--mh-button:#18543a;--mh-line:#c4aa60}
+.market-hero[data-hero-theme=christmas]{--mh-bg:linear-gradient(115deg,#fff5e3,#f1e8d4 55%,#c3d5c1);--mh-ink:#163c2e;--mh-muted:#526451;--mh-accent:#9e303a;--mh-button:#9e303a;--mh-line:#c8a96b}
+.market-hero[data-hero-theme=carnival]{--mh-bg:linear-gradient(115deg,#fff4e8,#fae1e8 55%,#ddc4e1);--mh-ink:#452446;--mh-muted:#735270;--mh-accent:#903457;--mh-button:#812a56;--mh-line:#d7ac65}
+.market-hero[data-hero-theme=easter]{--mh-bg:linear-gradient(115deg,#fff9e9,#e5edda 55%,#e9d4df);--mh-ink:#294d36;--mh-muted:#586752;--mh-accent:#356843;--mh-button:#356843;--mh-line:#c6b176}
+.market-hero[data-hero-theme=newyear]{--mh-bg:linear-gradient(115deg,#faf4e6,#ece4df 55%,#d5c8de);--mh-ink:#302942;--mh-muted:#676071;--mh-accent:#6e4b1d;--mh-button:#383045;--mh-line:#bd9856}
+.market-hero[data-hero-theme]:not([data-hero-theme='']):after{content:'';position:absolute;bottom:0;left:0;right:0;height:8px;background:var(--season-pattern);pointer-events:none}
+.market-hero-copy,.market-hero-showcase{min-width:0;position:relative}
+.market-hero-decoration{position:absolute;right:28%;top:-25px;width:250px;opacity:.12;pointer-events:none;z-index:-1}.market-hero-decoration .tt-season-art{width:100%;max-width:none}
+.market-hero-eyebrow{display:block;font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;line-height:1.8;color:var(--mh-muted);margin-bottom:20px}
+.market-hero-copy h2{font-size:clamp(32px,4.2vw,58px);letter-spacing:-.04em;line-height:1.08;font-weight:850;color:var(--mh-ink);margin:0 0 20px;overflow-wrap:anywhere;max-width:650px}.market-hero-copy h2>span{color:var(--mh-accent)}
+.market-hero-copy>p{font-size:clamp(14px,1.3vw,17px);line-height:1.8;color:var(--mh-muted);max-width:510px;margin:0 0 27px}
+.market-hero-actions{display:flex;gap:12px;flex-wrap:wrap}.market-hero-button{display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:48px;padding:13px 23px;border-radius:10px;background:var(--mh-button);border:1px solid var(--mh-button);color:var(--mh-button-ink);text-decoration:none;font-size:13px;font-weight:800}.market-hero-button:hover{color:var(--mh-button-ink);filter:brightness(.92)}.market-hero-button.secondary{background:#ffffff80;color:var(--mh-accent);border-color:var(--mh-line)}.market-hero-button.secondary:hover{color:var(--mh-accent);background:#ffffffb0}
+.market-season-link{display:inline-block;margin-top:18px;font-size:13px;font-weight:750;color:var(--mh-accent)}.market-season-link:hover{color:var(--mh-ink)}.market-hero-note{display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.02em;color:var(--mh-muted);margin-top:26px}
+.market-featured-product{background:#fffdf9;box-shadow:0 18px 40px #50391518;border:1px solid #fff9;border-radius:18px;padding:20px;overflow:hidden}.market-product-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#806232;margin-bottom:13px}.market-product-label>i{font-size:19px;color:#b88729}
+.market-product-photo{display:flex;align-items:center;justify-content:center;height:215px;border-radius:12px;background:radial-gradient(ellipse at 50% 70%,#eceee6,#f7f6f0 70%);overflow:hidden}.market-product-photo>img{display:block;width:100%;height:100%;object-fit:contain;padding:16px;mix-blend-mode:multiply}.market-hero-photo-fallback{display:grid;place-items:center;text-align:center;color:#4d654f;font-size:13px;padding:20px;gap:10px}.market-hero-photo-fallback>i{font-size:60px}
+.market-product-details{padding:18px 2px 0;min-width:0;color:#25372b}.market-product-details>small{display:block;font-size:10px;letter-spacing:.06em;color:#747c6a;text-transform:uppercase}.market-product-details>h3{font-size:19px;line-height:1.4;font-weight:800;margin:7px 0 12px;min-height:2.8em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}.market-product-details .tt-sale-price{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:36px}.market-product-details .product-price{color:#234a32}.market-product-details .tt-saving{font-size:11px}.market-product-details .tt-sale-countdown{font-size:10px}.market-product-link{display:flex;justify-content:space-between;align-items:center;padding-top:13px;margin-top:12px;border-top:1px solid #e4e6da;font-size:12px;font-weight:800;color:#28573b;text-decoration:none}.market-product-link:hover{color:#163d28}
+.market-carousel-controls{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px 0 0}.market-carousel-controls>button,.market-carousel-dots>button{display:grid;place-items:center;min-width:38px;min-height:38px;border:1px solid #fff8;border-radius:50%;background:#ffffff75;color:var(--mh-ink)}.market-carousel-dots{display:flex;gap:0}.market-carousel-dots>button{border:0;background:transparent;min-width:28px}.market-carousel-dots>button>span{width:6px;height:6px;border-radius:50%;background:var(--mh-muted);opacity:.35}.market-carousel-dots>button[aria-current=true]>span{width:20px;border-radius:10px;opacity:1;background:var(--mh-accent)}
+.market-product-stage{touch-action:pan-y pinch-zoom}.market-hero-placeholder{display:flex;flex-direction:column;justify-content:center;text-align:center;padding:35px 24px;border:1px solid #fff9;border-radius:18px;min-height:405px;background:#ffffff85;color:var(--mh-ink)}.market-hero-placeholder>i{font-size:80px;color:var(--mh-accent)}.market-hero-placeholder h3{font-size:22px;font-weight:800;margin:18px 0 12px}.market-hero-placeholder p{font-size:13px;line-height:1.8;color:var(--mh-muted)}.market-hero-placeholder a{color:var(--mh-accent);font-size:13px;font-weight:750}
+.market-hub-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.market-hub-shortcuts>a{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dfe5dc;border-radius:12px;padding:17px 14px;text-decoration:none;color:#294a36;min-width:0}.market-hub-icon{display:grid;place-items:center;min-width:40px;height:40px;border-radius:10px;background:#f1f3e9;color:#577445;font-size:21px}.market-hub-shortcuts>a>span:nth-child(2){min-width:0}.market-hub-shortcuts strong,.market-hub-shortcuts small{display:block}.market-hub-shortcuts strong{font-size:12px;font-weight:800}.market-hub-shortcuts small{font-size:10px;color:#78816f;margin-top:4px;line-height:1.5}.market-hub-shortcuts>a>i:last-child{margin-left:auto;font-size:11px;color:#9caa8d}.market-hub-shortcuts>a:hover{border-color:#9fb293;background:#fafcf5;color:#1c422b}
+.market-business-strip{display:flex;align-items:center;gap:16px;padding:18px 22px;background:#fff;border:1px solid #e1e5dc;border-radius:12px}.market-business-strip>i{font-size:30px;color:#b26412}.market-business-strip>span{flex:1;min-width:0}.market-business-strip strong,.market-business-strip small{display:block}.market-business-strip strong{font-size:13px;font-weight:800;color:#304032}.market-business-strip small{font-size:11px;color:#75816e;margin-top:4px;line-height:1.6}.market-business-strip>a{display:flex;gap:20px;align-items:center;padding:10px 16px;min-height:44px;border:1px solid #bb781f;border-radius:8px;color:#925013;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap}
+.market-welcome a:focus-visible,.market-welcome button:focus-visible{outline:3px solid #9d742c;outline-offset:4px}
+@media(max-width:1100px){.market-hero{padding:32px;gap:25px}.market-hub-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.market-welcome{margin:15px 0 24px}.market-hero{grid-template-columns:1fr;padding:28px 22px;gap:28px;border-radius:16px}.market-hero-copy h2{font-size:38px;max-width:100%;margin-bottom:14px}.market-hero-eyebrow{font-size:9px;margin-bottom:14px}.market-hero-copy>p{font-size:14px;margin-bottom:20px}.market-hero-actions{gap:9px}.market-hero-button{flex:1;padding:12px;font-size:12px;min-height:46px}.market-hero-note{margin-top:17px;font-size:10px}.market-hero-showcase{width:100%;max-width:460px;justify-self:center}.market-product-photo{height:190px}.market-featured-product{padding:16px}.market-product-details>h3{font-size:18px}.market-product-details{padding-top:14px}.market-carousel-controls>button{min-width:44px;min-height:44px}.market-carousel-dots>button{min-width:29px;min-height:44px}.market-hero-placeholder{min-height:320px}.market-hero-decoration{right:-65px;top:10px;width:200px;opacity:.08}.market-hub-shortcuts{gap:9px;margin:12px 0}.market-hub-shortcuts>a{gap:8px;padding:14px 10px}.market-hub-icon{min-width:32px;height:34px;font-size:18px}.market-hub-shortcuts>a>i:last-child{display:none}.market-hub-shortcuts strong{font-size:11px}.market-hub-shortcuts small{font-size:9px}.market-business-strip{padding:16px;gap:10px;flex-wrap:wrap}.market-business-strip>i{font-size:24px}.market-business-strip>span{min-width:180px}.market-business-strip>a{margin-left:34px;white-space:normal}}
+@media(max-width:359px){.market-hero{padding:24px 15px}.market-hero-copy h2{font-size:33px}.market-hero-button{flex-basis:100%}.market-carousel-controls{gap:2px}.market-carousel-dots>button{min-width:25px}.market-hub-icon{display:none}.market-business-strip>span{min-width:150px}}
+@media(prefers-reduced-motion:reduce){.market-welcome *{animation:none!important;transition:none!important}}
+/* Compact sale information keeps the showcase close to the welcome copy. */
+@media(min-width:768px){.market-hero{padding:32px 40px}.market-product-photo{height:180px}}
+.market-product-details>h3{min-height:0}
+.market-product-details .tt-sale-price{display:grid;grid-template-columns:auto 1fr;align-items:center;justify-items:start;gap:5px 12px}
+.market-product-details .tt-sale-badge{grid-column:1/-1;justify-self:start}
+.market-product-details .product-price{grid-column:1;grid-row:2}
+.market-product-details .tt-was-price{grid-column:2;grid-row:2}
+.market-product-details .tt-saving{grid-column:1/-1}
+.market-product-details .tt-sale-countdown{display:none}
+@media(max-width:767px){.market-product-photo{height:160px}.market-hero-copy h2{font-size:35px}.market-hero-copy>p{line-height:1.7}.market-hero-note{margin-top:14px}}
+.market-hub-shortcuts{background:transparent;padding:0}

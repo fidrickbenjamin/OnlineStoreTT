@@ -27,9 +27,24 @@ export const getProducts = catchAsyncErrors(async (req, res, next) => {
 });
 
 
+// A small, promotion-aware feed independent of catalogue pagination.
+export const getFeaturedProducts = catchAsyncErrors(async (req, res) => {
+    const now = new Date(), campaigns = await activeCampaigns(now);
+    const eligible = { listingType: { $ne: "property" }, "category.main": { $ne: "Property or Real Estate" }, stock: { $gt: 0 }, "images.0.url": { $regex: /^https?:\/\//i } };
+    let products = await Product.find({ ...eligible, heroFeatured: true }).select("-reviews -inventoryAllocations").sort({ heroOrder: 1, createdAt: -1, _id: -1 }).limit(5).lean();
+    const curated = products.length > 0;
+    if (!curated) products = await Product.find(eligible).select("-reviews -inventoryAllocations").sort({ createdAt: -1, _id: -1 }).limit(5).lean();
+    res.set("Cache-Control", "no-store").json({ products: products.map(product => priceProduct(product, campaigns, now)), curated, serverTime: now });
+});
+function validateHeroFields(body) {
+    if (body.heroFeatured !== undefined && typeof body.heroFeatured !== "boolean") throw new ErrorHandler("Choose whether to feature this product.", 400);
+    if (body.heroOrder !== undefined && (!Number.isInteger(body.heroOrder) || body.heroOrder < 0 || body.heroOrder > 999)) throw new ErrorHandler("Homepage display order must be a whole number from 0 to 999.", 400);
+}
+
 // Create new Product => /api/v2/admin/products
 export const newProduct = catchAsyncErrors(async (req, res) => {
 
+    validateHeroFields(req.body);
     delete req.body.inventoryAllocations;
     delete req.body.directSale;
     req.body.user = req.user._id;
@@ -76,6 +91,7 @@ export const getAdminProducts = catchAsyncErrors(async (req, res, next ) => {
 // Update Product Details => /api/v2/products/:id
 export const updateProduct = catchAsyncErrors(async (req, res, next) => {
     
+    validateHeroFields(req.body);
     delete req.body.inventoryAllocations;
     delete req.body.directSale;
     let product = await Product.findById(req?.params?.id);

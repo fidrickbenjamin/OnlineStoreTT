@@ -5,6 +5,10 @@ export const productApi = createApi ({
     baseQuery: fetchBaseQuery({ baseUrl: "/api/v2"}),
     tagTypes:["Product", "AdminProducts", "Reviews", "AdminReview", "PropertyInquiries", "Promotions"],
     endpoints: (builder) => ({
+        getFeaturedProducts: builder.query({
+            query: () => "/products/featured",
+            providesTags: ["Product", "Promotions"],
+        }),
         getProducts: builder.query({
             providesTags: ["Product", "Promotions"],
             query: (params) => ({ 
@@ -61,7 +65,7 @@ export const productApi = createApi ({
                     body,
                 };
             },
-            invalidatesTags: ["AdminProducts"],
+            invalidatesTags: ["AdminProducts", "Product"],
         }),
         updateProduct: builder.mutation({
             query({id, body}) {
@@ -102,7 +106,7 @@ export const productApi = createApi ({
                     method: "DELETE",
                 };
             },
-            invalidatesTags: ["AdminProducts"],
+            invalidatesTags: ["AdminProducts", "Product"],
         }),
 
         getProductReviews: builder.query({
@@ -151,6 +155,7 @@ export const productApi = createApi ({
 });
 
 export const { 
+    useGetFeaturedProductsQuery,
     useGetProductsQuery, 
     useGetProductDetailsQuery, 
     useSubmitReviewMutation, 

@@ -1,3 +1,4 @@
+import HeroFeatureFields from "./HeroFeatureFields";
 import React, { useEffect, useState } from "react";
 import ProductSaleEditor from "../promotions/ProductSaleEditor";
 import Loader from "../layout/Loader";
@@ -20,6 +21,8 @@ const UpdateProduct = () => {
         subCategory: "",
         stock: "",
         seller: "",
+        heroFeatured: false,
+        heroOrder: 0,
     });
 
     const [updateProduct, { isLoading, error, isSuccess }] = useUpdateProductMutation();
@@ -39,6 +42,8 @@ const UpdateProduct = () => {
                 subCategory,
                 stock: data.product.stock,
                 seller: data.product.seller,
+                heroFeatured: Boolean(data.product.heroFeatured),
+                heroOrder: data.product.heroOrder || 0,
             });
         }
 
@@ -83,6 +88,7 @@ const UpdateProduct = () => {
                 <div className="col-10 col-lg-10 mt-5 mt-lg-0">
                     <form className="shadow rounded bg-body" onSubmit={submitHandler}>
                         <h2 className="mb-4">Update Product</h2>
+                        <HeroFeatureFields value={product} onChange={setProduct}/>
 
                         <div className="mb-3">
                             <label htmlFor="name_field" className="form-label"> Name </label>

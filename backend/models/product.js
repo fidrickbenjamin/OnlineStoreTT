@@ -7,6 +7,9 @@ const productSchema = new mongoose.Schema({
     maxLength: [200, "Product name cannot exceed 200 characters"],
   },
 
+  heroFeatured: { type: Boolean, default: false },
+  heroOrder: { type: Number, default: 0, min: 0, max: 999 },
+
   directSale: { enabled: {type:Boolean,default:false}, price:Number, label:{type:String,maxlength:40}, startsAt:Date, endsAt:Date },
 
   price: {
