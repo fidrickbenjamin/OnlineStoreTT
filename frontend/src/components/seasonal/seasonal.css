@@ -55,3 +55,12 @@
 @media(max-width:767px){.tt-season-root[data-animate="true"] .tt-season-art{animation:none!important}}
 
 .tt-season-root[data-quiet="false"][data-theme="madras"] .product-card:before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--season-pattern);pointer-events:none}
+
+/* The current header uses .tt-main-header rather than the old .navbar. */
+.tt-season-root[data-theme]:not([data-theme=""]) .tt-main-header{background:linear-gradient(115deg,var(--season-dark),var(--season-accent));color:#fff}
+.tt-season-root[data-theme="easter"]:not([data-theme=""]) .tt-main-header{background:linear-gradient(115deg,#254f3c,#326947)}
+
+.tt-season-root[data-theme]:not([data-theme=""]) .tt-season-header .quick-links{background:var(--season-dark);border-bottom:2px solid var(--season-gold)}
+.tt-season-root[data-theme]:not([data-theme=""]) .tt-season-header .quick-links a{color:var(--season-ink);background:#ffffff12;border:1px solid #ffffff26}
+
+.tt-season-root[data-theme]:not([data-theme=""]) .tt-season-header .quick-links a:hover{background:#ffffff26;color:var(--season-ink)}

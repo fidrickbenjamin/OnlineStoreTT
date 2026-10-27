@@ -1,4 +1,5 @@
 import {orderApi} from "./OrderApi";
+import {productApi} from "./productsApi";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { userApi } from "./userApi";
 
@@ -21,6 +22,7 @@ export const authApi = createApi ({
                 try {
                     await queryFulfilled;
                     dispatch(orderApi.util.resetApiState());
+                    dispatch(productApi.util.resetApiState());
                     await dispatch(userApi.endpoints.getMe.initiate(undefined,{forceRefetch:true}));
                 } catch (error) {
                     console.log(error);
@@ -42,6 +44,7 @@ export const authApi = createApi ({
                         try {
                             await queryFulfilled;
                             dispatch(orderApi.util.resetApiState());
+                    dispatch(productApi.util.resetApiState());
                     await dispatch(userApi.endpoints.getMe.initiate(undefined,{forceRefetch:true}));
                         } catch (error) {
                             console.log(error);

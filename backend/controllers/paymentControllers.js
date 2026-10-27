@@ -4,6 +4,7 @@ import Stripe from "stripe";
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 import crypto from "crypto";
+import {hubShopdmWebhook} from "../hubs/payments.js";
 
 
 
@@ -252,6 +253,7 @@ export const createShopdmPayCheckout = catchAsyncErrors(
  */
 export const shopdmPayWebhook = catchAsyncErrors(
     async (req, res) => {
+        if(String(req.body?.metadata?.invoice_id||" ").startsWith("HUB-")) return hubShopdmWebhook(req,res);
 
         // -------------------------------------------------------
         // 1. Get signature

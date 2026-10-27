@@ -5,16 +5,10 @@ import { PRODUCT_CATEGORIES } from "../constants/constants";
 import { keepDialogFocus } from "./shared/dialogFocus";
 import "./CategorySplash.css";
 
-const visitKey = "tt-category-welcome-seen-v2";
+// Reset on a fresh page load; browsing inside the app does not keep reopening it.
 let seenInMemory = false;
-function hasSeenWelcome() {
-  try { return seenInMemory || sessionStorage.getItem(visitKey) === "1"; }
-  catch { return seenInMemory; }
-}
-function rememberWelcome() {
-  seenInMemory = true;
-  try { sessionStorage.setItem(visitKey, "1"); } catch { /* Shopping also works with storage disabled. */ }
-}
+function hasSeenWelcome() { return seenInMemory; }
+function rememberWelcome() { seenInMemory = true; }
 const featured = ["Smart Phones", "Agro Sales", "Hardware", "Grocery", "School Supplies", "Tactical", "Home & Living", "Fashion", "Sports", "Electronics"];
 const icons = { "Smart Phones": "phone", "Agro Sales": "flower1", Hardware: "tools", Grocery: "basket2", "School Supplies": "journal-bookmark", Tactical: "shield-check", "Home & Living": "house-heart", Fashion: "handbag", Sports: "trophy", Electronics: "speaker", Accessories: "plug", Laptops: "laptop", Tablets: "tablet", Headphones: "headphones", Desktops: "pc-display", "Gaming Accessories": "controller", Clothing: "bag", Utilities: "lamp", "Property or Real Estate": "houses" };
 const labels = { Grocery: "Groceries", Tactical: "Tactical gear", "Property or Real Estate": "Property & rentals" };
@@ -25,7 +19,7 @@ export default function CategorySplash({ openRequest = 0, autoOpen = true }) {
   const [visible, setVisible] = useState(() => autoOpen && !params.toString() && !hasSeenWelcome());
   const [search, setSearch] = useState("");
   const [all, setAll] = useState(false);
-  useEffect(() => { rememberWelcome(); }, []);
+  useEffect(() => { if (visible) rememberWelcome(); }, [visible]);
   useEffect(() => {
     if (openRequest > 0) { setSearch(""); setAll(false); setVisible(true); }
   }, [openRequest]);
@@ -51,6 +45,6 @@ export default function CategorySplash({ openRequest = 0, autoOpen = true }) {
         <div className="tt-welcome-shortcuts"><button type="button" onClick={() => go("/deals")}><i className="bi bi-tag" aria-hidden="true"/><span>Shop the deals<small>Discover current offers</small></span><span aria-hidden="true">→</span></button><button type="button" onClick={() => select("Property or Real Estate")}><i className="bi bi-houses" aria-hidden="true"/><span>Property hub<small>Find your next space</small></span><span aria-hidden="true">→</span></button></div>
       </section>
     </Modal.Body>
-    <Modal.Footer><span>Once per visit. Reopen with “Browse categories”.</span><button type="button" className="btn btn-success" onClick={close}>Explore all products <span aria-hidden="true">→</span></button></Modal.Footer>
+    <Modal.Footer><span>Welcome back on a fresh homepage load. Reopen with “Browse categories”.</span><button type="button" className="btn btn-success" onClick={close}>Explore all products <span aria-hidden="true">→</span></button></Modal.Footer>
   </Modal>;
 }

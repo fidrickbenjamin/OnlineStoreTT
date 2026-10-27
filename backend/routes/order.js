@@ -1,8 +1,10 @@
 import express from "express";
+import hubRoutes from "../hubs/routes.js";
 import { authorizeRoles, isAuthenticatedUser } from "../middlewares/auth.js";
 import { allOrders, deleteOrder, getOrderDetails, getSales, myOrders, newOrder, updateOrder, cancelOrder, uploadPaymentProof, getPaymentProof, reviewPaymentProof, deliverySettings, quoteOrder } from "../controllers/orderControllers.js";
 
 const router = express.Router();
+router.use("/hubs", hubRoutes);
 
 router.get("/delivery/options", deliverySettings);
 router.route("/orders/:id/payment-proof").post(isAuthenticatedUser, uploadPaymentProof).get(isAuthenticatedUser, getPaymentProof);

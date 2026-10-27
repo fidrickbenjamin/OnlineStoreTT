@@ -15,11 +15,13 @@ const UpdateUser = React.lazy(() => import("../admin/UpdateUser"));
 const ProductReviews = React.lazy(() => import("../admin/ProductReviews"));
 const PropertyInquiries = React.lazy(() => import("../admin/PropertyInquiries"));
 
+const AdminHubs=React.lazy(()=>import("../hubs/AdminHubs"));
 const adminRoutes = () => {
 
     return (
         < > 
         
+        <Route path="/admin/hubs" element={<ProtectedRoute admin={true}><AdminHubs/></ProtectedRoute>}/>
         <Route path="/admin/appearance" element={<ProtectedRoute admin={true}><SeasonalAppearance/></ProtectedRoute>} />
         <Route path="/admin/promotions" element={<ProtectedRoute admin={true}><Promotions/></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute admin={true}> <Dashboard /> </ProtectedRoute>} />

@@ -85,7 +85,7 @@ const Home = () => {
     <>
       <MetaData title={"Tactical Trends Market Place"} />
 
-      <CategorySplash openRequest={categoryRequest} autoOpen={cartItems.length === 0}/>
+      <CategorySplash openRequest={categoryRequest} autoOpen={true}/>
       {!hasActiveFilters && <Hero />}
       <PromotionBanners/>
       <div className="tt-toolbar"><button type="button" className="btn btn-outline-success" onClick={() => setCategoryRequest(value => value + 1)}><i className="bi bi-grid" aria-hidden="true"/> Browse categories</button><Link className="btn btn-success" to="/deals">Shop deals</Link><button className="btn btn-outline-success" onClick={() => setFiltersOpen(value => !value)} aria-expanded={filtersOpen}>Filters</button><label>Sort<select value={params.sort} onChange={event => { const next = new URLSearchParams(searchParams); next.set("sort", event.target.value); next.set("page", "1"); setSearchParams(next); }}><option value="newest">Newest</option><option value="priceAsc">Price: low to high</option><option value="priceDesc">Price: high to low</option><option value="rating">Highest rated</option></select></label><label><input type="checkbox" checked={params.inStock === "true"} onChange={event => { const next = new URLSearchParams(searchParams); if (event.target.checked) next.set("inStock", "true"); else next.delete("inStock"); next.set("page", "1"); setSearchParams(next); }} style={{display:"inline", marginRight:8}}/> In stock only</label><button className="btn btn-outline-secondary" onClick={() => setSearchParams({})}>Clear filters</button></div>

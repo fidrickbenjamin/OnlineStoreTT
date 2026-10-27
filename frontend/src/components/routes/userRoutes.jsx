@@ -25,6 +25,12 @@ const ShippingAddress = React.lazy(() => import("../user/ShippingAddress"));
 const ShopdmPaymentSuccess = React.lazy(() => import("../payment/ShopdmPaymentSuccess"));
 
 
+const FoodHub=React.lazy(()=>import("../hubs/FoodHub"));
+const Restaurant=React.lazy(()=>import("../hubs/Restaurant"));
+const RequestHub=React.lazy(()=>import("../hubs/RequestHub"));
+const Activity=React.lazy(()=>import("../hubs/Activity"));
+const BusinessCentre=React.lazy(()=>import("../hubs/BusinessCentre"));
+const DriverCentre=React.lazy(()=>import("../hubs/DriverCentre"));
 const userRoutes = () => {
 
     return (
@@ -34,6 +40,14 @@ const userRoutes = () => {
       <Route path="/" element={<Home />} />
       <Route path="/deals" element={<Deals />} />
       <Route path="/property-hub" element={<PropertyHub />} />
+      <Route path="/food-hub" element={<FoodHub/>}/>
+      <Route path="/food-hub/:id" element={<Restaurant/>}/>
+      <Route path="/ride-hub" element={<RequestHub key="ride" kind="ride"/>}/>
+      <Route path="/delivery-hub" element={<RequestHub key="delivery" kind="delivery"/>}/>
+      <Route path="/me/activity" element={<ProtectedRoute><Activity/></ProtectedRoute>}/>
+      <Route path="/me/activity/:id" element={<ProtectedRoute><Activity/></ProtectedRoute>}/>
+      <Route path="/business-centre" element={<ProtectedRoute><BusinessCentre/></ProtectedRoute>}/>
+      <Route path="/driver-centre" element={<ProtectedRoute><DriverCentre/></ProtectedRoute>}/>
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

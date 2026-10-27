@@ -1,50 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-const Search = () => {
-
-    const [keyword, setKeyword] = useState("");
-    const navigate = useNavigate();
-    const [, setSearchParams] = useSearchParams();
-
-    const submitHandler = (e) => {
-        e.preventDefault();
-
-        const trimmedKeyword = keyword?.trim();
-        const nextParams = new URLSearchParams();
-
-        if (trimmedKeyword) {
-            nextParams.set("keyword", trimmedKeyword);
-            nextParams.set("skipSplash", "true");
-            setSearchParams(nextParams);
-            navigate(`/?${nextParams.toString()}`);
-        } else {
-            nextParams.delete("keyword");
-            nextParams.set("skipSplash", "true");
-            setSearchParams(nextParams);
-            navigate(`/?${nextParams.toString()}`);
-        }
-    };
-
-    return (
-        <form onSubmit={submitHandler} className="search-form">
-            <div className="input-group">
-                <input
-                    type="text"
-                    id="search_field"
-                    aria-describedby="search_btn"
-                    className="form-control search-input"
-                    placeholder="Search products by name, description or price"
-                    name="keyword"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                />
-                <button id="search_btn" className="btn" type="submit">
-                    <i className="bi bi-search"  aria-hidden="true"></i>    
-                </button>
-            </div>
-        </form>
-    );
-};
-
-export default Search;
+export default function Search() {
+  const [params] = useSearchParams();
+  const currentKeyword = params.get("keyword") || "";
+  const [keyword, setKeyword] = useState(currentKeyword);
+  const navigate = useNavigate();
+  useEffect(() => { setKeyword(currentKeyword); }, [currentKeyword]);
+  const submit = event => {
+    event.preventDefault();
+    const next = new URLSearchParams({ skipSplash: "true" });
+    if (keyword.trim()) next.set("keyword", keyword.trim());
+    navigate(`/?${next.toString()}`);
+  };
+  return <form onSubmit={submit} className="search-form" role="search" aria-label="Search the marketplace">
+    <label className="visually-hidden" htmlFor="search_field">Search products</label>
+    <div className="input-group">
+      <input type="search" id="search_field" className="form-control search-input" placeholder="Search products" name="keyword" value={keyword} onChange={event => setKeyword(event.target.value)}/>
+      <button id="search_btn" className="btn" type="submit" aria-label="Submit product search"><i className="bi bi-search" aria-hidden="true"/></button>
+    </div>
+  </form>;
+}

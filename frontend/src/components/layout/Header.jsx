@@ -1,104 +1,76 @@
-import React from "react";
+import React, { useContext } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
 import Search from "./Search";
 import { useGetMeQuery } from "../../redux/api/userApi";
 import { useSelector, useDispatch } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useLazyLogoutQuery } from "../../redux/api/authApi";
 import AddressDisplay from "../AdditionalFunctions/AddressDisplay";
-import { clearCart } from "../../redux/features/cartSlice"; // Import clearCart action
+import { clearCart } from "../../redux/features/cartSlice";
 import { PRODUCT_CATEGORIES } from "../../constants/constants";
+import { SeasonalContext } from "../seasonal/SeasonalContext";
+import toast from "react-hot-toast";
+import "./Header.css";
 
+function seasonLabel(season) {
+  // A madras theme can also be used for other observed cultural holidays.
+  if (season.holidayId === "emancipation") return "Emancipation";
+  if (season.holidayId === "community") return "Community Day";
+  return ({madras: "Independence", carnival: "Carnival", christmas: "Christmas", newyear: "New Year", easter: "Easter"})[season.theme] || season.holidayName || season.themeName || "In season";
+}
 const Header = () => {
-  const dispatch = useDispatch(); // Use dispatch hook
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isLoading } = useGetMeQuery();
-  const [logout, { data }] = useLazyLogoutQuery();
-  const { user } = useSelector((state) => state.auth);
-  const { cartItems } = useSelector((state) => state.cart);
-
-  // Logout handler to trigger logout API and clear cart
+  const [logout, { isFetching: loggingOut }] = useLazyLogoutQuery();
+  const { user } = useSelector(state => state.auth);
+  const { cartItems = [] } = useSelector(state => state.cart);
+  const season = useContext(SeasonalContext);
+  const label = season ? seasonLabel(season) : "";
+  const cartCount = cartItems.reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0);
+  const firstName = user?.name?.trim().split(/\s+/)[0] || "Account";
   const logoutHandler = async () => {
     try {
-      await logout().unwrap(); // Use unwrap to handle the promise
-      dispatch(clearCart()); // Clear the cart on logout
-      window.location.reload(); // Full webpage refresh
-      navigate("/"); // Redirect to login page after logout
-    } catch (error) {
-      console.error("Logout failed: ", error); // Handle errors if needed
-    }
+      await logout().unwrap();
+      dispatch(clearCart());
+      window.location.assign("/");
+    } catch { toast.error("Could not sign out. Please try again."); }
   };
 
-  return (
-    <>
-      <nav className="navbar row">
-        <div className="col-12 col-md-3 ps-5">
-          <div className="navbar-brand">
-            <a href="https://www.tactrendsshop.com/">
-              <img src="/images/Tactical-Trends-Marketplace-Branding-Logol.png" alt="Tactical Trends Logo" />
-            </a>
-          </div>
+  return <>
+    <header className="tt-main-header" aria-label="Store header">
+      <div className="tt-header-inner">
+        <Link className="tt-header-brand" to="/?skipSplash=true" aria-label="Tactical Trends Market Place home" data-season={season?.theme || ""}>
+          <img src="/images/Tactical-Trends-Marketplace-Branding-Logol.png" alt="" width="64" height="68"/>
+          <span className="tt-header-wordmark"><strong>Tactical Trends</strong><span className="tt-header-brand-line"><span>Market Place</span>{season && <span className="tt-header-season" title={season.holidayName || season.themeName} aria-label={`Current season: ${label}`}>{label}</span>}</span></span>
+          {season?.decorations && <span className="tt-header-brand-trim" aria-hidden="true"/>}
+        </Link>
+        <div className="tt-header-search"><Search/></div>
+        <div className="tt-header-actions">
+          <AddressDisplay/>
+          <Link className="tt-header-cart" to="/cart" aria-label={`Cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}`}><span className="tt-header-cart-symbol"><i className="bi bi-cart3" aria-hidden="true"/><span className="tt-header-cart-count" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</span></span><span className="tt-header-cart-text">Cart</span></Link>
+          {user ? <Dropdown className="tt-header-account" align="end">
+            <Dropdown.Toggle id="dropDownMenuButton" className="tt-header-account-toggle" variant="link" aria-label={`Account menu for ${user.name || "customer"}`} title={user.name}>
+              <i className="bi bi-person-fill" aria-hidden="true"/><span className="tt-header-account-name">{firstName}</span>
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="tt-header-account-menu" aria-label="Account navigation">
+              <div className="tt-header-menu-greeting"><small>Welcome back</small><strong>{user.name}</strong></div>
+              {user.role === "admin" && <Dropdown.Item as={Link} to="/admin/dashboard"><i className="bi bi-speedometer2" aria-hidden="true"/> Dashboard</Dropdown.Item>}
+              <Dropdown.Item as={Link} to="/me/activity"><i className="bi bi-activity" aria-hidden="true"/> Hub activity</Dropdown.Item>
+              <Dropdown.Item as={Link} to="/me/orders"><i className="bi bi-bag-check" aria-hidden="true"/> Orders</Dropdown.Item>
+              <Dropdown.Item as={Link} to="/me/profile"><i className="bi bi-person" aria-hidden="true"/> Profile</Dropdown.Item>
+              <Dropdown.Divider/>
+              <Dropdown.Item as="button" type="button" className="text-danger" disabled={loggingOut} onClick={logoutHandler}><i className="bi bi-box-arrow-right" aria-hidden="true"/> {loggingOut ? "Signing out…" : "Logout"}</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown> : isLoading ? <span className="tt-header-account-loading" role="status"><span className="spinner-border spinner-border-sm"/><span className="visually-hidden">Loading account</span></span> : <Link to="/login" className="tt-header-signin"><i className="bi bi-person-fill" aria-hidden="true"/><span>Sign in</span></Link>}
         </div>
-        <div className="col-12 col-md-6 mt-2 mt-md-0 d-flex align-items-center">
-          <AddressDisplay style={{ marginRight: "20px !important" }} /> &nbsp;
-          <Search />
-        </div>
-        <div className="col-12 col-md-3 mt-4 mt-md-0 text-center">
-          <a href="/cart" style={{ textDecoration: "none" }}>
-            <span id="cart" className="ms-3">Cart</span>
-            <span className="ms-1" id="cart_count">{cartItems?.length}</span>
-          </a>
-
-          {user ? (
-            <div className="ms-4 dropdown">
-              <button
-                className="btn dropdown-toggle text-white"
-                type="button"
-                id="dropDownMenuButton"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <figure className="avatar avatar-nav">
-                  <img
-                    src={user?.avatar ? user?.avatar?.url : "/images/default_avatar.jpg"}
-                    alt="User Avatar"
-                    className="rounded-circle"
-                  />
-                </figure>
-                <span>{user?.name}</span>
-              </button>
-              <div className="dropdown-menu w-100" aria-labelledby="dropDownMenuButton">
-                {user?.role === "admin" && (
-                  <Link className="dropdown-item" to="/admin/dashboard">
-                    Dashboard
-                  </Link>
-                )}
-                <Link className="dropdown-item" to="/me/orders">Orders</Link>
-                <Link className="dropdown-item" to="/me/profile">Profile</Link>
-                <Link className="dropdown-item text-danger" to="/login" onClick={logoutHandler}>Logout</Link>
-              </div>
-            </div>
-          ) : (
-            !isLoading && (
-              <Link to="/login" className="btn ms-4" id="login_btn">Login</Link>
-            )
-          )}
-        </div>
-      </nav>
-
-      {/* Quick Links Section */}
-      <div className="quick-links text-center">
-        <Link to="/?skipSplash=true">Home</Link>
-        <Link to="/property-hub">Property Hub</Link>
-        {Object.keys(PRODUCT_CATEGORIES)
-          .filter((category) => category !== "Property or Real Estate")
-          .map((category) => (
-          <Link key={category} to={`/?category=${encodeURIComponent(category)}&skipSplash=true`}>
-            {category}
-          </Link>
-        ))}
       </div>
-    </>
-  );
+    </header>
+    <div className="quick-links text-center">
+      <Link to="/?skipSplash=true">Home</Link>
+      <Link to="/property-hub">Property Hub</Link>
+      <Link to="/food-hub">Food Hub</Link><Link to="/ride-hub">Ride Hub</Link><Link to="/delivery-hub">Delivery Hub</Link>
+      {Object.keys(PRODUCT_CATEGORIES).filter(category => category !== "Property or Real Estate").map(category => <Link key={category} to={`/?category=${encodeURIComponent(category)}&skipSplash=true`}>{category}</Link>)}
+    </div>
+  </>;
 };
-
 export default Header;

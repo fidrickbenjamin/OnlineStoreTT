@@ -1,4 +1,5 @@
 import React,{useEffect,useState} from 'react';
+import {SeasonalContext} from './SeasonalContext';
 import {useLocation} from 'react-router-dom';
 import {useActiveSeasonQuery} from '../../redux/api/seasonalApi';
 import {SeasonBanner,SeasonTrim,SeasonEdges} from './SeasonScene';
@@ -13,5 +14,5 @@ export default function SeasonalStorefront({header,children,footer}){
  const expired=receipt.data===data&&data?.nextChangeAt&&+new Date(data.serverTime)+(Date.now()-receipt.at)>=+new Date(data.nextChangeAt);
  const season=!admin&&!error&&!expired?data?.active:null;
  const quiet=!(pathname==='/'||pathname==='/deals'||pathname.startsWith('/product/')||pathname==='/property-hub');
- return <div className="tt-season-root" data-theme={season?.theme||''} data-intensity={season?.intensity||'subtle'} data-animate={season?.animations?'true':'false'} data-quiet={quiet?'true':'false'}><div className="tt-season-header">{header}</div>{season&&<SeasonTrim/>}{season&&!quiet&&<><SeasonEdges season={season}/><div className="container tt-season-welcome"><SeasonBanner season={season}/></div></>}<div className="tt-season-content">{children}</div>{season&&!quiet&&<div className="tt-season-signoff"><span>{season.theme==='madras'?'Woven with island spirit.':season.theme==='christmas'?'A little joy, from our home to yours.':season.theme==='carnival'?'Celebrate the colour of our island.':'Made for moments worth celebrating.'}</span></div>}{season&&<SeasonTrim/>}{footer}</div>;
+ return <SeasonalContext.Provider value={season}><div className="tt-season-root" data-theme={season?.theme||''} data-intensity={season?.intensity||'subtle'} data-animate={season?.animations?'true':'false'} data-quiet={quiet?'true':'false'}><div className="tt-season-header">{header}</div>{season&&<SeasonTrim/>}{season&&!quiet&&<><SeasonEdges season={season}/><div className="container tt-season-welcome"><SeasonBanner season={season}/></div></>}<div className="tt-season-content">{children}</div>{season&&!quiet&&<div className="tt-season-signoff"><span>{season.theme==='madras'?'Woven with island spirit.':season.theme==='christmas'?'A little joy, from our home to yours.':season.theme==='carnival'?'Celebrate the colour of our island.':'Made for moments worth celebrating.'}</span></div>}{season&&<SeasonTrim/>}{footer}</div></SeasonalContext.Provider>;
 }
