@@ -2,3 +2,23 @@
 @media(min-width:1200px){.tt-welcome-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:767px){.tt-welcome-modal .modal-dialog{padding:8px;margin-top:8px;margin-bottom:8px;height:calc(100% - 16px)}.tt-welcome-modal .modal-content{max-height:100%;border-radius:18px}.tt-welcome-modal .modal-body{display:block}.tt-welcome-story{display:none}.tt-welcome-shop{padding:22px 16px 16px}.tt-welcome-shop h1{font-size:1.5rem}.tt-welcome-modal .modal-header{padding:14px 16px}.tt-welcome-eyebrow{font-size:.61rem;letter-spacing:.09em}.tt-welcome-subtitle{font-size:.85rem;margin-bottom:16px}.tt-welcome-grid{gap:8px}.tt-welcome-grid>button{gap:7px;padding:10px 8px;font-size:.75rem;min-height:62px}.tt-welcome-icon{width:29px;height:29px;font-size:1rem;border-radius:8px}.tt-welcome-grid>button>i{display:none}.tt-welcome-shortcuts button{padding:10px;font-size:.75rem;gap:7px}.tt-welcome-shortcuts small{font-size:.63rem}.tt-welcome-shortcuts button>span:last-child{display:none}.tt-welcome-modal .modal-footer{padding:12px 16px;flex-direction:column-reverse;align-items:stretch;text-align:center;gap:6px}.tt-welcome-modal .modal-footer>*{margin:0}.tt-welcome-modal .modal-footer>span{font-size:.66rem}.tt-welcome-modal .modal-footer .btn{width:100%;font-size:.9rem}}
 @media(prefers-reduced-motion:reduce){.tt-welcome-modal *{transition:none!important;animation:none!important}}
+
+/* All six marketplace hubs stay ahead of category browsing on every screen. */
+.tt-welcome-modal .tt-welcome-hubs{margin:20px 0 24px;padding:0;background:transparent;border:0;box-shadow:none;display:block;position:static}
+.tt-welcome-hubs h2,.tt-welcome-categories-title{font-size:.82rem;font-weight:800;letter-spacing:.025em;color:#526b5e;margin:0 0 10px}
+.tt-welcome-hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tt-welcome-hub{display:flex;align-items:center;gap:9px;min-width:0;min-height:94px;padding:13px 10px;border:1px solid #d9e5dc;border-radius:14px;background:#f5f9f4;color:#204d37;text-decoration:none;transition:background .15s,border-color .15s,box-shadow .15s}
+.tt-welcome-hub-icon{display:grid;place-items:center;flex-shrink:0;width:34px;height:38px;border-radius:11px;background:#e3efdf;color:#35724b;font-size:1.25rem}
+.tt-welcome-hub-copy{flex:1;min-width:0;overflow-wrap:anywhere}
+.tt-welcome-hub-copy strong{display:block;font-size:.8rem;line-height:1.35}
+.tt-welcome-hub-copy small{display:block;margin-top:4px;font-size:.66rem;line-height:1.4;color:#63766a}
+.tt-welcome-hub>.bi-arrow-up-right{font-size:.7rem;color:#6e8376;flex-shrink:0}
+.tt-welcome-hub.food{background:#fff7eb;border-color:#efdfc4}.tt-welcome-hub.food .tt-welcome-hub-icon{background:#f8e6c7;color:#95631d}
+.tt-welcome-hub.hardware{background:#f0f4f5;border-color:#d4e0e4}.tt-welcome-hub.hardware .tt-welcome-hub-icon{background:#dde7eb;color:#426270}
+.tt-welcome-hub.ride{background:#fffae9;border-color:#eae1b9}.tt-welcome-hub.ride .tt-welcome-hub-icon{background:#f4ebc4;color:#8a7025}
+.tt-welcome-hub.delivery{background:#f1f5fc;border-color:#d8e1ef}.tt-welcome-hub.delivery .tt-welcome-hub-icon{background:#e0e8f5;color:#496991}
+.tt-welcome-hub:hover{color:#153e31;border-color:#6b9779;box-shadow:0 3px 12px #183a3214}
+.tt-welcome-hub:focus-visible{outline:3px solid #6ba280;outline-offset:2px}
+@media(max-width:991px){.tt-welcome-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.tt-welcome-modal .tt-welcome-hubs{margin:16px 0 20px}.tt-welcome-hub-grid{gap:8px}.tt-welcome-hub{min-height:78px;padding:10px 8px;gap:8px}.tt-welcome-hub-icon{width:29px;height:34px;font-size:1.1rem}.tt-welcome-hub-copy strong{font-size:.77rem}.tt-welcome-hub-copy small{font-size:.65rem}.tt-welcome-hub>.bi-arrow-up-right{display:none}.tt-welcome-hubs h2,.tt-welcome-categories-title{font-size:.78rem}}
+@media(max-width:359px){.tt-welcome-hub{gap:6px;padding:9px 7px}.tt-welcome-hub-copy strong{font-size:.73rem}.tt-welcome-hub-icon{width:25px;height:30px;font-size:1rem}}
