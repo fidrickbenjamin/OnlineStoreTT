@@ -1,3 +1,4 @@
+import HubGate from '../hubs/HubNavigation';
 import React from "react";
 import { Route, Navigate} from "react-router-dom";
 import Home from "../Home";
@@ -39,15 +40,15 @@ const userRoutes = () => {
                     
       <Route path="/" element={<Home />} />
       <Route path="/deals" element={<Deals />} />
-      <Route path="/property-hub" element={<PropertyHub />} />
-      <Route path="/convenience-hub" element={<FoodHub key="convenience" kind="convenience"/>}/>
-      <Route path="/hardware-hub" element={<FoodHub key="hardware" kind="hardware"/>}/>
-      <Route path="/convenience-hub/:id" element={<Restaurant/>}/>
-      <Route path="/hardware-hub/:id" element={<Restaurant/>}/>
-      <Route path="/food-hub" element={<FoodHub/>}/>
-      <Route path="/food-hub/:id" element={<Restaurant/>}/>
-      <Route path="/ride-hub" element={<RequestHub key="ride" kind="ride"/>}/>
-      <Route path="/delivery-hub" element={<RequestHub key="delivery" kind="delivery"/>}/>
+      <Route path="/property-hub" element={<HubGate kind="property"><PropertyHub /></HubGate>} />
+      <Route path="/convenience-hub" element={<HubGate kind="convenience"><FoodHub key="convenience" kind="convenience"/></HubGate>}/>
+      <Route path="/hardware-hub" element={<HubGate kind="hardware"><FoodHub key="hardware" kind="hardware"/></HubGate>}/>
+      <Route path="/convenience-hub/:id" element={<HubGate kind="convenience"><Restaurant/></HubGate>}/>
+      <Route path="/hardware-hub/:id" element={<HubGate kind="hardware"><Restaurant/></HubGate>}/>
+      <Route path="/food-hub" element={<HubGate kind="food"><FoodHub/></HubGate>}/>
+      <Route path="/food-hub/:id" element={<HubGate kind="food"><Restaurant/></HubGate>}/>
+      <Route path="/ride-hub" element={<HubGate kind="ride"><RequestHub key="ride" kind="ride"/></HubGate>}/>
+      <Route path="/delivery-hub" element={<HubGate kind="delivery"><RequestHub key="delivery" kind="delivery"/></HubGate>}/>
       <Route path="/me/activity" element={<ProtectedRoute><Activity/></ProtectedRoute>}/>
       <Route path="/me/activity/:id" element={<ProtectedRoute><Activity/></ProtectedRoute>}/>
       <Route path="/business-centre" element={<ProtectedRoute><BusinessCentre/></ProtectedRoute>}/>

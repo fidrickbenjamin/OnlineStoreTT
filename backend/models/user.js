@@ -28,6 +28,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "user",
     },
+    adminAccess: {type:[{type:String,enum:['operations','catalogue','finance','settings']}],default:undefined},
+    accessRevision: {type:Number,default:0},
     contactPhone: {type:String,maxlength:40,default:""},
     countryOfResidence: {type:String,maxlength:80,default:""},
     shippingInfo: {type:new mongoose.Schema({address:String,city:String,phoneNo:String,zipCode:String,country:String,landmark:String,deliveryNotes:String},{_id:false}),default:undefined},

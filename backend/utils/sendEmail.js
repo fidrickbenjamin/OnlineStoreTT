@@ -1,66 +1,25 @@
-import nodemailer from "nodemailer";
-import { MailtrapTransport } from "mailtrap";
-
-let transport;
-const getTransport = () => transport || (transport = nodemailer.createTransport(
-    MailtrapTransport({
-        token: process.env.MAILTRAP_API_TOKEN,
-    })
-));
-
-const sendEmail = async (options) => {
-    if (!options?.email) {
-        throw new Error("Email recipient is required");
-    }
-
-    if (!options?.subject) {
-        throw new Error("Email subject is required");
-    }
-
-    const html = options?.html || (options?.isHtml ? options?.message : undefined);
-    const text = !options?.isHtml ? (options?.text || options?.message) : options?.text;
-    if (!html && !text) {
-        throw new Error("Email HTML content is required");
-    }
-
-    const message = {
-        from: {
-            address: process.env.SMTP_FROM_EMAIL,
-            name: process.env.SMTP_FROM_NAME || "Tactical Trends",
-        },
-
-        to: [
-            {
-                address: options.email,
-            },
-        ],
-
-        subject: options.subject,
-
-        ...(html ? { html } : {}),
-        ...(text ? { text } : {}),
-    };
-
-    try {
-        const info = await getTransport().sendMail(message);
-
-        console.log("Email sent successfully:", {
-            messageId: info.messageId,
-            to: options.email,
-            subject: options.subject,
-        });
-
-        return info;
-
-    } catch (error) {
-        console.error("Mailtrap email failed:", {
-            error: error.message,
-            to: options.email,
-            subject: options.subject,
-        });
-
-        throw error;
-    }
-};
-
-export default sendEmail;
+import nodemailer from 'nodemailer';
+import {MailtrapTransport} from 'mailtrap';
+import mongoose from 'mongoose';
+import {MailAttempt} from '../models/mailDelivery.js';
+import {brandEmail,emailTheme,plainFromHtml} from './mailTheme.js';
+const validEmail=v=>typeof v==='string'&&v.length<=254&&/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(v);
+const providerValue=()=>process.env.MAIL_PROVIDER||(process.env.GOOGLE_REFRESH_TOKEN?'gmail-api':process.env.SMTP_USER?'google-smtp':process.env.MAILTRAP_API_TOKEN?'mailtrap':'google-smtp');
+const failure=(message,code='CONFIGURATION',unknown=false)=>Object.assign(new Error(message),{code,deliveryUnknown:unknown});
+export function mailStatus(){const provider=providerValue(),missing=[];if(!['google-smtp','gmail-api','mailtrap'].includes(provider))missing.push('MAIL_PROVIDER');
+ const required=provider==='gmail-api'?['GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET','GOOGLE_REFRESH_TOKEN','SMTP_FROM_EMAIL']:provider==='google-smtp'?['SMTP_USER','SMTP_FROM_EMAIL']:['MAILTRAP_API_TOKEN','SMTP_FROM_EMAIL'];for(const key of required)if(!process.env[key])missing.push(key);if(provider==='google-smtp'&&!process.env.SMTP_PASS&&!process.env.SMTP_APP_PASSWORD)missing.push('SMTP_PASS');if(process.env.SMTP_FROM_EMAIL&&!validEmail(process.env.SMTP_FROM_EMAIL))missing.push('valid SMTP_FROM_EMAIL');if(provider==='google-smtp'&&![465,587].includes(Number(process.env.SMTP_PORT||465)))missing.push('SMTP_PORT (465 or 587)');
+ return {provider,configured:missing.length===0,missing,from:process.env.SMTP_FROM_EMAIL||'',fromName:process.env.SMTP_FROM_NAME||'Tactical Trends Market Place',smtpPort:provider==='google-smtp'?Number(process.env.SMTP_PORT||465):null,renderSmtpWarning:provider==='google-smtp'?'Render free web services block SMTP ports. Use Gmail API on the free instance, or a hosting plan allowing SMTP.':'',googleLimitsApply:provider!=='mailtrap'};
+}
+let transport,transportKey,token,refreshing;
+const credentialKey=()=>[providerValue(),process.env.SMTP_USER,process.env.SMTP_PASS,process.env.SMTP_APP_PASSWORD,process.env.SMTP_PORT,process.env.MAILTRAP_API_TOKEN,process.env.GOOGLE_CLIENT_ID,process.env.GOOGLE_CLIENT_SECRET,process.env.GOOGLE_REFRESH_TOKEN].join('\u0000');
+function getTransport(){const key=credentialKey();if(transport&&key===transportKey)return transport;transportKey=key;token=undefined;transport=providerValue()==='mailtrap'?nodemailer.createTransport(MailtrapTransport({token:process.env.MAILTRAP_API_TOKEN})):nodemailer.createTransport({host:'smtp.gmail.com',port:Number(process.env.SMTP_PORT||465),secure:Number(process.env.SMTP_PORT||465)===465,requireTLS:Number(process.env.SMTP_PORT||465)===587,auth:{user:process.env.SMTP_USER,pass:(process.env.SMTP_PASS||process.env.SMTP_APP_PASSWORD||'').replace(/\s/g,'')},connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000,tls:{minVersion:'TLSv1.2'}});return transport;}
+async function accessToken(force=false){const key=credentialKey();if(!force&&token?.key===key&&token.expires>Date.now())return token.value;if(refreshing)return refreshing;refreshing=(async()=>{let response;try{response=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:process.env.GOOGLE_CLIENT_ID,client_secret:process.env.GOOGLE_CLIENT_SECRET,refresh_token:process.env.GOOGLE_REFRESH_TOKEN,grant_type:'refresh_token'}),signal:AbortSignal.timeout(12000)});}catch{throw failure('Google mail authorisation could not be reached.','GOOGLE_AUTH_NETWORK');}const data=await response.json().catch(()=>({}));if(!response.ok||!data.access_token)throw failure('Google mail authorisation failed. Reconnect the sending account and check its OAuth configuration.','GOOGLE_AUTH');token={key,value:data.access_token,expires:Date.now()+Math.max(30,Math.min(3600,Number(data.expires_in)||3600)-60)*1000};return token.value;})().finally(()=>{refreshing=undefined;});return refreshing;}
+async function gmailSend(message){const composer=nodemailer.createTransport({streamTransport:true,buffer:true,newline:'unix'});const built=await composer.sendMail({...message,disableFileAccess:true,disableUrlAccess:true});if(!Buffer.isBuffer(built.message))throw failure('Email MIME content could not be prepared.','MIME');const raw=built.message.toString('base64url');for(let attempt=0;attempt<2;attempt++){const bearer=await accessToken(attempt===1);let response;try{response=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',headers:{Authorization:`Bearer ${bearer}`,'Content-Type':'application/json'},body:JSON.stringify({raw}),signal:AbortSignal.timeout(15000)});}catch{throw failure('Google did not return a delivery acknowledgement. Check the sender’s Sent folder before retrying.','GOOGLE_SEND_UNKNOWN',true);}if(response.status===401&&attempt===0){token=undefined;continue;}const data=await response.json().catch(()=>({}));if(!response.ok)throw failure(response.status===429?'Google mail quota was reached. Wait before retrying.':'Google rejected this email. Check sender permissions and account configuration.',response.status===429?'GOOGLE_QUOTA':`GOOGLE_SEND_${response.status}`,response.status>=500);if(!data.id)throw failure('Google did not return a message reference. Check Sent before retrying.','GOOGLE_SEND_UNKNOWN',true);return {messageId:data.id,accepted:[message.to[0].address]};}}
+export async function verifyMailConnection(){const s=mailStatus();if(!s.configured)throw failure('Mail configuration is incomplete: '+s.missing.join(', '));if(s.provider==='gmail-api'){await accessToken();return {verified:true,provider:s.provider,note:'Google OAuth token refreshed. A test email is still needed to confirm delivery.'};}if(s.provider==='mailtrap')return {verified:false,provider:s.provider,note:'Mailtrap is a legacy option. Use a test message to check it.'};await getTransport().verify();return {verified:true,provider:s.provider,note:'SMTP authentication succeeded. This does not prove inbox delivery.'};}
+export default async function sendEmail(options){
+ if(!validEmail(options?.email)||!options?.subject||/[\r\n]/.test(options.subject))throw failure('A valid recipient and single-line subject are required.','VALIDATION');const status=mailStatus();
+ let html=options.html||(options.isHtml||/^\s*(<!doctype|<html|<div|<table)/i.test(options.message||'')?options.message:undefined),text=options.text||(!html?options.message:undefined);if(!html&&!text)throw failure('Email content is required.','VALIDATION');if(html){html=brandEmail(html,await emailTheme());text=text||plainFromHtml(html);}
+ const record={provider:status.provider,to:options.email,subject:String(options.subject).slice(0,200)};
+ try{if(!status.configured)throw failure('Mail configuration is incomplete: '+status.missing.join(', '));const message={from:{address:process.env.SMTP_FROM_EMAIL,name:status.fromName},to:[{address:options.email}],subject:options.subject,...(html?{html}:{}),...(text?{text}:{})};const info=status.provider==='gmail-api'?await gmailSend(message):await getTransport().sendMail(message);if(info.rejected?.length)throw failure('The recipient was rejected by the mail server.','RECIPIENT_REJECTED');if(mongoose.connection.readyState===1)await MailAttempt.create({...record,status:'Sent',messageId:String(info.messageId||'').slice(0,180)}).catch(()=>{});return info;
+ }catch(error){const unknown=error.deliveryUnknown||['ETIMEDOUT','ECONNRESET','ESOCKET'].includes(error.code),code=String(error.code||'MAIL_FAILED').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,50);if(mongoose.connection.readyState===1)await MailAttempt.create({...record,status:unknown?'Unknown':'Failed',code}).catch(()=>{});console.error('Email delivery did not complete:',{provider:status.provider,code,status:unknown?'Unknown':'Failed'});throw failure(error.code==='CONFIGURATION'?error.message:unknown?'Email delivery could not be confirmed. Check the sender’s Sent folder before retrying.':'Email could not be sent. Check Mail settings in Hub Operations.',code,unknown);}
+}

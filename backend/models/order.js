@@ -117,6 +117,9 @@ paymentInfo: {
     netAmountXcd: Number,
     amountPaidByCustomerXcd: Number,
     paidAt: Date,
+    refundedAt: Date,
+    refundMethod: String,
+    paidCashHolder: String,
 },
 
 totalSavings: {type:Number,default:0},

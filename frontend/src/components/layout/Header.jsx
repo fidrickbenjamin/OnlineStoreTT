@@ -1,3 +1,4 @@
+import {useHubNavigation} from '../hubs/HubNavigation';
 import React, { useContext } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 import Search from "./Search";
@@ -19,6 +20,7 @@ function seasonLabel(season) {
   return ({madras: "Independence", carnival: "Carnival", christmas: "Christmas", newyear: "New Year", easter: "Easter"})[season.theme] || season.holidayName || season.themeName || "In season";
 }
 const Header = () => {
+  const {hubs}=useHubNavigation();
   const dispatch = useDispatch();
   const { isLoading } = useGetMeQuery();
   const [logout, { isFetching: loggingOut }] = useLazyLogoutQuery();
@@ -67,8 +69,7 @@ const Header = () => {
     </header>
     <div className="quick-links text-center">
       <Link to="/?skipSplash=true">Home</Link>
-      <Link to="/property-hub">Property Hub</Link>
-      <Link to="/food-hub">Food Hub</Link><Link to="/convenience-hub">Convenience Hub</Link><Link to="/hardware-hub">Hardware Hub</Link><Link to="/ride-hub">Ride Hub</Link><Link to="/delivery-hub">Delivery Hub</Link>
+      {hubs.filter(h=>h.enabled).map(h=><Link key={h.key} to={h.path}>{h.label}</Link>)}
       {Object.keys(PRODUCT_CATEGORIES).filter(category => category !== "Property or Real Estate").map(category => <Link key={category} to={`/?category=${encodeURIComponent(category)}&skipSplash=true`}>{category}</Link>)}
     </div>
   </>;

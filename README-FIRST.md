@@ -1,80 +1,57 @@
-# Tactical Trends — Managed Store Categories & Spotlight Products
+# Tactical Trends — Admin operations and Google mail upgrade
 
-This incremental source update goes on top of the latest Convenience & Hardware Hubs upgrade. Keep the splash-screen navigation update already installed.
+This is an incremental source update for the latest version of the project. Back up your working project and database before applying it. Extract the backend/ and frontend/ contents into the matching project folders, preserving paths. Review any independent changes you made to these same files before replacing them.
 
-## Install
+## Included changes
 
-1. Back up your current project and database.
-2. Extract this ZIP into a temporary folder. Merge its backend and frontend folders into your OnlineStore project root, replacing only the included files.
-3. From `E:\Web Projects\OnlineStore\frontend`, run `npm run build`.
-4. Deploy the updated backend source and the newly generated frontend production build using your existing deployment process. Restart the backend. An old frontend build will not show these source changes.
+- Full-database dashboard counts, server-side job search, filters and pagination. Older unresolved requests are no longer omitted by the former latest-300 display limit.
+- Needs-attention filters for business acceptance, quotes, expired quotes, payment reviews, driver dispatch/offers, ready orders, late preparation, paid cancellations and driver cash. These counts overlap when an order needs multiple actions.
+- Daily reconciliation by Dominica date: verified receipts by method, delivery portion, cash received by Tactical Trends, driver cash handovers, cash refunds, business cash payments, explained adjustments, cash count, variance, CSV and print views. Close/reopen history and source fingerprints flag later changes to closed days.
+- Current outstanding driver cash, unpaid hub quotes, and business balances shown separately from daily till cash.
+- Hub display names, visibility/order and announcements. Header, splash, hero and hub navigation use these settings. Pausing a service hub prevents new requests; existing activity remains accessible. Property visibility controls its customer page/navigation, not a replacement for property listing permissions.
+- Product photo upload using existing Cloudinary credentials, unsaved product draft warnings, draft preview, CSV preview and imports of up to 100 new store products per file. Existing category and five-spotlight rules remain in effect.
+- Staff access for operations, catalogue, finance and settings, enforced on the server. Existing admins remain full administrators until explicitly changed. Scoped staff use Hub Operations only; other admin pages remain full-admin pages. Only a full administrator can manage mail, staff access and change history. You cannot change your own access.
+- Audit history for successful Hub Operations writes, recording the actor, route, time and selected non-secret fields. It does not reconstruct past changes or record every field in every application module.
+- Google SMTP and Gmail API sending, seasonal email branding, durable order/hub notification queue, mail configuration status, preview, explicit test send, retry review and retained attempt history.
+- Explicit cash holder on hub cash verification and actual refund-method selection for manually recorded refunds.
 
-No new dependencies or environment variables are needed. The ZIP excludes backend/app.js, all .env/.evn files, config.env, PaymentMethod.jsx, build folders, node_modules, test folders and Git files. Header, splash-screen and map files are not replaced.
+## Mail setup is required
 
-## Bring existing store products across
+Read **GOOGLE-MAIL-SETUP.md** before enabling Google mail. Your Render free instance blocks SMTP ports, so use the included Gmail API option while staying on the free plan. Google SMTP is included for hosting that allows SMTP. This update does not create Google credentials, change your Render environment, send live test emails or prove live inbox delivery.
 
-For EACH existing convenience or hardware store:
+## Install/build
 
-1. Open Hub Operations, select Convenience stores or Hardware stores, then select the store using its name button or dropdown.
-2. In its catalogue area, click **Preview category import**. Review the existing names and counts.
-3. Click **Import existing categories**. Names differing only by spacing or capitalisation become the same shared category within that hub. The new category is selected for that store and existing products receive its managed reference. Existing prices, units, delivery handling, stock availability, images and order/financial snapshots are preserved.
-4. Under Products, use **Product list category → Needs categorisation** to find products without a usable category. Edit each product and choose a required category before publication.
+No new npm dependencies or package changes are required. In PowerShell from your project root:
 
-The import is explicit; deploying this ZIP does not run a production migration. Existing named legacy listings remain browseable until their store's import runs, avoiding an unexpected empty storefront during rollout. Products without a category name are hidden. After import, publication and new product requests require a valid active category assigned to the store. New stores use these managed rules immediately.
+```powershell
+cd frontend
+npm run build
+cd ..
+```
 
-You can repeat the import if interrupted. It resumes missing assignments rather than duplicating categories. Archived category names are not silently revived: restore the category, then retry, or assign another active category in the product editor. The import reports these conflicts. An item with an invalid or missing managed reference stays in the review queue until corrected.
+Deploy your rebuilt frontend and updated backend using your normal deployment process. When Express serves frontend/build, the build must exist in the deployed service. A backend-only `npm install` does not rebuild the frontend. The build output is deliberately not included in this update ZIP, as requested.
 
-This migration applies only to convenience/hardware store catalogues. Restaurant Dishes/Sides/Drinks and extras keep their existing behaviour.
+Restart the backend after applying source/environment changes. MongoDB creates the new collections/indexes through the existing model startup flow. There is no destructive migration or automatic rewrite of historical payments.
 
-## Categories
+The ZIP deliberately excludes backend/app.js (including your CORS setup), environment files, config.env, build output, node_modules, tests and Cart/PaymentMethod.jsx. Preserve those files in your own project.
 
-Each hub has its own shared list. Convenience categories are separate from hardware categories; the same name may exist once in each hub.
+## First admin checks
 
-Under a selected store's **Categories** tab:
+1. Open Hub Operations → Dispatch & attention. Search an old request by its full ID or TT reference and check the attention filters.
+2. Open Daily reconciliation. Record the actual opening cash and counted cash. Explain any variance or adjustment before closing. Reopening a closed day requires a reason; earlier snapshots remain in history.
+3. Review Business accounts as before. Goods/meal costs owed to each store stay separate from delivery fees and customer receipts. Driver cash counts as till cash only after recorded handover.
+4. Review legacy receipt warnings. Only verified historical Paid/Refunded orders may have missing receipt metadata filled, using the actual receipt date and reference. Unknown cash holders and refund methods are excluded from the corresponding till totals until reviewed. Use an explained adjustment for a verified historical correction. Do not invent a receipt date to make a report balance.
+5. Configure hub visibility and announcements. Test a paused hub using a fresh customer page. Cached navigation refreshes periodically or on refocus; the server blocks new service requests immediately.
+6. In Convenience/Hardware stores, select a store and selected category. Upload/preview a product or use the downloadable CSV template. Preview is read-only. Import creates new products; edit existing products individually. If an import partially fails, review the per-row results and retry only failed rows after refreshing.
+7. Give an existing test account only the permissions it needs and verify its access. Keep your full administrator account.
+8. Configure and test Google mail using the separate guide.
 
-- Admin can create or edit a shared category with a name, icon, optional HTTPS image link and display order. Lower order numbers appear first, followed by name.
-- **Add starter categories** creates missing defaults without overwriting existing names, customisations or archived entries. Convenience defaults: Groceries, Drinks, Household, Personal Care. Hardware defaults: Tools, Plumbing, Electrical, Building Materials, Paint.
-- Select the categories used by this store and click **Save store categories** before creating products.
-- Renaming a category updates its displayed name across stores using it on their next refresh. It does not change product prices or past orders.
-- A category containing non-archived products cannot be archived. Reassign or archive those products first. Products must also be reassigned or archived before their category can be removed from a store's selection.
-- Empty categories can be archived and restored. No category is permanently deleted.
+## Practical limits
 
-Approved partners can select existing categories from their own hub in Business Centre; shared-category creation and editing remain admin-only.
+Cash reports reflect recorded events, not bank feeds or an accounting-system reconciliation. Old records without actual receipt dates cannot be assigned to a day automatically. Supplier payment reversals correct records; they do not prove physical cash was returned. Count and explain actual cash movements.
 
-## Products
+Draft protection covers unsaved store product edits. CSV import does not overwrite existing products or add inventory reservation. Photo uploads require the existing Cloudinary configuration. No new driver payout system is introduced.
 
-Open the **Products** tab. Every new or edited store product must have a category chosen from that store's active selected categories. Free typing cannot create accidental duplicate categories.
+The mail queue runs while this application is awake. Render free service sleep delays queued notices. Failed/uncertain messages require review rather than automatic repeated sends. Provider acceptance is not proof of inbox delivery.
 
-Use product search, All products, a named category or Needs categorisation to manage the list. Existing image, description, purchase unit, inclusive price, delivery class, extra handling, availability and archive controls are retained. Product removal preserves order history.
-
-Products in inactive, unassigned or missing managed categories are hidden from storefronts and rejected for new purchase requests. Existing orders retain their original details and financial records.
-
-Customers see All products and populated category tabs with counts, category icons/images and a store search field. Empty categories do not clutter the public tabs. Product counts reflect currently available listings.
-
-## Five spotlight positions per store
-
-Open **Spotlight items** in the selected store's catalogue.
-
-1. Choose up to five available, categorised products belonging to that store.
-2. Use the up/down controls to arrange them.
-3. Click **Save spotlight picks**.
-
-Zero to five picks are allowed; duplicates and products from another store are rejected. Closed stores can still show spotlight products for browsing, but ordering remains paused.
-
-Customers see Spotlight picks above category browsing. Cards show photos or a placeholder, prices, purchase units, relevant delivery-handling labels and Add to order. Mobile uses a swipeable horizontal row. Spotlight and regular product cards add to the SAME store basket.
-
-Sold-out, archived or uncategorised picks disappear from the public spotlight without being replaced automatically. The editor marks affected saved positions as Hidden. Remove those picks or make them eligible again before saving a revised selection. Empty positions remain empty; there are no invented or random featured products.
-
-Approved partners can curate their own store's spotlight picks. They cannot modify another store's catalogue.
-
-## Delivery, payments and accounts
-
-The existing one-store basket, availability confirmation, community delivery fees, heavy-item handling, quote-required goods, collection, all four payment methods, customer quote acceptance, fulfilment tracking and business cash accounts remain connected. Spotlight placement does not change prices, delivery charges or the amount owed to the store. Driver payouts remain deferred.
-
-## Validation
-
-Production build passed with existing unrelated lint warnings and no new hub lint warnings. Seven new catalogue tests, nine store-hub regression tests and 134 existing application tests passed: 150 total database-backed checks.
-
-Chromium browser checks passed for category import/create/assign/rename, required product categories, the review queue, five spotlight selections and ordering, sold-out hiding, public tabs/search, shared basket and delivery/payment calculations, partner catalogue access, restaurant menu regression, and responsive layouts at 320/390/768/1440 widths. Phone checks used emulation rather than physical iPhone/Safari testing.
-
-Testing used a disposable database and mocked provider services. No production migration, deployment, live payment, email or supplier money transfer was performed.
+Validation: optimized production build passed (existing unrelated lint warnings remain); 167 automated tests passed, including regression, admin/finance/catalogue integration and isolated Google SMTP/Gmail API tests with mocked providers. Browser checks passed at 320, 390, 768 and 1440 px for operations/mail layouts, restricted access, cash close/reopen, hub visibility, CSV preview/import and unsaved drafts. Existing catalogue/spotlight, food menu, mobile basket and payment-choice flows also passed browser regression checks. No live payment or email transaction was used.

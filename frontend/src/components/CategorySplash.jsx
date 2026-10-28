@@ -1,3 +1,4 @@
+import {useHubNavigation} from './hubs/HubNavigation';
 import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -24,6 +25,8 @@ const hubs = [
 
 export default function CategorySplash({ openRequest = 0, autoOpen = true }) {
   const navigate = useNavigate();
+  const {hubs:configuredHubs}=useHubNavigation();
+  const visibleHubs=configuredHubs.filter(h=>h.enabled).map(h=>({...hubs.find(base=>base.path.split('?')[0]===h.path),name:h.label,path:h.path+(h.key==='property'?'?skipSplash=true':'')}));
   const [params] = useSearchParams();
   const [visible, setVisible] = useState(() => autoOpen && !params.toString() && !hasSeenWelcome());
   const [search, setSearch] = useState("");
@@ -36,7 +39,7 @@ export default function CategorySplash({ openRequest = 0, autoOpen = true }) {
   const go = path => { close(); navigate(path); };
   const select = key => go(key === "Property or Real Estate" ? "/property-hub?skipSplash=true" : `/?category=${encodeURIComponent(key)}&skipSplash=true`);
   const query = search.trim().toLowerCase();
-  const categories = (all || query ? Object.keys(PRODUCT_CATEGORIES) : featured).filter(key => `${key} ${labels[key] || ""} ${PRODUCT_CATEGORIES[key].join(" ")}`.toLowerCase().includes(query));
+  const categories = (all || query ? Object.keys(PRODUCT_CATEGORIES) : featured).filter(key => (key!=='Property or Real Estate'||configuredHubs.some(h=>h.key==='property'&&h.enabled))&&`${key} ${labels[key] || ""} ${PRODUCT_CATEGORIES[key].join(" ")}`.toLowerCase().includes(query));
   return <Modal show={visible} onHide={close} onKeyDown={keepDialogFocus} centered scrollable size="xl" className="tt-welcome-modal" aria-labelledby="tt-welcome-title" animation={false}>
     <Modal.Header closeButton><span className="tt-welcome-eyebrow">TACTICAL TRENDS MARKETPLACE</span></Modal.Header>
     <Modal.Body>
@@ -47,7 +50,7 @@ export default function CategorySplash({ openRequest = 0, autoOpen = true }) {
         <span className="tt-welcome-story-note"><i className="bi bi-geo-alt" aria-hidden="true"/> Shop for yourself or someone back home.</span>
       </aside>
       <section className="tt-welcome-shop"><h1 id="tt-welcome-title">Where would you like to go?</h1><p className="tt-welcome-subtitle">Shop local, order a meal or get moving. Start here.</p>
-        <nav className="tt-welcome-hubs" aria-labelledby="tt-welcome-hubs-title"><h2 id="tt-welcome-hubs-title">Explore the hubs</h2><div className="tt-welcome-hub-grid">{hubs.map(hub => <Link key={hub.path} to={hub.path} onClick={close} className={`tt-welcome-hub ${hub.tone}`}><span className="tt-welcome-hub-icon"><i className={`bi bi-${hub.icon}`} aria-hidden="true"/></span><span className="tt-welcome-hub-copy"><strong>{hub.name}</strong><small>{hub.detail}</small></span><i className="bi bi-arrow-up-right" aria-hidden="true"/></Link>)}</div></nav>
+        <nav className="tt-welcome-hubs" aria-labelledby="tt-welcome-hubs-title"><h2 id="tt-welcome-hubs-title">Explore the hubs</h2><div className="tt-welcome-hub-grid">{visibleHubs.map(hub => <Link key={hub.path} to={hub.path} onClick={close} className={`tt-welcome-hub ${hub.tone}`}><span className="tt-welcome-hub-icon"><i className={`bi bi-${hub.icon}`} aria-hidden="true"/></span><span className="tt-welcome-hub-copy"><strong>{hub.name}</strong><small>{hub.detail}</small></span><i className="bi bi-arrow-up-right" aria-hidden="true"/></Link>)}</div></nav>
         <h2 className="tt-welcome-categories-title">Shop by category</h2>
         <label className="tt-welcome-search"><i className="bi bi-search" aria-hidden="true"/><span className="visually-hidden">Find a category</span><input type="search" placeholder="Find a category…" value={search} onChange={event => setSearch(event.target.value)} maxLength={100}/></label>
         <div className="tt-welcome-grid" aria-label="Shopping categories">{categories.map(key => <button type="button" key={key} onClick={() => select(key)}><span className="tt-welcome-icon"><i className={`bi bi-${icons[key] || "grid"}`} aria-hidden="true"/></span><span>{labels[key] || key}</span><i className="bi bi-arrow-up-right" aria-hidden="true"/></button>)}</div>

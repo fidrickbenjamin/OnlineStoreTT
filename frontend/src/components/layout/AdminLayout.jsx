@@ -1,8 +1,11 @@
+import {useSelector} from 'react-redux';
+import {fullAdmin} from '../hubs/adminAccess';
 import React from "react";
 import SideMenu from "./SideMenu";
 
 const AdminLayout = ({children}) => {
 
+    const {user}=useSelector(s=>s.auth);
     const menuItems = [
         {name:"Hub Operations",url:"/admin/hubs",icon:"bi bi-truck"},
         {name:"Appearance",url:"/admin/appearance",icon:"bi bi-palette"},
@@ -61,7 +64,7 @@ const AdminLayout = ({children}) => {
                         
                             <div className="row justify-content-around">
                                 <div className="col-12 col-lg-3">
-                                   <SideMenu menuItems={menuItems}/>
+                                   <SideMenu menuItems={fullAdmin(user)?menuItems:menuItems.filter(item=>item.url==='/admin/hubs')}/>
 
                                 </div>
                                 <div className="col-12 col-lg-8 user-dashboard">

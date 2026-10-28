@@ -120,8 +120,9 @@ export const updateOrder = catchAsyncErrors(async (req, res) => {
     if (targetStatus !== order.orderStatus) order.timeline.push({ message: `Fulfilment changed to ${targetStatus}.` });
     if (targetPayment !== order.paymentInfo?.status) {
       order.timeline.push({ message: `Payment changed to ${targetPayment}.` });
-      if (targetPayment === "Paid") { order.paymentInfo.paidAt = new Date(); order.expiresAt = undefined; order.dedupeKey = undefined; }
+      if (targetPayment === "Paid") { order.paymentInfo.paidAt = new Date(); if(['CASH','COD'].includes(order.paymentMethod))order.paymentInfo.paidCashHolder='admin'; order.expiresAt = undefined; order.dedupeKey = undefined; }
     }
+    if(targetPayment==='Refunded'&&order.paymentInfo.status!=='Refunded'){order.paymentInfo.refundedAt=new Date();if(req.body.refundMethod&&!['cash','bank','provider'].includes(req.body.refundMethod))throw new ErrorHandler('Choose the actual refund method.',400);order.paymentInfo.refundMethod=req.body.refundMethod||undefined;}
     order.orderStatus = targetStatus; order.paymentInfo.status = targetPayment;
     if (targetStatus === "Delivered" && !order.deliveredAt) order.deliveredAt = new Date();
     if (body.note?.trim()) order.internalNotes.push({ text: body.note.trim(), author: req.user.name || "Admin" });
@@ -184,7 +185,7 @@ export const reviewPaymentProof = catchAsyncErrors(async (req, res) => {
     if (!["Approved", "Rejected"].includes(req.body.decision)) throw new ErrorHandler("Choose approve or reject.", 400);
     const reason = String(req.body.reason || "").trim().slice(0,500);
     if (req.body.decision === "Rejected" && !reason) throw new ErrorHandler("Give a reason so the customer can correct the receipt.", 400);
-    if (req.body.decision === "Approved") { await ensureReserved(order); order.paymentInfo.status = "Paid"; order.paymentInfo.paidAt = new Date(); order.expiresAt = undefined; order.dedupeKey = undefined; if (order.orderStatus === "Pending") order.orderStatus = "Processing"; }
+    if (req.body.decision === "Approved") { await ensureReserved(order); order.paymentInfo.status = "Paid"; order.paymentInfo.paidAt = new Date(); if(['CASH','COD'].includes(order.paymentMethod))order.paymentInfo.paidCashHolder='admin'; order.expiresAt = undefined; order.dedupeKey = undefined; if (order.orderStatus === "Pending") order.orderStatus = "Processing"; }
     else order.paymentInfo.status = "Failed";
     Object.assign(order.paymentProof, { reviewStatus: req.body.decision, reviewReason: reason, reviewedAt: new Date(), reviewedBy: req.user.name || "Admin" });
     order.timeline.push({ message: `Mobanking receipt ${req.body.decision.toLowerCase()}${reason ? `: ${reason}` : "."}` });

@@ -25,6 +25,10 @@ return (req, res, next) => {
         return next(new ErrorHandler(`Role (${req.user.role}) is not allowed to access this resource`, 403));
     }
 
+    if(roles.includes('admin')&&req.user.role==='admin'&&Array.isArray(req.user.adminAccess)) {
+        const url=req.originalUrl.split('?')[0];
+        if(!url.startsWith('/api/v2/hubs/admin'))return next(new ErrorHandler('Staff access is limited to permitted Hub Operations sections.',403));
+    }
     next();
 };
 };
