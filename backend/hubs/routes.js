@@ -1,3 +1,5 @@
+import * as maps from './maps.js';
+import * as accounts from './restaurantAccounts.js';
 import express from 'express';
 import mongoose from 'mongoose';
 import {isAuthenticatedUser,authorizeRoles} from '../middlewares/auth.js';
@@ -11,11 +13,18 @@ router.param('driver',(req,res,next,id)=>mongoose.isValidObjectId(id)?next():res
 router.get('/config',run('config'));router.get('/businesses',run('publicBusinesses'));router.get('/businesses/:id',run('publicMenu'));
 router.get('/businesses/:id/delivery-estimate',limit('food-estimates',60,60000),run('restaurantDeliveryEstimate'));
 router.use(auth);
+router.post('/maps/search',limit('map-search',15,60000),catchAsync(maps.geocode));
+router.post('/maps/route',limit('map-route',20,60000),catchAsync(maps.routePreview));
 router.post('/estimate',limit('routes',20,60000),run('routeEstimate'));
 router.get('/business',run('myBusiness'));router.post('/business',run('applyBusiness'));router.put('/business',run('editBusiness'));router.post('/business/menu',run('saveMenu'));
 router.post('/jobs/:id/paypal',limit('hub-payments',12,60000),catchAsync(pay.startPayPal));router.post('/jobs/:id/paypal/capture',limit('hub-payments',12,60000),catchAsync(pay.capturePayPal));router.post('/jobs/:id/shopdm',limit('hub-payments',12,60000),catchAsync(pay.startShopdm));
 router.get('/jobs',run('myJobs'));router.post('/jobs',limit('requests',25,3600000),run('createJob'));router.get('/jobs/:id',run('jobDetails'));
 router.post('/jobs/:id/accept',run('acceptQuote'));router.post('/jobs/:id/cancel',run('cancelJob'));router.post('/jobs/:id/business',run('businessAction'));router.post('/jobs/:id/receipt',run('uploadReceipt'));router.get('/jobs/:id/receipt',run('receipt'));router.post('/jobs/:id/take',run('takeJob'));router.post('/jobs/:id/decline',run('declineJob'));router.post('/jobs/:id/progress',limit('completion',12,60000),run('jobProgress'));router.post('/jobs/:id/location',limit('location',60,60000),run('location'));
 router.get('/driver',run('driverProfile'));router.post('/driver',run('applyDriver'));router.put('/driver/availability',run('availability'));router.post('/driver/payouts',run('requestPayout'));
-router.use('/admin',admin);router.get('/admin',run('adminData'));router.post('/admin/businesses',run('adminCreateBusiness'));router.get('/admin/businesses/:id',run('adminBusinessDetail'));router.put('/admin/businesses/:id',run('adminEditBusiness'));router.post('/admin/businesses/:id/menu',run('saveMenu'));router.post('/admin/applications/:id',run('reviewApplication'));router.post('/admin/jobs/:id',run('adminJob'));router.post('/admin/payouts/:driver/:id',run('payoutReview'));router.put('/admin/community-rates',run('saveCommunityRates'));router.put('/admin/settings',run('saveSettings'));
+router.use('/admin',admin);
+router.get('/admin/restaurant-accounts',catchAsync(accounts.accounts));
+router.get('/admin/restaurant-accounts/:id',catchAsync(accounts.account));
+router.get('/admin/restaurant-accounts/:id/export',catchAsync(accounts.exportAccount));
+router.post('/admin/restaurant-accounts/:id/entries',catchAsync(accounts.addEntry));
+router.get('/admin',run('adminData'));router.post('/admin/businesses',run('adminCreateBusiness'));router.get('/admin/businesses/:id',run('adminBusinessDetail'));router.put('/admin/businesses/:id',run('adminEditBusiness'));router.post('/admin/businesses/:id/menu',run('saveMenu'));router.post('/admin/applications/:id',run('reviewApplication'));router.post('/admin/jobs/:id',run('adminJob'));router.post('/admin/payouts/:driver/:id',run('payoutReview'));router.put('/admin/community-rates',run('saveCommunityRates'));router.put('/admin/settings',run('saveSettings'));
 export default router;

@@ -1,0 +1,47 @@
+GEOAPIFY MAP ACTIVATION — TACTICAL TRENDS
+
+1. Create your own Geoapify account/project at https://myprojects.geoapify.com/.
+   Start on the Free plan if its current allowance suits your usage.
+   Plan details: https://www.geoapify.com/pricing/
+2. Create a browser API key for map tiles. Restrict it in Geoapify to your actual
+   website origin(s), e.g. https://www.tactrendsshop.com and any other domain
+   you actively serve. Include localhost only if you need local development.
+3. Create a separate server API key for geocoding and routing. Keep it private.
+   A browser-origin-only restriction will not suit backend requests; configure
+   provider restrictions appropriate to your server environment.
+4. Set these variables in Render > your backend service > Environment:
+   HUB_GEOAPIFY_BROWSER_KEY = your restricted browser key
+   HUB_GEOAPIFY_SERVER_KEY = your private server key
+   Optional: HUB_MAP_REQUESTS_PER_DAY = 500
+5. Save/redeploy or restart the backend. Refresh the app. Keys are read by the
+   backend at runtime, so a frontend rebuild is not required solely for a key
+   change. The upgraded frontend must already be deployed.
+6. Open Ride Hub. Test Wesley to Woodford Hill, then routes through Marigot,
+   Concord and Calibishie. Check pins, drivable roads and travel times against
+   your local knowledge. Map estimates do not replace your agreed pricing.
+
+For local development, add the same variables to the environment file YOUR
+backend already loads, then restart it. No environment file is bundled or
+changed by this ZIP. Do not put the server key in a REACT_APP variable or send
+it in chat. The browser tile key is intentionally public and must be restricted.
+
+The app includes Geoapify and OpenStreetMap attribution. Keep it visible.
+Do not remove it when restyling the map.
+
+Usage control:
+- Explicit location search avoids an API request on every keystroke.
+- Road routes cache for 15 minutes; geocoding caches for 24 hours.
+- Cache is bounded to 250 results, and matching in-flight requests are shared.
+- Provider authentication/quota failures pause backend retries for one minute.
+- The optional daily server-request guard defaults to 500 requests per running
+  process (UTC day). It resets on restart and is NOT a provider-side billing
+  limit. It does not count the browser's map tile requests.
+- Your Geoapify account's actual allowance and limits remain authoritative.
+  Map tiles, searches and routes consume credits; credits are not deliveries.
+- Use Geoapify's dashboard to monitor total usage across both keys. The setup
+  does not promise unlimited free mapping, live traffic or background tracking.
+
+No API key is needed to test restaurant accounts or food progress. Without a
+browser key, the app shows the community/landmark fallback. Without a server
+key, address search and road-route requests are unavailable, while configured
+community fees continue to work.
