@@ -77,3 +77,33 @@ html:has(.hub-booking-page),body:has(.hub-booking-page){overflow-x:clip}
 .hub-floating-plate>.bi-basket2{font-size:30px}
 .hub-store-hero h2{overflow-wrap:anywhere}
 @media(max-width:767px){.hub-business-shortcuts{gap:8px}.hub-business-shortcut{flex:1 1 145px;padding:10px;min-width:0}.hub-store-hero h2{font-size:clamp(1.65rem,7vw,2.5rem)}.hub-panel .hub-line{flex-wrap:wrap;gap:10px}}
+
+/* Managed store categories and curated picks; food menu behaviour stays separate. */
+.hub-store-catalogue,.hub-catalogue-admin{min-width:0;max-width:100%}
+.hub-store-catalogue .hub-menu-navigation{margin:18px 0}
+.hub-category-thumb{width:28px;height:28px;border-radius:8px;object-fit:cover}
+.hub-store-catalogue .hub-menu-tablist button{display:flex;align-items:center;gap:8px;min-height:44px}
+.hub-store-spotlight{padding:20px 0 24px;border-bottom:1px solid #dce5d9;margin-bottom:22px}
+.hub-store-spotlight h2{margin:6px 0 0}
+.hub-store-spotlight>.hub-request-heading{align-items:flex-end;gap:14px}
+.hub-store-spotlight>.hub-request-heading>small{font-size:.78rem;color:#627260}
+.hub-spotlight-strip{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;padding:8px 2px 14px;overscroll-behavior-x:contain;max-width:100%;min-width:0}
+.hub-spotlight-strip:focus-visible{outline:3px solid #dba52f;outline-offset:2px}
+.hub-spotlight-card{flex:0 0 210px;scroll-snap-align:start;display:flex;flex-direction:column}
+.hub-spotlight-card>img{height:145px;width:100%;object-fit:cover}
+.hub-spotlight-card>div:last-child{padding:15px;display:flex;flex-direction:column;flex:1}
+.hub-spotlight-card h3{font-size:1rem}
+.hub-spotlight-card button{margin-top:auto}
+.hub-product-placeholder{min-height:125px;display:grid;place-items:center;background:linear-gradient(135deg,#f2f5ed,#e7eee3);color:#699069;font-size:2.5rem}
+.hub-catalogue-fieldset,.hub-category-choices{border:0;padding:0;min-width:0}
+.hub-category-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:15px 0}
+.hub-category-choices label{border:1px solid #dce5d9;border-radius:10px;padding:12px;min-height:46px;overflow-wrap:anywhere}
+.hub-spotlight-editor{list-style:none;padding:0;margin:18px 0;display:grid;gap:10px}
+.hub-spotlight-editor li{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px;border:1px solid #dce5d9;border-radius:12px}
+.hub-spotlight-editor li>div:first-of-type{flex:1;min-width:100px;overflow-wrap:anywhere}
+.hub-spotlight-editor small{display:block;color:#687663;margin-top:4px}
+.hub-spotlight-position{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#edf2e8;color:#385b3d;font-weight:800;flex-shrink:0}
+.hub-catalogue-import{background:#fffbef}
+.hub-catalogue-admin .hub-tabs{flex-wrap:wrap}
+@media(min-width:1600px){.hub-spotlight-card{flex-basis:calc((100% - 56px)/5);min-width:160px}}
+@media(max-width:767px){.hub-category-choices{grid-template-columns:minmax(0,1fr)}.hub-spotlight-card{flex-basis:72%;max-width:240px}.hub-store-spotlight>.hub-request-heading{align-items:flex-start;flex-direction:column;gap:4px}.hub-catalogue-admin .hub-line{align-items:flex-start}.hub-catalogue-admin input,.hub-catalogue-admin select,.hub-catalogue-admin textarea{font-size:16px}}
