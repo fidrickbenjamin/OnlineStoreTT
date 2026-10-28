@@ -40,6 +40,10 @@ const userRoutes = () => {
       <Route path="/" element={<Home />} />
       <Route path="/deals" element={<Deals />} />
       <Route path="/property-hub" element={<PropertyHub />} />
+      <Route path="/convenience-hub" element={<FoodHub key="convenience" kind="convenience"/>}/>
+      <Route path="/hardware-hub" element={<FoodHub key="hardware" kind="hardware"/>}/>
+      <Route path="/convenience-hub/:id" element={<Restaurant/>}/>
+      <Route path="/hardware-hub/:id" element={<Restaurant/>}/>
       <Route path="/food-hub" element={<FoodHub/>}/>
       <Route path="/food-hub/:id" element={<Restaurant/>}/>
       <Route path="/ride-hub" element={<RequestHub key="ride" kind="ride"/>}/>

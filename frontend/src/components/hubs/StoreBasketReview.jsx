@@ -1,0 +1,6 @@
+import React,{useState} from 'react';
+import {Field,ErrorBox,useAction} from './HubUI';
+export default function StoreBasketReview({job,busy}){
+ const [items,setItems]=useState(()=>job.items.map(i=>({menu:i.menu,quantity:i.quantity}))),[note,setNote]=useState(''),[act,state]=useAction();
+ return <section className="hub-panel"><h2>Check store availability</h2><p>Confirm stock with the store. Reduce unavailable quantities here before confirming availability and issuing the quote. Customers review the updated basket and total before accepting; substitutions require a new request.</p><form onSubmit={async e=>{e.preventDefault();await act(`/admin/jobs/${job._id}/basket`,{revision:job.revision,items,note});}}>{job.items.map((item,i)=><Field key={item.menu} label={`${item.name} · available quantity (0 removes)`} type="number" required min="0" max={item.quantity} step="1" value={items[i].quantity} onChange={e=>setItems(items.map((r,index)=>index===i?{...r,quantity:e.target.value}:r))}/>)}<Field label="Customer-visible availability explanation" required maxLength={300} value={note} onChange={e=>setNote(e.target.value)}/><ErrorBox error={state.error}/><button className="hub-btn light" disabled={busy||state.isLoading||!note.trim()}>Update requested basket</button></form></section>;
+}

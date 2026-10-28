@@ -62,3 +62,18 @@ html:has(.hub-booking-page),body:has(.hub-booking-page){overflow-x:clip}
 @media(max-width:359px){.hub-booking-intro-icon{display:none}.hub-map-targets>.hub-btn{gap:6px;font-size:.72rem}.hub-map-targets .hub-location-badge{width:23px;height:23px;font-size:10px}.hub-map-view-tools{justify-content:flex-start}.hub-map-refined{padding:16px 12px}}
 
 @media(max-width:767px),(max-width:1200px) and (pointer:coarse){.hub-map-refined .leaflet-container .leaflet-control-zoom a{width:44px;height:44px;line-height:44px}}
+
+/* Store hubs share ordering, delivery and account controls with food partners. */
+.hub-store-hero.convenience{background:linear-gradient(125deg,#143d31,#357653);color:#fff9e8}
+.hub-store-hero.hardware{background:linear-gradient(125deg,#202e37,#4a6168);color:#fff9e8}
+.hub-business-shortcuts{display:flex;flex-wrap:wrap;gap:10px;max-height:280px;overflow:auto;padding:4px;overscroll-behavior:contain}
+.hub-business-shortcut{display:flex;align-items:center;gap:10px;text-align:left;min-height:52px;max-width:100%;padding:10px 16px;border:1px solid #ccd9cd;border-radius:14px;background:#fff;color:#244c38;font:inherit;cursor:pointer;overflow-wrap:anywhere}
+.hub-business-shortcut img{width:36px;height:36px;border-radius:10px;object-fit:cover}
+.hub-business-shortcut small{display:block;font-size:.78rem;color:#5d7060}
+.hub-business-shortcut[aria-pressed=true],.hub-business-shortcuts .hub-btn[aria-pressed=true]{background:#eaf4e9;border:2px solid #35724d}
+.hub-business-shortcut:focus-visible{outline:3px solid #dba52f;outline-offset:3px}
+.hub-product-delivery{display:block;margin:8px 0;color:#5b6b60;font-size:.85rem}
+.hub-dish strong small{font-weight:400;font-size:.85rem}
+.hub-floating-plate>.bi-basket2{font-size:30px}
+.hub-store-hero h2{overflow-wrap:anywhere}
+@media(max-width:767px){.hub-business-shortcuts{gap:8px}.hub-business-shortcut{flex:1 1 145px;padding:10px;min-width:0}.hub-store-hero h2{font-size:clamp(1.65rem,7vw,2.5rem)}.hub-panel .hub-line{flex-wrap:wrap;gap:10px}}

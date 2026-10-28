@@ -68,7 +68,7 @@ const Header = () => {
     <div className="quick-links text-center">
       <Link to="/?skipSplash=true">Home</Link>
       <Link to="/property-hub">Property Hub</Link>
-      <Link to="/food-hub">Food Hub</Link><Link to="/ride-hub">Ride Hub</Link><Link to="/delivery-hub">Delivery Hub</Link>
+      <Link to="/food-hub">Food Hub</Link><Link to="/convenience-hub">Convenience Hub</Link><Link to="/hardware-hub">Hardware Hub</Link><Link to="/ride-hub">Ride Hub</Link><Link to="/delivery-hub">Delivery Hub</Link>
       {Object.keys(PRODUCT_CATEGORIES).filter(category => category !== "Property or Real Estate").map(category => <Link key={category} to={`/?category=${encodeURIComponent(category)}&skipSplash=true`}>{category}</Link>)}
     </div>
   </>;
