@@ -32,6 +32,7 @@ router.post('/jobs/:id/paypal',limit('hub-payments',12,60000),catchAsync(pay.sta
 router.get('/jobs',run('myJobs'));router.post('/jobs',limit('requests',25,3600000),run('createJob'));router.get('/jobs/:id',run('jobDetails'));
 router.post('/jobs/:id/accept',run('acceptQuote'));router.post('/jobs/:id/cancel',run('cancelJob'));router.post('/jobs/:id/business',run('businessAction'));router.post('/jobs/:id/receipt',run('uploadReceipt'));router.get('/jobs/:id/receipt',run('receipt'));router.post('/jobs/:id/take',run('takeJob'));router.post('/jobs/:id/decline',run('declineJob'));router.post('/jobs/:id/progress',limit('completion',12,60000),run('jobProgress'));router.post('/jobs/:id/location',limit('location',60,60000),run('location'));
 router.get('/driver',run('driverProfile'));router.post('/driver',run('applyDriver'));router.put('/driver/availability',run('availability'));router.post('/driver/payouts',run('requestPayout'));
+router.post('/business/catalogue-image',limit('business-catalogue-images',20,3600000),catchAsync(catalogueTools.uploadBusinessImage));
 router.post('/business/categories',catchAsync(storeCategories.assignCategories));
 router.post('/business/spotlight',catchAsync(storeCategories.saveSpotlight));
 router.use('/admin',admin,(req,res,next)=>{const path=req.path;req._hubAdminPath=path;routeScope(req,res,next);},auditMiddleware);

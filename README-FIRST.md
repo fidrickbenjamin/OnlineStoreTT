@@ -1,28 +1,55 @@
-# Tactical Trends — Mobile hub design update
+# Tactical Trends — Item photo upload update
 
-Apply this incremental frontend update AFTER the Product Variants upgrade and the earlier Admin / Google Mail upgrade. Back up your current project, then copy frontend/ into the matching project folder, preserving paths. Review independent edits you made to these same files before replacing them.
+Apply this incremental update AFTER the Product Variants and Mobile Hub Design updates. It adds the same photo editor to Food, Convenience and Hardware item forms for administrators and approved business owners.
 
-## What changed
+Back up your project. Copy backend/ and frontend/ into their matching folders, preserving paths. Review independent edits to these files before replacing them. No dependencies, database migration or new environment variables are required.
 
-- Food Hub now uses warm food-ordering colours, a clearer restaurant introduction, prominent browsing actions and a refreshed illustrated storefront presentation.
-- Convenience uses a fresh green identity; Hardware uses a blue catalogue identity. Ride and Delivery have their own compact introductions and matching request controls. Seasonal navbar colours, labels and trims remain in place.
-- Hub navigation shows the current hub. My activity and the main browsing controls have larger mobile tap targets.
-- Product sizes/flavours appear as selectable price tiles instead of a dropdown. The selected choice is highlighted, and sold-out choices are disabled. Products with more than four variants have an expandable list. If a selected choice is outside the collapsed list, its name and price remain visible.
-- Meal photos use consistent landscape frames with controlled cropping. Convenience/Hardware product photos fit completely inside matching frames in the regular catalogue and spotlight. Logos also fit completely rather than being cropped.
-- Supported unsigned Cloudinary images get responsive image candidates and automatic format/quality transformations. Other hosts retain their original images with responsive display sizing. Existing transformed or signed Cloudinary paths are left unchanged. Large original uploads on other hosts still need appropriately sized source files.
-- Image frames reserve space while loading. Missing/broken hub images receive stable placeholders; an unsuccessful Cloudinary optimization falls back to the original URL before showing a placeholder. Marketplace/property cards also fall back to the existing default image when a URL fails.
-- Property Hub no longer receives the seasonal welcome banner or edge decorations. Its own property introduction and filters remain, along with the seasonal navbar and trims. Property listing cards stack their photos above their details on mobile, with consistent landscape frames. Page gutters prevent horizontal overflow.
-- Mobile inputs retain readable sizes; variant choices support native radio keyboard controls, focus outlines and selected/sold-out labels. Reduced-motion preferences are respected for the new card interactions.
+## Using it as admin
 
-## Ordering remains the same
+1. Open Hub Operations → Restaurants & menus, Convenience stores or Hardware stores.
+2. Select the business and edit an item, or start a new item. For stores, use the Products section.
+3. Under Item photo, choose Upload item photo. Select a JPG, PNG or WebP file from your device.
+4. Wait for “Photo uploaded. Save the item to publish this change.” Check the preview.
+5. Complete your item details and click Save item.
 
-Choose a variant, then Add to order. Choose another variant to add it as a separate basket line. Existing sides/extras, floating basket, delivery estimates, quote approval and payment choices remain in place. Business availability and saved hub visibility are still respected.
+The photo is stored by Cloudinary during upload, but the product/menu listing changes only after you save the item. Images follow the responsive display rules from the previous update. Variants and sides retain their current behaviour; all variants of one item share its item photo.
 
-There are no backend, price, delivery-rate, payment-provider, stock or financial-ledger changes in this update. Saved variants, categories, spotlights and old orders continue using the existing data. No new npm dependencies or environment settings are needed.
+## Business owners
 
-## Install and deploy
+Approved, active business owners have the same photo controls in Business Centre. They can upload to their own business folder and save images only through their own item editor. Pending or archived businesses cannot use the partner upload endpoint. Admin upload access continues to require full-admin or catalogue permission.
 
-From your project root in PowerShell:
+## Replace, remove or use a URL
+
+- Replace item photo: choose a new image. A failed upload leaves the current draft/saved image unchanged.
+- Remove photo: clears this draft's image. Save item to apply the removal.
+- Photo link (optional): keep using a public HTTPS image URL instead of uploading. Its preview appears in the same editor.
+
+Replacing or removing an image does NOT delete old files from Cloudinary. A URL may be shared by other products or external content. Uploads discarded without saving can therefore remain in Cloudinary; clean up unused assets manually only after checking they are no longer referenced.
+
+## Mobile and upload limits
+
+- Original device file: JPG, PNG or WebP, up to 8 MB.
+- The browser resizes large photos to a maximum 1200 px longest edge, reducing dimensions further if needed to fit the server upload limit of 450 KB. It normally uses WebP, with a compatible fallback when necessary.
+- If your phone supplies a HEIC file that cannot be selected/decoded, export it as JPEG first.
+- The image preview fits the complete photo. Public food cards retain their existing landscape crop; store products retain their full-product image frames.
+- The editor and Save action are disabled while an upload is in progress. Existing name, price, side and variant draft values are retained when the upload completes.
+- Uploads are limited to 20 attempts per account/hour per upload route. Failed selections rejected locally are not sent to the server.
+
+## Cloudinary configuration
+
+The existing backend settings must be present:
+
+- CLOUDINARY_CLOUD_NAME
+- CLOUDINARY_API_KEY
+- CLOUDINARY_API_SECRET
+
+Use the same server-side account already configured for store images. No keys go in the frontend. If these settings already exist, no environment changes are needed. Storage errors are reported without exposing raw provider messages or credentials.
+
+Uploads use image-only storage in tactical-trends/hub-catalogue. Partner uploads use a subfolder for their own business ID. The backend checks image format/signature and size as well as permissions.
+
+## Build and deployment
+
+Restart/redeploy the backend so the partner upload route is available. Rebuild and deploy the frontend as usual:
 
 ```powershell
 cd frontend
@@ -30,17 +57,14 @@ npm run build
 cd ..
 ```
 
-Deploy the rebuilt frontend using your existing process. If Express serves frontend/build, ensure that rebuilt output is present on the deployed service; a backend-only npm install does not rebuild the frontend. The build directory is deliberately not included in this ZIP.
+Deploy the backend and frontend update together. If Express serves frontend/build, ensure that your own rebuilt frontend is included in the deployed service. The build output is deliberately not bundled in this update ZIP.
 
-This package contains only the source files needed for this visual upgrade and this guide. It excludes backend/app.js and your CORS configuration, all environment files, config.env, PaymentMethod.jsx, build output, node_modules and test folders. Your Google mail configuration is untouched.
+This package excludes backend/app.js and its CORS configuration, all environment files, config.env, PaymentMethod.jsx, build output, node_modules and test folders. Mail configuration, payment methods, delivery pricing and order processing are unchanged.
 
-## Checks
+## Validation
 
-- Production build passed, with existing unrelated lint warnings remaining.
-- 37 existing variant, catalogue, store, admin and reconciliation integration tests passed.
-- Browser checks covered hub landing pages at 320, 390, 768 and 1440 px; mobile variant selection and long-list expansion; sold-out choices; separate basket rows; extras, totals, collection checkout and existing payment choices.
-- Image checks covered food cropping, complete product/logo fitting, consistent spotlight/catalogue frames, Cloudinary and ordinary-host error placeholders, and reserved image space.
-- Property banner removal, retained seasonal header, property card responsiveness and account dropdown layering were checked. Food identity and property banner behaviour were checked with Independence, Christmas and Carnival themes.
-- Existing category import, category/spotlight management, partner catalogue access, mobile basket/delivery/payment choices and food-menu browser regressions passed.
+Production build passed, with existing unrelated lint warnings remaining. 45 backend integration checks passed, including eight upload/permission/failure checks and existing variant, category, store, admin and cash-report checks. The existing concurrent supplier-payment test also checks that an optimistic conflict can safely retry the same request key without creating a duplicate payment; no financial code changed.
 
-Tests use disposable data and mocked external images/maps. No live payments or emails were sent. Screenshots used for review contain test fixtures and are not included in the update.
+Browser checks covered admin upload/compression, saving disabled during upload, keeping draft values, failed/invalid/oversized selections, replacing/removing photos, URL entry, restaurant owner uploads, public display, Convenience/Hardware partner uploads and responsive layouts at 320/390/768/1440 px. Image decoding was also checked with createImageBitmap unavailable, using the browser Image fallback. Existing catalogue, spotlight, basket, payment-choice, hub styling and property-banner behaviour passed browser regression checks.
+
+Tests used disposable records and mocked Cloudinary. No live image storage, emails or payments were used in verification. After deployment, upload and save a test item using your own configured Cloudinary account to confirm the live connection.
