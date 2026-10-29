@@ -124,3 +124,5 @@ html:has(.hub-booking-page),body:has(.hub-booking-page){overflow-x:clip}
 .hub-file-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
 @media(max-width:767px){.hub-attention-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-attention-item{min-height:86px;padding:10px;gap:8px}.hub-attention-item strong{font-size:1.45rem}.hub-public-announcement{margin:12px;padding:12px}.hub-admin-sections .hub-btn{min-height:44px}.hub-daily-cash input,.hub-daily-cash select,.hub-daily-cash textarea{font-size:16px}}
 @media print{.hub-admin-sections,.hub-daily-cash form,.hub-daily-cash .hub-actions{display:none!important}.hub-daily-cash .hub-table-scroll{overflow:visible}.hub-daily-cash{font-size:11pt}.hub-daily-cash .hub-panel{break-inside:avoid}}
+
+.hub-variant-editor{border:1px solid #d8e0d5;border-radius:14px;padding:16px;margin:18px 0;min-width:0}.hub-variant-editor legend{float:none;width:auto;font-size:1.05rem;font-weight:700;padding:0 5px}.hub-variant-editor .hub-panel{padding:12px}.hub-dish .hub-field{margin-top:12px}.hub-dish select{max-width:100%;min-width:0}.hub-variant-editor>small{display:block;margin-top:10px}

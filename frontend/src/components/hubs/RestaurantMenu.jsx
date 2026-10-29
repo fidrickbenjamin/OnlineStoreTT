@@ -1,5 +1,6 @@
+import {ProductChoice} from './ProductVariants';
 import React,{useId,useLayoutEffect,useRef,useState} from 'react';
-import {money} from './HubUI';
+
 
 
 function sectionName(category){
@@ -59,7 +60,7 @@ export default function RestaurantMenu({menu,open,onAdd,store=false}){
   </div>
   <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${index}`} tabIndex={0} className="hub-menu-panel" onTouchStart={touchStart} onTouchMove={touchMove} onTouchEnd={touchEnd} onTouchCancel={()=>{gesture.current=null;}}>
    <h2>{active}</h2><p className="hub-menu-section-count">{groups.get(active).length} {groups.get(active).length===1?'item':'items'} available</p>
-   <div className="hub-menu-grid">{groups.get(active).map(item=><article className="hub-dish" key={item._id}>{item.image&&<img src={item.image} alt="" loading="lazy" draggable="false"/>}<div><h3>{item.name}</h3><p>{item.description}</p><strong>{money(item.priceCents)}{store&&<small> / {item.unit||'each'}</small>}</strong>{store&&item.deliveryClass==='quote'&&<small className="hub-product-delivery">Delivery quote required</small>}{store&&item.deliveryClass==='large'&&<small className="hub-product-delivery">Extra delivery handling: {money(item.handlingCents)} per unit</small>}<button className="hub-btn light" disabled={!open} onClick={()=>onAdd(item)}>Add to order +</button></div></article>)}</div>
+   <div className="hub-menu-grid">{groups.get(active).map(item=><article className="hub-dish" key={item._id}>{item.image&&<img src={item.image} alt="" loading="lazy" draggable="false"/>}<div><h3>{item.name}</h3><p>{item.description}</p><ProductChoice item={item} open={open} onAdd={onAdd} store={store}/></div></article>)}</div>
    {!groups.get(active).length&&<p className="hub-empty">{menu.length?`No ${active.toLowerCase()} are listed yet. Choose another section to continue browsing.`:store?'Products are being added. Check back soon.':'The menu is being prepared. Check back soon.'}</p>}
   </div>
  </section>;
