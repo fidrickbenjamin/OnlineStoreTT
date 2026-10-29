@@ -1,3 +1,4 @@
+import "./propertyHub.css";
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import MetaData from "../layout/MetaData";
@@ -46,7 +47,7 @@ const PropertyHub = () => {
   return (
     <>
       <MetaData title="Property Hub | Tactical Trends" />
-      <div className="py-3 py-md-4">
+      <div className="py-3 py-md-4 tt-property-hub">
         <div className="row align-items-stretch mb-4 g-3">
           <div className="col-12 col-lg-8">
             <div className="rounded-4 p-3 p-sm-4 p-lg-5 shadow-sm" style={{ background: "linear-gradient(135deg, #4b2e2b 0%, #6f3d72 55%, #8b5a3c 100%)", color: "#fff" }}>

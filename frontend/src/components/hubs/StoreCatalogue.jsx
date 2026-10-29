@@ -1,8 +1,9 @@
+import HubMedia from './HubMedia';
 import {ProductChoice} from './ProductVariants';
 import React,{useId,useRef,useState} from 'react';
 import {money,Field} from './HubUI';
 function Product({item,open,onAdd,spotlight=false}){
- return <article className={`hub-dish ${spotlight?'hub-spotlight-card':''}`}>{item.image?<img src={item.image} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display='none';}}/>:<div className="hub-product-placeholder" aria-hidden="true"><i className="bi bi-box-seam"/></div>}<div><h3>{item.name}</h3>{!spotlight&&<p>{item.description}</p>}{item.deliveryClass==='quote'&&<small className="hub-product-delivery">Delivery quote required</small>}{item.deliveryClass==='large'&&<small className="hub-product-delivery">Extra delivery handling: {money(item.handlingCents)} per unit</small>}<ProductChoice item={item} open={open} onAdd={onAdd} store/></div></article>;
+ return <article className={`hub-dish ${spotlight?'hub-spotlight-card':''}`}><HubMedia src={item.image} alt={item.name}/><div><h3>{item.name}</h3>{!spotlight&&<p>{item.description}</p>}{item.deliveryClass==='quote'&&<small className="hub-product-delivery">Delivery quote required</small>}{item.deliveryClass==='large'&&<small className="hub-product-delivery">Extra delivery handling: {money(item.handlingCents)} per unit</small>}<ProductChoice item={item} open={open} onAdd={onAdd} store/></div></article>;
 }
 export default function StoreCatalogue({menu,categories,spotlight,open,onAdd}){
  const [selected,setSelected]=useState('all'),[search,setSearch]=useState(''),id=useId(),buttons=useRef({});

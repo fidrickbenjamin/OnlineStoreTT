@@ -47,6 +47,7 @@ const ProductItem = ({ product, columnSize }) => {
           src={product?.images?.[0]?.url?.includes("res.cloudinary.com/") ? product.images[0].url.replace("/upload/", "/upload/f_auto,q_auto,w_600,c_limit/") : product?.images?.[0]?.url || "/images/default_product.png"}
           loading="lazy"
           decoding="async"
+          onError={e=>{if(!e.currentTarget.src.endsWith("/images/default_product.png")){e.currentTarget.removeAttribute("srcset");e.currentTarget.src="/images/default_product.png";}}}
           width="600"
           height="450"
           alt={product?.name || "Product image"}

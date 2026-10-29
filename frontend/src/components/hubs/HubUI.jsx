@@ -2,17 +2,18 @@ import {useHubNavigation} from './HubNavigation';
 import {isPurchase} from './storeUtils';
 import {foodStage} from './FoodProgress';
 import React,{useEffect,useRef,useState,useId} from 'react';
-import {Link} from 'react-router-dom';
+import {Link,NavLink} from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {useHubActionMutation,useHubQuery} from '../../redux/api/hubApi';
 import './hubs.css';
+import './hubDesign.css';
 export const money=c=>new Intl.NumberFormat('en-AG',{style:'currency',currency:'XCD',currencyDisplay:'code'}).format((c||0)/100);
 export const reference=j=>`TT-${j.kind?.toUpperCase()}-${String(j._id).slice(-6).toUpperCase()}`;
 export const blankPoint=()=>({label:'',community:'',contact:'',phone:'',notes:'',lat:'',lng:''});
 export function Field({label,children,...props}){const generated=useId(),id=props.id||generated;return <div className="hub-field"><label htmlFor={id}>{label}</label>{React.isValidElement(children)?React.cloneElement(children,{id}):<input {...props} id={id}/>}</div>;}
 export function ErrorBox({error}){return error?<p className="hub-error" role="alert">{error?.data?.message||error?.message||String(error)}</p>:null;}
 export function useAction(){const [act,state]=useHubActionMutation();const [error,setError]=useState(null);return [async(path,body,method='POST')=>{setError(null);try{return await act({path,body,method}).unwrap();}catch(e){setError(e);toast.error(e?.data?.message||'Unable to save. Please try again.');return null;}},{...state,error}];}
-export function HubShell({title,eyebrow='Tactical Trends · Island connected',children}){const {hubs}=useHubNavigation();return <main className="hub-page"><div className="hub-title"><div><span className="hub-eyebrow">{eyebrow}</span><h1>{title}</h1></div><Link className="hub-btn light hub-activity-link" to="/me/activity"><i className="bi bi-activity" aria-hidden="true"/> My activity <i className="bi bi-arrow-up-right" aria-hidden="true"/></Link></div><nav className="hub-tabs" aria-label="Marketplace hubs">{[...hubs.filter(h=>h.enabled).map(h=>[h.label,h.path,h.icon]),['Business Centre','/business-centre','shop'],['Driver Centre','/driver-centre','car-front-fill']].map(([name,to,icon])=><Link className="hub-btn light" key={to} to={to}><i className={`bi bi-${icon}`} aria-hidden="true"/> {name}</Link>)}</nav>{children}</main>;}
+export function HubShell({title,eyebrow='Tactical Trends · Island connected',kind='neutral',children}){const {hubs}=useHubNavigation();return <main className="hub-page" data-hub={kind}><div className="hub-title"><div><span className="hub-eyebrow">{eyebrow}</span><h1>{title}</h1></div><Link className="hub-btn light hub-activity-link" to="/me/activity"><i className="bi bi-activity" aria-hidden="true"/> My activity <i className="bi bi-arrow-up-right" aria-hidden="true"/></Link></div><nav className="hub-tabs" aria-label="Marketplace hubs">{[...hubs.filter(h=>h.enabled).map(h=>[h.label,h.path,h.icon]),['Business Centre','/business-centre','shop'],['Driver Centre','/driver-centre','car-front-fill']].map(([name,to,icon])=><NavLink className="hub-btn light" key={to} to={to}><i className={`bi bi-${icon}`} aria-hidden="true"/> {name}</NavLink>)}</nav>{children}</main>;}
 export function Status({value}){return <span className={`hub-status ${['Completed','Paid','Approved'].includes(value)?'good':['Cancelled','Rejected','Suspended'].includes(value)?'bad':''}`}>{value}</span>;}
 export function PointFields({value,onChange,title,communityId,compact=false,badge,onChooseMap,autoCompletePrefix=''}){
  const {data:config}=useHubQuery('/config'),listId=useId();const edit=(key,val)=>onChange({...value,[key]:val});
