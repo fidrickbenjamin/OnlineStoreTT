@@ -122,6 +122,7 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
         shippingInfo = {},
         cartItems = [],
         shippingOption,
+        checkoutQuote,
     } = useSelector((state) => state.cart);
 
     const { user } = useSelector((state) => state.auth);
@@ -162,25 +163,13 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
         shippingPrice,
         taxPrice,
         totalPrice,
-    } = calculateOrderCost(
-        cartItems,
-        shippingOption
-    );
+    } = checkoutQuote ? {itemsPrice:checkoutQuote.itemsPrice,shippingPrice:checkoutQuote.shippingAmount,taxPrice:checkoutQuote.taxAmount,totalPrice:checkoutQuote.totalAmount} : calculateOrderCost(cartItems,shippingOption);
 
     // ==========================================
     // VALID SHIPPING OPTIONS
     // ==========================================
 
-    const validShippingOptions = [
-        "roseau",
-        "portsmouth",
-        "pickup",
-    ];
-
-    const isShippingValid =
-        validShippingOptions.includes(
-            shippingOption
-        );
+    const isShippingValid = Boolean(checkoutQuote?.quoteHash && shippingOption && shippingOption!=="none");
 
     // ==========================================
     // ORDER ERROR

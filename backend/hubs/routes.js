@@ -1,3 +1,6 @@
+import * as customerInfo from '../services/customerInfo.js';
+import * as marketplaceDelivery from '../services/marketplaceDelivery.js';
+import * as serviceHub from '../servicesHub/controllers.js';
 import * as operations from './operations.js';
 import * as reconciliation from './reconciliation.js';
 import * as mailAdmin from './mailAdmin.js';
@@ -23,7 +26,15 @@ router.param('driver',(req,res,next,id)=>mongoose.isValidObjectId(id)?next():res
 router.get('/store-categories',catchAsync(storeCategories.listCategories));
 router.get('/config',run('config'));router.get('/businesses',run('publicBusinesses'));router.get('/businesses/:id',run('publicMenu'));
 router.get('/businesses/:id/delivery-estimate',limit('food-estimates',60,60000),run('restaurantDeliveryEstimate'));
+router.get('/customer-info',catchAsync(customerInfo.publicInfo));
+router.get('/services',catchAsync(serviceHub.publicList));
+router.get('/services/:id',catchAsync(serviceHub.publicDetail));
 router.use(auth);
+router.get('/service-account',catchAsync(serviceHub.mine));
+router.post('/service-listings',limit('service-listings',10,3600000),catchAsync(serviceHub.apply));
+router.put('/service-listings/:id',catchAsync(serviceHub.editOwn));
+router.post('/service-inquiries',limit('service-inquiries',10,3600000),catchAsync(serviceHub.createInquiry));
+router.post('/service-inquiries/:id/cancel',catchAsync(serviceHub.cancelInquiry));
 router.post('/maps/search',limit('map-search',15,60000),catchAsync(maps.geocode));
 router.post('/maps/route',limit('map-route',20,60000),catchAsync(maps.routePreview));
 router.post('/estimate',limit('routes',20,60000),run('routeEstimate'));
@@ -36,6 +47,14 @@ router.post('/business/catalogue-image',limit('business-catalogue-images',20,360
 router.post('/business/categories',catchAsync(storeCategories.assignCategories));
 router.post('/business/spotlight',catchAsync(storeCategories.saveSpotlight));
 router.use('/admin',admin,(req,res,next)=>{const path=req.path;req._hubAdminPath=path;routeScope(req,res,next);},auditMiddleware);
+router.put('/admin/customer-info',catchAsync(customerInfo.saveInfo));
+router.get('/admin/marketplace-delivery',catchAsync(marketplaceDelivery.adminGet));
+router.put('/admin/marketplace-delivery',catchAsync(marketplaceDelivery.adminSave));
+router.get('/admin/services',catchAsync(serviceHub.adminList));
+router.post('/admin/services',catchAsync(serviceHub.saveBusiness));
+router.put('/admin/services/:id',catchAsync(serviceHub.saveBusiness));
+router.post('/admin/service-categories',catchAsync(serviceHub.saveCategory));
+router.post('/admin/service-inquiries/:id',catchAsync(serviceHub.updateInquiry));
 router.get('/admin/summary',catchAsync(operations.summary));
 router.get('/admin/jobs',catchAsync(operations.jobs));
 router.get('/admin/catalogue-issues',catchAsync(operations.catalogueIssues));

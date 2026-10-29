@@ -1,3 +1,4 @@
+import {useDeliveryOptionsQuery} from "../../redux/api/OrderApi";
 import MetaData from "../layout/MetaData";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -16,9 +17,11 @@ const Cart = () => {
   // =========================
   // SHIPPING STATE (SAFE)
   // =========================
-  const [selectedShipping, setSelectedShipping] = useState(["roseau", "portsmouth", "pickup"].includes(shippingOption) ? shippingOption : "");
+  const [selectedShipping, setSelectedShipping] = useState(shippingOption!=="none"?shippingOption:"");
 
-  const validShippingOptions = ["roseau", "portsmouth", "pickup"];
+  const {data:deliveryData,isLoading:deliveryLoading,error:deliveryError,refetch:reloadDelivery}=useDeliveryOptionsQuery(undefined,{refetchOnMountOrArgChange:true});
+  const deliveryOptions=deliveryData?.options||{};
+  const validShippingOptions = Object.keys(deliveryOptions);
 
   const isShippingValid = validShippingOptions.includes(selectedShipping);
 
@@ -57,7 +60,7 @@ const Cart = () => {
   };
 
   const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
-    calculateOrderCost(cartItems, selectedShipping);
+    calculateOrderCost(cartItems, selectedShipping,deliveryOptions);
 
   // =========================
   // CHECKOUT HANDLER (BLOCK IF INVALID)
@@ -108,7 +111,7 @@ const Cart = () => {
                       <div className="col-5 col-lg-3">
                         <Link to={`/product/${item?.product}`}>
                           {item?.name}
-                        </Link>
+                        </Link>{item.purchaseUnit&&<p className="text-muted">Per {item.purchaseUnit}</p>}
                       </div>
 
                       <div className="col-4 col-lg-2 mt-4 mt-lg-0">
@@ -118,36 +121,37 @@ const Cart = () => {
 
                       <div className="col-4 col-lg-3 mt-4 mt-lg-0">
                         <div className="stockCounter d-inline">
-                          <span
+                          <button type="button" aria-label={`Decrease ${item.name} quantity`}
                             className="btn btn-danger minus"
                             onClick={() => decreaseQty(item, item.quantity)}
                           >
                             -
-                          </span>
+                          </button>
 
                           <input
+                            aria-label={`Quantity for ${item.name}`}
                             type="number"
                             className="form-control count d-inline"
                             value={item?.quantity}
                             readOnly
                           />
 
-                          <span
+                          <button type="button" aria-label={`Increase ${item.name} quantity`}
                             className="btn btn-primary plus"
                             onClick={() => increaseQty(item, item.quantity)}
                           >
                             +
-                          </span>
+                          </button>
                         </div>
                       </div>
 
                       <div className="col-4 col-lg-1 mt-4 mt-lg-0">
-                        <i
+                        <button type="button" aria-label={`Remove ${item.name}`}
                           className="bi bi-trash btn btn-danger"
                           onClick={() =>
                             removeCartItemHandler(item?.product)
                           }
-                        ></i>
+                        ></button>
                       </div>
 
                     </div>
@@ -205,11 +209,12 @@ const Cart = () => {
 
                 {/* ================= SHIPPING SELECT ================= */}
                 <div className="form-group mt-2">
-                  <label>Select Shipping</label>
+                  <label htmlFor="cart-shipping">Select delivery or collection</label>
 
                   <select
+                    id="cart-shipping"
                     className="form-control"
-                    value={selectedShipping}
+                    value={isShippingValid?selectedShipping:""}
                     onChange={(e) => {
                       setSelectedShipping(e.target.value);
 
@@ -222,12 +227,12 @@ const Cart = () => {
                       Please select shipping option
                     </option>
 
-                    <option value="pickup">Pickup - $0.00</option>
-                    <option value="roseau">Roseau - $15.00</option>
-                    <option value="portsmouth">Portsmouth - $15.00</option>
+                    {Object.entries(deliveryOptions).map(([key,value])=><option key={key} value={key}>{value.label} — XCD {Number(value.fee).toFixed(2)}</option>)}
                   </select>
 
-                  {/* 🔴 WARNING MESSAGE */}
+                  {deliveryLoading&&<p role="status">Loading delivery coverage…</p>}{deliveryError&&<p role="alert">Delivery options could not be loaded. <button type="button" onClick={reloadDelivery}>Retry</button></p>}
+                  <p className="mt-3">{deliveryOptions[selectedShipping]?.instructions}</p><p className="text-muted">Only the communities listed for an option are covered by its fee. Delivery is confirmed after review.</p><details><summary>See covered communities</summary><ul>{Object.entries(deliveryOptions).filter(([key])=>key!=='pickup').map(([key,v])=><li key={key}>{v.label}: {v.communities?.join(', ')}</li>)}</ul></details><p className="mt-2">Your community is not listed? <Link to="/help/delivery">Ask for a delivery quote before ordering</Link>.</p>
+                  {/* Shipping validation */}
                   {!selectedShipping && (
                     <p style={{ color: "red", marginTop: "8px" }}>
                       Please select a shipping option before checkout
@@ -248,7 +253,7 @@ const Cart = () => {
                   id="checkout_btn"
                   className="btn btn-primary w-100"
                   onClick={checkoutHandler}
-                  disabled={!selectedShipping}
+                  disabled={!isShippingValid||deliveryLoading||!!deliveryError}
                 >
                   Check out
                 </button>

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useId } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PRODUCT_CATEGORIES } from "../../constants/constants";
 import StarRatings from "../shared/StarRatings";
 
 const Filters = () => {
 
+    const filterId=useId();
     const [min, setMin] = useState("");
     const [max, setMax] = useState("");
 
@@ -70,7 +71,8 @@ const Filters = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Min ($)"
+                placeholder="Min (XCD)"
+                aria-label="Minimum price in XCD"
                 name="min"
                 value={min}
                 onChange={(e) => setMin(e.target.value)}
@@ -80,7 +82,8 @@ const Filters = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Max ($)"
+                placeholder="Max (XCD)"
+                aria-label="Maximum price in XCD"
                 name="max"
                 value={max}
                 onChange={(e) => setMax(e.target.value)}
@@ -106,11 +109,12 @@ const Filters = () => {
                                 className="form-check-input"
                                 type="checkbox"
                                 name="category"
+                                id={`${filterId}-category-${category}-${subCategory}`}
                                 value={subCategory}
                                 checked={defaultCheckHandler("category", subCategory)}
                                 onChange={(e) => handleClick(e.target)}
                             />
-                            <label className="form-check-label">
+                            <label className="form-check-label" htmlFor={`${filterId}-category-${category}-${subCategory}`}>
                                 {subCategory}
                             </label>
                         </div>
@@ -127,12 +131,13 @@ const Filters = () => {
                     className="form-check-input"
                     type="checkbox"
                     name="ratings"
-                    id={`rating-${rating}`}
+                    aria-label={`${rating} stars or higher`}
+                    id={`${filterId}-rating-${rating}`}
                     value={rating}
                     checked={defaultCheckHandler("ratings", rating?.toString())}
                     onChange={(e) => handleClick(e.target)}
                   />
-                  <label className="form-check-label" htmlFor={`rating-${rating}`}>
+                  <label className="form-check-label" htmlFor={`${filterId}-rating-${rating}`}>
                   <StarRatings 
                       rating={rating}
                       StarRatedColor="#ffb829"

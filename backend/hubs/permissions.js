@@ -9,6 +9,10 @@ export function routeScope(req,res,next){
  if(/^\/(mail|staff|audit)/.test(p))return requireFullAdmin(req,res,next);
  if(/^\/(business-accounts|restaurant-accounts|reconciliation|payouts)/.test(p))return requireScope('finance')(req,res,next);
  if(p==='/summary'||p==='/jobs')return requireScope('operations','finance')(req,res,next);
+ if(p==='/services'&&m==='GET')return requireScope('catalogue','operations')(req,res,next);
+ if((p.startsWith('/marketplace-delivery')||p.startsWith('/customer-info')))return requireScope('settings')(req,res,next);
+ if(p.startsWith('/services')||p.startsWith('/service-categories'))return requireScope('catalogue')(req,res,next);
+ if(p.startsWith('/service-inquiries'))return requireScope('operations')(req,res,next);
  if(p.startsWith('/catalogue-issues')||p.startsWith('/store-categories')||p.startsWith('/businesses')||p.startsWith('/catalogue-image'))return requireScope('catalogue')(req,res,next);
  if(/^\/(settings|community-rates|hub-settings)/.test(p))return requireScope('settings')(req,res,next);
  if(p.startsWith('/applications'))return requireScope('operations')(req,res,next);

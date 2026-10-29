@@ -27,7 +27,7 @@ export default function Hero(){
     <h2>{season?.title||<>Shop local.<br/><span>Discover more.</span></>}</h2>
     <p>{season?.message||'Everyday essentials, fresh finds and local connections. Shop for yourself or someone back home.'}</p>
     <div className="market-hero-actions"><a className="market-hero-button" href="#products_heading">Shop products <i className="bi bi-arrow-right" aria-hidden="true"/></a>{visible('delivery')&&<Link className="market-hero-button secondary" to="/delivery-hub">Request delivery</Link>}</div>
-    {season?.link&&season?.linkLabel&&<Link className="market-season-link" to={season.link}>{season.linkLabel} <span aria-hidden="true">↗</span></Link>}
+    {season?.link&&season?.linkLabel&&<Link className="market-season-link" to={season.linkLabel?.toLowerCase().includes("explore the shop")?"/?skipSplash=true#products":season.link}>{season.linkLabel} <span aria-hidden="true">↗</span></Link>}
     <div className="market-hero-note"><i className="bi bi-geo-alt" aria-hidden="true"/> Local finds. Island connections.</div>
    </div>
    <div className="market-hero-showcase" role="region" aria-roledescription="carousel" aria-label="Featured products" onPointerEnter={e=>{if(e.pointerType==='mouse')setHover(true);}} onPointerLeave={()=>setHover(false)} onFocusCapture={()=>setFocus(true)} onBlurCapture={e=>{if(!e.currentTarget.contains(e.relatedTarget))setFocus(false);}}>

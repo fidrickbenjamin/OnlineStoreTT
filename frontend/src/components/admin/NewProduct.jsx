@@ -1,3 +1,4 @@
+import ProductUnitFields from "./ProductUnitFields";
 import HeroFeatureFields from "./HeroFeatureFields";
 import React, { useEffect, useState } from "react";
 import Loader from "../layout/Loader";
@@ -15,6 +16,8 @@ const NewProduct = () => {
     const [product, setProduct] = useState({
         name: "",
         description: "",
+        purchaseUnit: "",
+        packContents: "",
         price: "",
         mainCategory: "",
         subCategory: "",
@@ -87,7 +90,7 @@ const NewProduct = () => {
                 <div className="col-10 col-lg-10 mt-5 mt-lg-0">
                     <form className="shadow rounded bg-body" onSubmit={submitHandler}>
                         <h2 className="mb-4">New Product</h2>
-                        <HeroFeatureFields value={product} onChange={setProduct}/>
+                        <HeroFeatureFields value={product} onChange={setProduct}/><ProductUnitFields value={product} onChange={setProduct}/>
 
                         {/* Product Name Input */}
                         <div className="mb-3">

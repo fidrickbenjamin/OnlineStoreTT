@@ -1,3 +1,4 @@
+import {activeOptions} from '../services/marketplaceDelivery.js';
 import {checkoutContacts} from "../utils/accountRules.js";
 import {quoteCart} from "../services/promotionPricing.js";
 import crypto from "node:crypto";
@@ -23,7 +24,7 @@ function publicOrder(order, admin = false) {
   delete data.inventoryLock; delete data.dedupeKey;
   if (data.paymentProof) delete data.paymentProof.data;
   if (!admin) delete data.internalNotes;
-  data.delivery = deliveryOptions[data.shippingOption];
+  data.delivery = data.deliverySnapshot || deliveryOptions[data.shippingOption];
   data.orderNumber = `TT-${String(data._id).slice(-8).toUpperCase()}`;
   data.deletion = orderDeletion(order, admin);
   return data;
@@ -38,7 +39,7 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
   const { shippingOption, paymentMethod } = req.body;
   let contacts;try{contacts=checkoutContacts(req.user,req.body);}catch(error){throw new ErrorHandler(error.message,400);}
   const {shippingInfo,buyerInfo}=contacts;
-  if (!methods.includes(paymentMethod) || !deliveryOptions[shippingOption]) throw new ErrorHandler("Choose a supported payment and delivery method.", 400);
+  if (!methods.includes(paymentMethod) || !Object.hasOwn(await activeOptions(),shippingOption)) throw new ErrorHandler("Choose a supported payment and delivery method.", 400);
   for (const key of ["address", "city", "phoneNo", "zipCode", "country"]) if (!String(shippingInfo[key] || "").trim() || String(shippingInfo[key]).length > 250) throw new ErrorHandler("Complete shipping information is required.", 400);
   let grouped;
   try { grouped = groupItems(req.body.orderItems); } catch (error) { throw new ErrorHandler(error.message, 400); }
@@ -49,7 +50,7 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
   let order = await Order.findOne({ dedupeKey:{$in:keys} });
   let reused = Boolean(order);
   if (!order) {
-    const quote = await quoteCart(grouped,shippingOption,req.user._id);
+    const quote = await quoteCart(grouped,shippingOption,req.user._id,shippingInfo.city);
     if(req.body.quoteHash!==quote.quoteHash)return res.status(409).json({success:false,code:"PRICE_CHANGED",message:"Prices or offers changed, or your checkout needs reviewing. Return to Confirm Order to check the current total before paying."});
     const {orderItems:verified,totalSavings,...totals}=quote;
     delete totals.quoteHash;delete totals.quotedAt;
@@ -194,7 +195,7 @@ export const reviewPaymentProof = catchAsyncErrors(async (req, res) => {
   await announce(order, "Mobanking receipt reviewed");
   res.json({ success: true });
 });
-export const deliverySettings = (req, res) => res.json({ success: true, options: deliveryOptions });
+export const deliverySettings = catchAsyncErrors(async (req, res) => res.json({ success: true, options: await activeOptions() }));
 export const getSales = catchAsyncErrors(async (req, res) => {
   let range; try { range = parseDateRange(req.query.startDate, req.query.endDate); } catch (error) { throw new ErrorHandler(error.message, 400); }
   const { startDate, endDate } = range;
@@ -211,6 +212,6 @@ export const getSales = catchAsyncErrors(async (req, res) => {
 });
 
 export const quoteOrder = catchAsyncErrors(async(req,res)=>{
- const quote=await quoteCart(req.body.orderItems,req.body.shippingOption,req.user._id);
+ const quote=await quoteCart(req.body.orderItems,req.body.shippingOption,req.user._id,req.body.community);
  res.set("Cache-Control","no-store").json({success:true,quote});
 });

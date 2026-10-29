@@ -1,0 +1,10 @@
+import mongoose from 'mongoose';
+const {Schema}=mongoose;
+const category=new Schema({_id:String,name:{type:String,required:true},active:{type:Boolean,default:true},revision:{type:Number,default:0}},{timestamps:true});
+const business=new Schema({owner:{type:Schema.Types.ObjectId,ref:'User'},name:String,category:String,description:String,image:String,community:String,address:String,phone:String,whatsapp:String,email:String,website:String,services:[{_id:false,name:String,priceLabel:String}],schedule:{enabled:Boolean,days:[{enabled:Boolean,open:String,close:String}]},hours:String,status:{type:String,enum:['Pending','Approved','Rejected','Suspended'],default:'Pending'},archived:{type:Boolean,default:false},professionalChecked:{type:Boolean,default:false},reviewNote:String,revision:{type:Number,default:0}},{timestamps:true});
+business.index({status:1,archived:1,category:1});business.index({owner:1});
+const inquiry=new Schema({user:{type:Schema.Types.ObjectId,ref:'User',required:true},business:{type:Schema.Types.ObjectId,ref:'ServiceHubBusiness',required:true},businessName:String,customerName:String,phone:String,service:String,preferredDate:String,status:{type:String,enum:['Requested','Contacted','Completed','Cancelled'],default:'Requested'},requestKey:String,revision:{type:Number,default:0}},{timestamps:true});
+inquiry.index({user:1,requestKey:1},{unique:true});inquiry.index({business:1,createdAt:-1});
+export const ServiceCategory=mongoose.model('ServiceHubCategory',category);
+export const ServiceBusiness=mongoose.model('ServiceHubBusiness',business);
+export const ServiceInquiry=mongoose.model('ServiceHubInquiry',inquiry);

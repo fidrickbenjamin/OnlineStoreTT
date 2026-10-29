@@ -30,6 +30,8 @@ const productSchema = new mongoose.Schema({
     },
   },
 
+  purchaseUnit: {type:String,maxlength:80,default:""},
+  packContents: {type:String,maxlength:1000,default:""},
   description: {
     type: String,
     required: [true, "Please enter product description"],

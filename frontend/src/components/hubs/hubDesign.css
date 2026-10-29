@@ -43,3 +43,5 @@
 .hub-store-logo .hub-media-placeholder>small{display:none}
 /* Keep intrinsic image dimensions from stretching grid tracks inside fixed-ratio frames. */
 .hub-media>img{position:absolute;inset:0}.hub-store-logo .hub-media-placeholder{min-height:0}.hub-store-logo .hub-media-placeholder>i{font-size:22px}
+
+.hub-explore{margin:0 0 22px;border:1px solid #dbe5de;border-radius:14px;background:#fff}.hub-explore>summary{padding:13px 17px;cursor:pointer;font-weight:650;display:flex;align-items:center;gap:10px;min-height:48px;color:#234d37}.hub-explore>summary>i:last-child{margin-left:auto}.hub-explore .hub-tabs{padding:14px;margin:0;display:flex;flex-wrap:wrap;overflow:visible}.hub-explore[open]>summary{border-bottom:1px solid #e1e9e3}.hub-explore>summary:focus-visible{outline:3px solid #d7a73f;outline-offset:2px}@media(max-width:600px){.hub-explore .hub-tabs .hub-btn{flex:1 1 42%;justify-content:center;white-space:normal;text-align:center}}

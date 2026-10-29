@@ -1,32 +1,14 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import StarRatings from "../shared/StarRatings";
 import "./ProductItem.css";
 import SalePrice from "../promotions/SalePrice";
 import Price from "../Price/Price";
 
 const ProductItem = ({ product, columnSize }) => {
-  const navigate = useNavigate();
-
   const isProperty =
     product?.listingType === "property" ||
     product?.category?.main === "Property or Real Estate";
-
-  const handleCardClick = (event) => {
-    // Prevent navigation when clicking buttons/links
-    if (event.target.closest("a, button, input, select, textarea")) {
-      return;
-    }
-
-    navigate(`/product/${product?._id}`);
-  };
-
-  const handleCardKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      navigate(`/product/${product?._id}`);
-    }
-  };
 
   return (
     <div className={`col-sm-12 col-md-6 col-lg-${columnSize} my-3`}>
@@ -35,10 +17,6 @@ const ProductItem = ({ product, columnSize }) => {
           isProperty ? "property-card property-card--landscape" : ""
         }`}
         data-testid="product-card"
-        role="button"
-        tabIndex={0}
-        onClick={handleCardClick}
-        onKeyDown={handleCardKeyDown}
       >
 
         {/* Product Image */}
@@ -57,11 +35,11 @@ const ProductItem = ({ product, columnSize }) => {
         <div className="card-body">
 
           <div className="d-flex justify-content-between align-items-start">
-            <h5 className="card-title">
+            <h2 className="card-title" style={{fontSize:"1.15rem"}}>
               <Link to={`/product/${product?._id}`}>
                 {product?.name}
               </Link>
-            </h5>
+            </h2>
                 
             {isProperty && (
               <span className="badge ms-2">
@@ -113,7 +91,7 @@ const ProductItem = ({ product, columnSize }) => {
 
             /* NORMAL PRODUCT */
             <>
-              <div className="d-flex align-items-center">
+              {product.numOfReviews>0?<div className="d-flex align-items-center">
                 <StarRatings
                   rating={product?.ratings || 0}
                   starRatedColor="#ffb829"
@@ -126,9 +104,10 @@ const ProductItem = ({ product, columnSize }) => {
                 <span className="pt-2 ps-2">
                   ({product?.numOfReviews || 0})
                 </span>
-              </div>
+              </div>:<p className="text-muted mb-1">No reviews yet</p>}
 
 
+              {product.purchaseUnit&&<p className="mb-2"><small>Per {product.purchaseUnit}</small></p>}
               <p className="mt-2 mb-0"><small className={product.stock > 0 ? "text-success" : "text-danger"}>{product.stock > 0 ? "In stock" : "Out of stock"}</small></p>
               <div className="card-text mt-2 mb-3"><SalePrice product={product}/></div>
 

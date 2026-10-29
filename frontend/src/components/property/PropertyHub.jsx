@@ -55,7 +55,7 @@ const PropertyHub = () => {
                 <span className="badge rounded-pill bg-white text-dark">Property Hub</span>
                 <span className="badge rounded-pill bg-white/20">Inquiry-first marketplace</span>
               </div>
-              <h2 className="mb-2 fw-bold fs-3 fs-md-2">Discover premium homes and spaces</h2>
+              <h1 className="mb-2 fw-bold fs-3 fs-md-2">Discover premium homes and spaces</h1>
               <p className="mb-0 opacity-75" style={{ maxWidth: 720 }}>
                 Browse real-estate listings, request details, and arrange viewings without a direct online purchase flow.
               </p>
@@ -120,7 +120,7 @@ const PropertyHub = () => {
         {isError ? (
           <div className="alert alert-danger rounded-4">{error?.data?.message || "Unable to load property listings right now."}</div>
         ) : propertyListings.length === 0 ? (
-          <div className="alert alert-secondary rounded-4">No matching property listings found yet.</div>
+          <div className="alert alert-secondary rounded-4">No matching property listings are available yet. Try another filter or contact Tactical Trends about listing a property.</div>
         ) : (
           <div className="row g-3">
             {propertyListings.map((product) => (

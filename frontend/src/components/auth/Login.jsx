@@ -1,3 +1,4 @@
+import {useLocation} from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { useLoginMutation } from "../../redux/api/authApi";
 import toast from "react-hot-toast";
@@ -10,6 +11,9 @@ const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 
     const navigate = useNavigate();
+    const location=useLocation();
+    const target=new URLSearchParams(location.search).get("redirect");
+    const redirect=target?.startsWith("/")&&!target.startsWith("//")&&!target.includes("\\")?target:"/?skipSplash=true";
 
     const [login, { isLoading, error, data  }] = useLoginMutation();
 
@@ -18,12 +22,12 @@ const [password, setPassword] = useState("");
 
     useEffect(() => {
         if(isAuthenticated) {
-          navigate("/");
+          navigate(redirect,{replace:true});
         }
         if(error) {
             toast.error(error?.data?.message);
         }
-    }, [error, isAuthenticated]);
+    }, [error, isAuthenticated, navigate, redirect]);
 
 const submitHandler = (e) => {
     e.preventDefault();

@@ -1,17 +1,4 @@
-import { Helmet } from "react-helmet";
-
-const MetaData = ({ title }) => {
-    const pageTitle = title ? `${title} | Tactical Trends Marketplace` : "Tactical Trends Marketplace";
-
-    return (
-        <Helmet>
-            <title>{pageTitle}</title>
-            <meta name="description" content="Tactical Trends Marketplace offers tactical gear, outdoor essentials, and everyday carry products with dependable service." />
-            <meta property="og:title" content={pageTitle} />
-            <meta property="og:site_name" content="Tactical Trends Marketplace" />
-            <meta property="twitter:title" content={pageTitle} />
-        </Helmet>
-    );
-};
-
-export default MetaData;
+import {Helmet} from 'react-helmet';
+import {useLocation} from 'react-router-dom';
+const brand='Tactical Trends Marketplace';
+export default function MetaData({title,description='Shop local products, order food, discover services and arrange rides or deliveries with Tactical Trends Marketplace in Dominica.',noindex=false,schema}){const {pathname,search}=useLocation(),cleanTitle=String(title||'').replace(/\s*\|\s*(Tactical Trends(?: Marketplace| Market Place)?|OnlineStore).*$/i,'').trim(),pageTitle=cleanTitle&&cleanTitle!==brand?`${cleanTitle} | ${brand}`:brand,canonical=`https://www.tactrendsshop.com${pathname}`,params=new URLSearchParams(search),filtered=pathname==='/'&&[...params.keys()].some(k=>k!=='skipSplash'),privatePage=/^\/(admin|me|login|register|password|cart|shipping|confirm_order|payment|business-centre|driver-centre)/.test(pathname)||pathname==='/service-hub/manage',desc=description.replace(/\s+/g,' ').slice(0,165);return <Helmet><title>{pageTitle}</title><meta name="description" content={desc}/><meta name="robots" content={noindex||filtered||privatePage?'noindex,follow':'index,follow'}/><link rel="canonical" href={canonical}/><meta property="og:title" content={pageTitle}/><meta property="og:description" content={desc}/><meta property="og:site_name" content={brand}/><meta property="og:url" content={canonical}/><meta property="twitter:title" content={pageTitle}/>{schema&&<script type="application/ld+json">{JSON.stringify(schema).replace(/</g,'\\u003c')}</script>}</Helmet>;}

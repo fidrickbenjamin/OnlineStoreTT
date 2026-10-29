@@ -54,7 +54,7 @@ const productSchema = {
     image: product?.images?.map((img) => img.url) || [],
     brand: {
         "@type": "Brand",
-        name: product?.seller || "OnlineStore",
+        name: product?.seller || "Tactical Trends Marketplace",
     },
     offers: {
         "@type": "Offer",
@@ -96,6 +96,7 @@ const productSchema = {
         const cartItem = {
             product: product._id,
             name: product.name,
+            purchaseUnit: product.purchaseUnit,
             price: product.price,
             regularPrice: product.regularPrice,
             discountPerUnit: product.savings,
@@ -219,10 +220,10 @@ const productSchema = {
 
     return (
         <>
-            <MetaData title={product?.name} />
+            <MetaData title={product?.name} description={product?.description||"Explore this product at Tactical Trends Marketplace in Dominica."} />
               
               <Helmet>
-    <title>{product ? `${product.name} | OnlineStore` : "Product Details"}</title>
+    <title>{product ? `${product.name} | Tactical Trends Marketplace` : "Product Details"}</title>
     <meta property="og:title" content={productName} />
     <meta property="og:description" content={productDescription} />
     <meta property="og:type" content="product" />
@@ -230,7 +231,7 @@ const productSchema = {
     <meta property="og:image" content={productImage} />
     <meta property="og:image:secure_url" content={productImage} />
     <meta property="og:image:alt" content={productName} />
-    <meta property="og:site_name" content="OnlineStore" />
+    <meta property="og:site_name" content="Tactical Trends Marketplace" />
     <meta property="product:price:amount" content={product?.price ? product.price.toFixed(2) : ""} />
     <meta property="product:price:currency" content="XCD" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -270,7 +271,7 @@ const productSchema = {
                 </div>
 
                 <div className="col-12 col-lg-5 mt-5">
-                    <h3>{product?.name}</h3>
+                    <h1 className="h3">{product?.name}</h1>{product?.purchaseUnit&&<p><strong>Purchase unit:</strong> {product.purchaseUnit}</p>}{product?.packContents&&<p style={{whiteSpace:"pre-line"}}>{product.packContents}</p>}
                     <p id="product_id">Product # {product?._id}</p>
                     <hr />
                     <div className="d-flex">
@@ -300,14 +301,15 @@ const productSchema = {
                     ) : (
                         <>
                             <div className="stockCounter d-inline">
-                                <span className="btn btn-danger minus" onClick={decreaseQty}>-</span>
+                                <button type="button" className="btn btn-danger minus" aria-label="Decrease quantity" disabled={quantity<=1} onClick={decreaseQty}>−</button>
                                 <input
                                     type="number"
                                     className="form-control count d-inline"
+                                    aria-label={`Quantity for ${product?.name}`}
                                     value={quantity}
                                     readOnly
                                 />
-                                <span className="btn btn-primary plus" onClick={increaseQty}>+</span>
+                                <button type="button" className="btn btn-primary plus" aria-label="Increase quantity" disabled={quantity>=product?.stock} onClick={increaseQty}>+</button>
                             </div>
                             <button
                                 type="button"

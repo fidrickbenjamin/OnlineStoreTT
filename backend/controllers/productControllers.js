@@ -45,6 +45,7 @@ function validateHeroFields(body) {
 export const newProduct = catchAsyncErrors(async (req, res) => {
 
     validateHeroFields(req.body);
+    for(const [key,max] of [["purchaseUnit",80],["packContents",1000]])if(req.body[key]!==undefined){if(typeof req.body[key]!=="string"||req.body[key].length>max)throw new ErrorHandler(`Check ${key} (maximum ${max} characters).`,400);req.body[key]=req.body[key].trim();}
     delete req.body.inventoryAllocations;
     delete req.body.directSale;
     req.body.user = req.user._id;
@@ -92,6 +93,7 @@ export const getAdminProducts = catchAsyncErrors(async (req, res, next ) => {
 export const updateProduct = catchAsyncErrors(async (req, res, next) => {
     
     validateHeroFields(req.body);
+    for(const [key,max] of [["purchaseUnit",80],["packContents",1000]])if(req.body[key]!==undefined){if(typeof req.body[key]!=="string"||req.body[key].length>max)throw new ErrorHandler(`Check ${key} (maximum ${max} characters).`,400);req.body[key]=req.body[key].trim();}
     delete req.body.inventoryAllocations;
     delete req.body.directSale;
     let product = await Product.findById(req?.params?.id);

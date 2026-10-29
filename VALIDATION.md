@@ -1,21 +1,14 @@
-# Validation results
+# Validation — 29 October 2026
 
-## Passed
+- Production frontend build: passed with existing lint warnings (standard react-scripts production build).
+- Backend regression/integration run: 57 tests passed, none skipped, covering service listing/enquiry permissions and ownership, category publication, optimistic concurrency, delivery rate tampering, immutable order totals, product promotions, order inventory, partner-store fulfilment, item-photo operations and existing admin operations.
+- After the purchase-unit snapshot changes: 30 checkout/service/order/promotion tests passed again. After calendar-date validation: the 8 Service Hub/delivery/customer-care tests passed again.
+- Basket persistence tests: 3 passed for remount/navigation/business isolation, expiry/malformed storage and storage denial.
+- Browser UI checks used disposable fixture data, not production accounts or production writes. Verified Service Hub category filtering, business profile/callback entry and a guest food basket surviving hub navigation and refresh.
+- Checked Service Hub directory/profile at a 390-pixel iframe viewport: no whole-page horizontal overflow. This is a CSS layout check, not a real-device or touch-gesture certification.
+- Backend JavaScript syntax checks passed; frontend build resolved the new imports.
+- ZIP checked for excluded environment/config files, backend app.js, build, dependencies and tests.
 
-- Production React build, including lazy-loaded account/admin routes.
-- 23 backend tests: 9 rules tests and 14 real MongoDB integration tests, using an isolated temporary database. These cover duplicate rows and checkout, competing buyers, stock allocation idempotence, compensation after partial allocation, cancellation/restoration, paid-order expiry protection, owner-only order/receipt access, approval of only the current receipt, cancelled/unpayable order guards, server totals, confirmed-payment sales and Dominica date boundaries.
-- The existing frontend product-card regression test.
-- React dependency check: React and React DOM 18.3.1 are deduplicated, including the PayPal package.
-- Automated Chromium checks of the production build: customer order list/details, admin order list/manage/dashboard, invoice, mobile delivery form and mobile product filters. The browser API responses were mocked; no application runtime errors occurred in those checks.
-- Visual inspection of the mobile delivery form and desktop admin order screen.
-- The latest automatic-retry component logic in PaymentMethod.jsx was compared with the uploaded baseline and retained; only confirmation navigation and offline cart clearing changed in that page.
-- Patch contents compared with the uploaded project: only new or changed files are included; backend/app.js, environment files, build directories and dependencies are excluded.
+No live orders/payments, provider failure/return flows, refunds, mail delivery, security penetration testing or production deployment were performed. No new Lighthouse or audit score is claimed. Check real iPhone/Android behaviour and all configured payment methods after deployment using controlled test arrangements.
 
-## Limits and remaining local checks
-
-- Live PayPal/ShopDM payments, webhook delivery, actual bank transfers and Mailtrap email delivery were not exercised. Existing provider controllers and secrets are retained.
-- Browser checks use representative mocked data, not the user's production account or database.
-- MongoDB tests use newly created orders. Historical stock discrepancies require the administrator's explicit reconciliation decision.
-- The current Create React App project still reports non-blocking lint/deprecation warnings in original files; this update does not migrate the whole framework.
-- Stock uses conditional per-product updates and compensation. Run the maintenance command if a process interruption leaves an unallocated order, and inspect any reported exception before adjusting stock.
-- No production deployment or production data mutation was performed.
+Customer-care policy text and catalogue unit/pack content require owner review against actual operations. Existing tax rules were retained.

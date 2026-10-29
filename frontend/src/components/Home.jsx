@@ -39,7 +39,7 @@ const Home = () => {
   if (category !== null) params.category = category;
   if (ratings !== null) params.ratings = ratings;
 
-  const { data, isLoading, error, isError } = useGetProductsQuery(params, {pollingInterval:60000,refetchOnMountOrArgChange:true});
+  const { currentData:data, isLoading, isFetching, error, isError } = useGetProductsQuery(params, {pollingInterval:60000,refetchOnMountOrArgChange:true});
 
   const retailProducts = (data?.products || []).filter((product) => {
     const isProperty =
@@ -54,6 +54,8 @@ const Home = () => {
       toast.error(error?.data?.message || "Something went wrong");
     }
   }, [isError, error]);
+
+  useEffect(()=>{if(searchParams.get("browse")==="categories"){setCategoryRequest(v=>v+1);const next=new URLSearchParams(searchParams);next.delete("browse");setSearchParams(next,{replace:true});}},[searchParams,setSearchParams]);
 
   // Detect if any filter/search is active
   const hasActiveFilters = Boolean(
@@ -83,7 +85,7 @@ const Home = () => {
 
   return (
     <>
-      <MetaData title={"Tactical Trends Market Place"} />
+      <MetaData title="Shop local in Dominica" />
 
       <CategorySplash openRequest={categoryRequest} autoOpen={true}/>
       {!hasActiveFilters && <Hero />}
@@ -104,12 +106,12 @@ const Home = () => {
           } products-container filters-products-container`}
         >
           <h1 id="products_heading" className="text-secondary">
-            {headingText}
+            {isFetching?"Finding products…":headingText}
           </h1>
 
           <section id="products" className="mt-4 tt-product-grid">
-            {isLoading && <Loader/>}
-            {!isLoading && !retailProducts.length && !isError && <p className="tt-empty">No products match these filters. Try a wider search.</p>}
+            {(isLoading||isFetching) && <Loader/>}
+            {!isLoading && !isFetching && !retailProducts.length && !isError && <p className="tt-empty">No products match these filters. Try a wider search.</p>}
             <div className="row">
               {retailProducts.map((product) => (
                 <ProductItem

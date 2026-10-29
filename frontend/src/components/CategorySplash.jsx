@@ -19,6 +19,7 @@ const hubs = [
   { name: "Food Hub", path: "/food-hub", icon: "cup-hot", detail: "Restaurants & menus", tone: "food" },
   { name: "Convenience Hub", path: "/convenience-hub", icon: "basket2", detail: "Everyday essentials", tone: "convenience" },
   { name: "Hardware Hub", path: "/hardware-hub", icon: "tools", detail: "Tools & building supplies", tone: "hardware" },
+  { name: "Service Hub", path: "/service-hub", icon: "briefcase", detail: "Local businesses & professionals", tone: "services" },
   { name: "Ride Hub", path: "/ride-hub", icon: "taxi-front", detail: "Book a local ride", tone: "ride" },
   { name: "Delivery Hub", path: "/delivery-hub", icon: "truck", detail: "Send or collect a package", tone: "delivery" },
 ];

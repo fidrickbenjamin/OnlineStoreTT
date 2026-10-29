@@ -1,0 +1,15 @@
+import {text,fail,image} from '../hubs/rules.js';
+import {weeklyHours} from '../hubs/hours.js';
+export const DEFAULT_CATEGORIES=[['car-wash','Car wash & vehicle care'],['rentals','Rentals'],['health','Doctors & health services'],['repairs','Repairs & technicians'],['beauty','Beauty & personal care'],['home','Home & trade services'],['professional','Professional services'],['other','Other services']].map(([_id,name])=>({_id,name,active:true,revision:0}));
+export function phone(value,required=false){const v=text(value,40);if((required&&!v)||v&&!/^\+?[\d\s().-]{7,40}$/.test(v))fail('Enter a valid contact phone including country code.');return v;}
+export function website(value){const v=text(value,500);if(!v)return '';try{const u=new URL(v);if(u.protocol!=='https:'||u.username||u.password)throw Error();return u.href;}catch{fail('Website links must use HTTPS without embedded credentials.');}}
+export function businessFields(v){
+ const name=text(v.name,100),category=text(v.category,60),community=text(v.community,80),address=text(v.address,180),description=text(v.description,1000),email=text(v.email,180);
+ if(!name||!category||!community||!address||!description)fail('Complete the business name, category, description, community and address.');
+ if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fail('Enter a valid public email address.');
+ if(!Array.isArray(v.services)||v.services.length>30)fail('Add up to 30 services.');
+ const services=v.services.map(s=>{const name=text(s.name,100),priceLabel=text(s.priceLabel,100);if(!name)fail('Each service needs a name.');return {name,priceLabel};});
+ return {name,category,community,address,description,email,services,phone:phone(v.phone,true),whatsapp:phone(v.whatsapp),website:website(v.website),image:image(v.image),hours:text(v.hours,180),schedule:weeklyHours(v.schedule)};
+}
+export function listingState(v,category){const status=v.status||'Pending';if(!['Pending','Approved','Rejected','Suspended'].includes(status))fail('Choose a valid listing status.');if(status==='Approved'&&category==='health'&&v.professionalChecked!==true)fail('Check the practitioner credentials and permission to list before publishing a health service.');return {status,professionalChecked:v.professionalChecked===true,reviewNote:text(v.reviewNote,500),archived:v.archived===true};}
+export function inquiryFields(v,b){const service=text(v.service,100);if(!b.services.some(s=>s.name===service)&&service!=='General enquiry')fail('Choose a listed service or General enquiry.');const preferredDate=text(v.preferredDate,10);if(preferredDate&&(!/^\d{4}-\d{2}-\d{2}$/.test(preferredDate)||!Number.isFinite(+new Date(preferredDate+'T12:00:00Z'))||new Date(preferredDate+'T12:00:00Z').toISOString().slice(0,10)!==preferredDate||preferredDate<new Intl.DateTimeFormat('en-CA',{timeZone:'America/Dominica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())))fail('Choose today or a future preferred date.');const requestKey=text(v.requestKey,80);if(!/^[\w-]{16,80}$/.test(requestKey))fail('Refresh this page before submitting.');return {service,preferredDate,phone:phone(v.phone,true),requestKey};}

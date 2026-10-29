@@ -53,6 +53,8 @@ const orderSchema = new mongoose.Schema({
     },
     orderItems: [{
 
+        purchaseUnit: String,
+        packContents: String,
         regularPrice: Number,
         discountPerUnit: Number,
         promotionId: String,
@@ -139,9 +141,10 @@ shippingAmount: {
     required: true,
 },
 
+deliverySnapshot: { label:String, fee:Number, instructions:String, estimate:String, communities:[String], enabled:Boolean },
 shippingOption: {
     type: String,
-    enum: ["roseau", "portsmouth", "pickup"],
+    maxlength: 60,
     required: true,
 },
 

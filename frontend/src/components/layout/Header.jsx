@@ -8,7 +8,6 @@ import { Link } from "react-router-dom";
 import { useLazyLogoutQuery } from "../../redux/api/authApi";
 import AddressDisplay from "../AdditionalFunctions/AddressDisplay";
 import { clearCart } from "../../redux/features/cartSlice";
-import { PRODUCT_CATEGORIES } from "../../constants/constants";
 import { SeasonalContext } from "../seasonal/SeasonalContext";
 import toast from "react-hot-toast";
 import "./Header.css";
@@ -70,7 +69,7 @@ const Header = () => {
     <div className="quick-links text-center">
       <Link to="/?skipSplash=true">Home</Link>
       {hubs.filter(h=>h.enabled).map(h=><Link key={h.key} to={h.path}>{h.label}</Link>)}
-      {Object.keys(PRODUCT_CATEGORIES).filter(category => category !== "Property or Real Estate").map(category => <Link key={category} to={`/?category=${encodeURIComponent(category)}&skipSplash=true`}>{category}</Link>)}
+      <Link to="/?skipSplash=true&browse=categories">Shop categories</Link>
     </div>
   </>;
 };

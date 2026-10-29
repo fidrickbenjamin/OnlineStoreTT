@@ -1,15 +1,5 @@
-import React from "react";
-
-const Footer = () => {
-    return (
-       <footer className="py-1 pt-5">
-  <p className="text-center mt-1 fw-bold">
-    Tactical Trends Market Place - {new Date().getFullYear()} |  Developer - Fidrick Benjamin | all Rights Reserved
-  </p>
-</footer>
-  
-
-    );
-};
-
-export default Footer;
+import React from 'react';
+import {Link} from 'react-router-dom';
+import {useHubQuery} from '../../redux/api/hubApi';
+import '../support/support.css';
+export default function Footer(){const {data}=useHubQuery('/customer-info'),info=data?.info;return <footer className="tt-service-footer"><div className="tt-footer-grid"><div><h2>Tactical Trends Marketplace</h2><p>Shop local. Discover services. Stay connected to Dominica.</p>{info&&<><a href={`tel:${info.phone.replace(/[^\d+]/g,'')}`}>{info.phone}</a><a href={`https://wa.me/${info.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a><a href={`mailto:${info.email}`}>{info.email}</a><small>{info.hours}</small></>}</div><nav aria-label="Customer care"><h3>Customer care</h3><Link to="/help/contact">Contact & support</Link><Link to="/help/delivery">Delivery & collection</Link><Link to="/help/returns">Returns & refunds</Link><Link to="/help/privacy">Privacy information</Link><Link to="/help/terms">Terms of use</Link></nav><nav aria-label="Your marketplace"><h3>Your marketplace</h3><Link to="/?skipSplash=true#products">Shop products</Link><Link to="/service-hub">Find a service</Link><Link to="/me/orders">My orders</Link><Link to="/me/activity">Hub activity</Link><Link to="/service-hub/manage">List a service business</Link></nav></div><p className="tt-footer-credit">© {new Date().getFullYear()} Tactical Trends Marketplace · Developed by Fidrick Benjamin · All rights reserved</p></footer>;}

@@ -26,6 +26,10 @@ const ShippingAddress = React.lazy(() => import("../user/ShippingAddress"));
 const ShopdmPaymentSuccess = React.lazy(() => import("../payment/ShopdmPaymentSuccess"));
 
 
+const ServiceHub=React.lazy(()=>import("../services/ServiceHub"));
+const ServiceDetail=React.lazy(()=>import("../services/ServiceDetail"));
+const ServiceAccount=React.lazy(()=>import("../services/ServiceAccount"));
+const CustomerInfo=React.lazy(()=>import("../support/CustomerInfo"));
 const FoodHub=React.lazy(()=>import("../hubs/FoodHub"));
 const Restaurant=React.lazy(()=>import("../hubs/Restaurant"));
 const RequestHub=React.lazy(()=>import("../hubs/RequestHub"));
@@ -45,6 +49,10 @@ const userRoutes = () => {
       <Route path="/hardware-hub" element={<HubGate kind="hardware"><FoodHub key="hardware" kind="hardware"/></HubGate>}/>
       <Route path="/convenience-hub/:id" element={<HubGate kind="convenience"><Restaurant/></HubGate>}/>
       <Route path="/hardware-hub/:id" element={<HubGate kind="hardware"><Restaurant/></HubGate>}/>
+      <Route path="/service-hub" element={<HubGate kind="services"><ServiceHub/></HubGate>}/>
+      <Route path="/service-hub/manage" element={<ServiceAccount/>}/>
+      <Route path="/service-hub/:id" element={<HubGate kind="services"><ServiceDetail/></HubGate>}/>
+      <Route path="/help/:page" element={<CustomerInfo/>}/>
       <Route path="/food-hub" element={<HubGate kind="food"><FoodHub/></HubGate>}/>
       <Route path="/food-hub/:id" element={<HubGate kind="food"><Restaurant/></HubGate>}/>
       <Route path="/ride-hub" element={<HubGate kind="ride"><RequestHub key="ride" kind="ride"/></HubGate>}/>

@@ -1,3 +1,4 @@
+import requestKey from '../../helpers/requestKey';
 import React,{useEffect,useRef,useState} from 'react';
 import {useNavigate,Link} from 'react-router-dom';
 import {useSelector} from 'react-redux';
@@ -10,7 +11,7 @@ function BookingForm({kind}){
  const ride=kind==='ride',navigate=useNavigate(),{user}=useSelector(s=>s.auth),{data:config}=useHubQuery('/config');
  const [pickup,setPickup]=useState(()=>({...blankPoint(),contact:user?.name||'',phone:user?.contactPhone||''})),[dropoff,setDropoff]=useState(()=>({...blankPoint(),...(ride?{contact:user?.name||'',phone:user?.contactPhone||''}:{})}));
  const [details,setDetails]=useState(''),[passengers,setPassengers]=useState(1),[when,setWhen]=useState(''),[method,setMethod]=useState('CASH'),[result,setResult]=useState(null),[activePoint,setActivePoint]=useState('pickup'),[localError,setLocalError]=useState(''),[pending,setPending]=useState(''),[act,state]=useAction();
- const key=useRef(crypto.randomUUID()),mapCard=useRef(null),locations=useRef(null),errorBox=useRef(null),latest=useRef(null),estimateSequence=useRef(0);
+ const key=useRef(requestKey()),mapCard=useRef(null),locations=useRef(null),errorBox=useRef(null),latest=useRef(null),estimateSequence=useRef(0);
  const routeKey=JSON.stringify({kind,pickup,dropoff});latest.current=routeKey;
  useEffect(()=>{setPickup(p=>({...p,contact:p.contact||user?.name||'',phone:p.phone||user?.contactPhone||''}));if(ride)setDropoff(p=>({...p,contact:p.contact||user?.name||'',phone:p.phone||user?.contactPhone||''}));},[user?.name,user?.contactPhone,ride]);
  const change=(which,value)=>{(which==='pickup'?setPickup:setDropoff)(value);setResult(null);setLocalError('');estimateSequence.current++;};
