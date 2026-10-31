@@ -1,3 +1,6 @@
+import Order from '../models/order.js';
+import {BusinessTerms} from '../commercial/models.js';
+import {dueDate} from '../commercial/rules.js';
 import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import {Business,Job,RestaurantAccount} from './models.js';
@@ -8,27 +11,29 @@ function dayRange(value){const date=text(value)||localDay();if(!/^\d{4}-\d{2}-\d
 function charge(j){
  const store=['convenience','hardware'].includes(j.kind);
  const began=(!store&&j.foodOps?.preparingAt)||j.foodOps?.readyAt||j.foodReady||['PickedUp','Completed'].includes(j.status);
- const amount=j.restaurantDueCents??Math.max(0,j.itemsCents-j.commissionCents);
+ const unknown=j.commercialVersion===1&&!j.commercial?.costKnown;const amount=unknown?0:(j.restaurantDueCents??Math.max(0,j.itemsCents-j.commissionCents));
  const at=(!store&&j.foodOps?.preparingAt)||j.foodOps?.readyAt||j.timeline?.find(t=>/Food is ready|Items collected|completion|complete/i.test(t.message))?.at||j.createdAt;
- return {amount:began?amount:0,at:new Date(at),legacyPaid:Boolean(j.merchantSettled)};
+ return {amount:began?amount:0,at:new Date(at),legacyPaid:Boolean(j.merchantSettled),unknown};
 }
 export async function accountState(business,date){
  const b=await Business.findById(business).select('name type archived').lean();if(!b)fail('Business not found.',404);
- const [doc,jobs]=await Promise.all([RestaurantAccount.findById(business).lean(),Job.find({business,kind:{$in:['food','convenience','hardware']}}).select('kind businessName itemsCents restaurantDueCents commissionCents foodOps foodReady status payment paymentMethod quote fulfilment merchantSettled createdAt timeline').sort({createdAt:1}).lean()]);
+ const [doc,jobs,retail,terms]=await Promise.all([RestaurantAccount.findById(business).lean(),Job.find({business,kind:{$in:['food','convenience','hardware']}}).select('+commercial commercialVersion kind businessName itemsCents restaurantDueCents commissionCents foodOps foodReady status payment paymentMethod quote fulfilment merchantSettled createdAt timeline').sort({createdAt:1}).lean(),Order.find({'commercial.lines.supplier':{$in:[String(business),new mongoose.Types.ObjectId(String(business))]}}).select('+commercial orderStatus paymentInfo itemsPrice shippingAmount orderItems createdAt timeline').sort({createdAt:1}).lean(),BusinessTerms.findById(business).lean()]);
+ for(const o of retail){const lines=o.commercial.lines.filter(l=>String(l.supplier)===String(business)&&l.inventory!=='prepaid'),known=lines.every(l=>l.costKnown);if(!lines.length)continue;const began=['Processing','Shipped','Delivered'].includes(o.orderStatus)||o.timeline?.some(t=>/Processing|Shipped|Delivered/i.test(t.message));jobs.push({_id:String(o._id),kind:'marketplace',commercialVersion:1,commercial:{costKnown:known,terms:lines[0]?.terms},restaurantDueCents:known?lines.reduce((sum,l)=>sum+l.quantity*l.purchaseUnitCents,0):undefined,itemsCents:lines.reduce((sum,l)=>sum+l.quantity*l.sellingUnitCents,0),status:o.orderStatus==='Cancelled'?'Cancelled':o.orderStatus,payment:o.paymentInfo?.status,quote:{feeCents:Math.round((o.shippingAmount||0)*100)},foodOps:began?{preparingAt:o.timeline?.find(t=>/Processing|Shipped|Delivered/i.test(t.message))?.createdAt||o.createdAt}:{},createdAt:o.createdAt});}
+ jobs.sort((a,b)=>+new Date(a.createdAt)-+new Date(b.createdAt));
  const range=dayRange(date),entries=doc?.entries||[],reversed=new Set(entries.filter(e=>e.type==='reversal').map(e=>e.reverses));
  let opening=0,charges=0,paid=0,adjustments=0,legacyPaid=0,balance=0;
  const rows=jobs.map(j=>{
-  const c=charge(j),jid=id(j),relevant=entries.filter(e=>e.job===jid&&e.type==='review'&&!reversed.has(id(e))),adjust=relevant.reduce((s,e)=>s+e.deltaCents,0);
+  const c=charge(j),jid=id(j),relevant=entries.filter(e=>e.job===jid&&['review','supplierCredit'].includes(e.type)&&!reversed.has(id(e))),adjust=relevant.reduce((s,e)=>s+e.deltaCents,0);
   const allocated=entries.reduce((s,e)=>s+(e.allocations||[]).filter(a=>a.job===jid).reduce((n,a)=>n+a.amountCents,0),0);
   if(c.amount){const net=c.amount-(c.legacyPaid?c.amount:0);balance+=net;if(c.at<range.from)opening+=net;else if(c.at<range.to){charges+=c.amount;if(c.legacyPaid)legacyPaid+=c.amount;}}
-  const lastReview=relevant[relevant.length-1];
-  return {id:jid,createdAt:j.createdAt,accruedAt:c.amount?c.at:null,status:j.status,payment:j.payment,paymentMethod:j.paymentMethod,foodCents:j.itemsCents,deliveryCents:j.quote?.feeCents||0,chargeCents:c.amount,paidCents:(c.legacyPaid?c.amount:0)+allocated,adjustmentCents:adjust,outstandingCents:c.amount+adjust-(c.legacyPaid?c.amount:0)-allocated,reviewRequired:j.status==='Cancelled'&&c.amount>0&&!lastReview,reviewReference:lastReview?.reference,legacy:c.legacyPaid,preparing:Boolean(j.foodOps?.preparingAt)};
+  const lastReview=relevant.filter(e=>e.type==='review').at(-1);
+  const due=c.amount&&j.commercialVersion===1?dueDate(c.at,j.commercial?.terms||{frequency:'immediate'}):null;return {costUnknown:c.unknown,dueAt:due,overdue:Boolean(due&&+due<Date.now()&&c.amount+adjust-allocated>0),kind:j.kind,id:jid,createdAt:j.createdAt,accruedAt:c.amount?c.at:null,status:j.status,payment:j.payment,paymentMethod:j.paymentMethod,foodCents:j.itemsCents,deliveryCents:j.quote?.feeCents||0,chargeCents:c.amount,paidCents:(c.legacyPaid?c.amount:0)+allocated,adjustmentCents:adjust,outstandingCents:c.amount+adjust-(c.legacyPaid?c.amount:0)-allocated,reviewRequired:j.status==='Cancelled'&&c.amount>0&&!lastReview,reviewReference:lastReview?.reference,legacy:c.legacyPaid,preparing:Boolean(j.foodOps?.preparingAt)};
  });
  for(const e of entries){balance+=e.deltaCents;if(new Date(e.at)<range.from)opening+=e.deltaCents;else if(new Date(e.at)<range.to){if(e.type==='payment')paid-=e.deltaCents;else adjustments+=e.deltaCents;}}
  // Historical statements end at the selected day's midnight. Current balance
  // includes later entries, shown separately so a backdated view cannot hide debt.
  const closing=opening+charges-legacyPaid-paid+adjustments;
- return {business:{id:id(b),name:b.name,type:b.type,archived:Boolean(b.archived)},revision:doc?.revision||0,date:range.date,summary:{openingCents:opening,foodCents:charges,legacyPaidCents:legacyPaid,paymentsCents:paid,adjustmentsCents:adjustments,closingCents:closing,currentBalanceCents:balance,reviewCount:rows.filter(r=>r.reviewRequired).length},orders:rows,entries:entries.map(e=>({...e,id:id(e),reversed:reversed.has(id(e))})),from:range.from,to:range.to};
+ return {business:{id:id(b),name:b.name,type:b.type,archived:Boolean(b.archived)},terms,revision:doc?.revision||0,date:range.date,summary:{openingCents:opening,foodCents:charges,legacyPaidCents:legacyPaid,paymentsCents:paid,adjustmentsCents:adjustments,closingCents:closing,currentBalanceCents:balance,reviewCount:rows.filter(r=>r.reviewRequired).length,unknownCostCount:rows.filter(r=>r.costUnknown).length,overdueCents:rows.filter(r=>r.overdue).reduce((sum,r)=>sum+Math.max(0,r.outstandingCents),0),creditLimitCents:terms?.creditLimitCents,creditLimitExceeded:terms?.creditLimitCents!=null&&balance>terms.creditLimitCents},orders:rows,entries:entries.map(e=>({...e,id:id(e),reversed:reversed.has(id(e))})),from:range.from,to:range.to};
 }
 export async function accounts(req,res){const businesses=await Business.find().select('_id').lean();const rows=await Promise.all(businesses.map(b=>accountState(b._id,req.query.date)));res.set('Cache-Control','private, no-store').json({date:dayRange(req.query.date).date,accounts:rows.map(({business,summary})=>({business,summary}))});}
 export async function account(req,res){res.set('Cache-Control','private, no-store').json(await accountState(req.params.id,req.query.date));}
@@ -48,6 +53,8 @@ export async function addEntry(req,res){
   const cap=selected.reduce((s,r)=>s+r.outstandingCents,0);if(ids?.length&&amount>cap)fail('Payment exceeds the selected orders’ remaining product balance.');
   let remaining=amount;for(const row of selected){const allocated=Math.min(remaining,row.outstandingCents);if(allocated>0)entry.allocations.push({job:row.id,amountCents:allocated});remaining-=allocated;if(!remaining)break;}
   entry.deltaCents=-amount;
+ }else if(v.type==='supplierCredit'){
+ const row=state.orders.find(r=>r.id===v.job);const amount=cents(v.amount);if(!row||row.reviewRequired||amount<=0||amount>Math.max(0,row.chargeCents+row.adjustmentCents))fail('Choose a reviewed order and a credit within its remaining supplier charge.');entry.job=row.id;entry.deltaCents=-amount;
  }else if(v.type==='opening'||v.type==='adjustment'){
   if(v.type==='opening'&&active.some(e=>e.type==='opening'))fail('Opening balance already exists. Use an adjustment or reverse the original entry.',409);
   const amount=cents(v.amount);if(!amount)fail('Enter a positive adjustment amount.');entry.deltaCents=v.direction==='credit'?-amount:amount;
@@ -56,7 +63,7 @@ export async function addEntry(req,res){
   const row=state.orders.find(r=>r.id===v.job);if(!row?.reviewRequired)fail('Choose a cancelled prepared order awaiting review.',409);const approved=cents(v.amount);if(approved>row.chargeCents)fail('Reviewed business amount cannot exceed the original business amount.');
   entry.job=row.id;entry.deltaCents=approved-row.chargeCents;
  }else if(v.type==='reversal'){
-  const old=state.entries.find(e=>e.id===v.entry);if(!old||old.type==='reversal'||old.reversed)fail('This entry cannot be reversed.',409);if(old.type==='review'&&state.entries.some(e=>e.type==='payment'&&!e.reversed&&e.allocations?.some(a=>a.job===old.job)))fail('Reverse linked restaurant payments before reversing this review.',409);
+  const old=state.entries.find(e=>e.id===v.entry);if(!old||old.type==='reversal'||old.reversed)fail('This entry cannot be reversed.',409);if(['review','supplierCredit'].includes(old.type)&&state.entries.some(e=>e.type==='payment'&&!e.reversed&&e.allocations?.some(a=>a.job===old.job)))fail('Reverse linked restaurant payments before reversing this review.',409);
   entry.reverses=old.id;entry.deltaCents=-old.deltaCents;entry.allocations=(old.allocations||[]).map(a=>({job:a.job,amountCents:-a.amountCents}));
  }else fail('Choose a supported business account entry.');
  // One document per restaurant makes payment allocation and audit append atomic,
@@ -68,3 +75,5 @@ export async function addEntry(req,res){
 }
 const csvCell=v=>'"'+(typeof v==='number'?String(v):String(v??'').replace(/^[=+@\-\t\r]/,"'$&")).replaceAll('"','""')+'"';
 export async function exportAccount(req,res){const s=await accountState(req.params.id,req.query.date),rows=[['Business',s.business.name],['Statement date',s.date],['Opening XCD',(s.summary.openingCents/100).toFixed(2)],['Closing XCD',(s.summary.closingCents/100).toFixed(2)],[],['Order','Status','Products / meals XCD','Delivery XCD (excluded)','Business charge XCD','Allocated paid XCD','Remaining XCD','Cancelled review']];for(const r of s.orders)rows.push([r.id,r.status,r.foodCents/100,r.deliveryCents/100,r.chargeCents/100,r.paidCents/100,r.outstandingCents/100,r.reviewRequired?'Required':'']);rows.push([],['Entry ID','Recorded','Effective','Type','Amount XCD','Recipient','Reference','Note','Reversed','Order allocations']);for(const e of s.entries)rows.push([e.id,e.recordedAt,e.at,e.type,e.deltaCents/100,e.recipient,e.reference,e.note,e.reversed?'Yes':'',(e.allocations||[]).map(a=>`${a.job}: ${(a.amountCents/100).toFixed(2)}`).join('; ')]);res.set({'Content-Type':'text/csv; charset=utf-8','Cache-Control':'private, no-store','Content-Disposition':`attachment; filename="business-statement-${s.date}.csv"`}).send('\ufeff'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n'));}
+
+export async function partnerAccount(req,res){const b=await Business.findOne({owner:req.user._id}).lean();if(!b)fail('Business account not found.',404);const state=await accountState(b._id);res.set('Cache-Control','private, no-store').json({business:state.business,frequency:state.terms?.frequency||'immediate',summary:{balanceCents:state.summary.currentBalanceCents,overdueCents:state.summary.overdueCents,unknownCostCount:state.summary.unknownCostCount},orders:state.orders.map(r=>({id:r.id,status:r.status,chargeCents:r.chargeCents,paidCents:r.paidCents,outstandingCents:r.outstandingCents,dueAt:r.dueAt,costUnknown:r.costUnknown})),entries:state.entries.map(e=>({id:e.id,type:e.type,amountCents:e.deltaCents,reference:e.reference,at:e.at,reversed:e.reversed}))});}

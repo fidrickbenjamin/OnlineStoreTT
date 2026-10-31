@@ -1,3 +1,4 @@
+import {can} from './permissions.js';
 import mongoose from 'mongoose';
 import {Job,Business,Menu,StoreCategory,RestaurantAccount} from './models.js';
 import {integer,text,fail} from './rules.js';
@@ -31,7 +32,7 @@ export async function summary(req,res){
  res.set('Cache-Control','private, no-store').json({generatedAt:new Date(),total:statuses.reduce((s,x)=>s+x.count,0),statuses:Object.fromEntries(statuses.map(x=>[x._id,x.count])),metrics:{newRequests,active,foodPreparing,preparing},attention:Object.fromEntries(labels.map((key,i)=>[key,attention[i]]))});
 }
 export async function jobs(req,res){
- const page=integer(req.query.page||1,1,1000000),limit=integer(req.query.limit||20,1,100),filter=jobFilter(req.query),[rows,total]=await Promise.all([Job.find(filter).select('-requestHash -completionCode -receipt.data').sort({createdAt:-1,_id:-1}).skip((page-1)*limit).limit(limit).lean(),Job.countDocuments(filter)]);
+ const page=integer(req.query.page||1,1,1000000),limit=integer(req.query.limit||20,1,100),filter=jobFilter(req.query),[rows,total]=await Promise.all([Job.find(filter).select(`-requestHash -completionCode -receipt.data ${can(req.user,'finance')?'':'-restaurantDueCents -commissionCents'}`).sort({createdAt:-1,_id:-1}).skip((page-1)*limit).limit(limit).lean(),Job.countDocuments(filter)]);
  res.set('Cache-Control','private, no-store').json({jobs:rows,total,page,limit,pages:Math.max(1,Math.ceil(total/limit))});
 }
 export async function catalogueIssues(req,res){

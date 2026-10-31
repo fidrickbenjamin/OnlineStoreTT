@@ -126,3 +126,6 @@ html:has(.hub-booking-page),body:has(.hub-booking-page){overflow-x:clip}
 @media print{.hub-admin-sections,.hub-daily-cash form,.hub-daily-cash .hub-actions{display:none!important}.hub-daily-cash .hub-table-scroll{overflow:visible}.hub-daily-cash{font-size:11pt}.hub-daily-cash .hub-panel{break-inside:avoid}}
 
 .hub-variant-editor{border:1px solid #d8e0d5;border-radius:14px;padding:16px;margin:18px 0;min-width:0}.hub-variant-editor legend{float:none;width:auto;font-size:1.05rem;font-weight:700;padding:0 5px}.hub-variant-editor .hub-panel{padding:12px}.hub-dish .hub-field{margin-top:12px}.hub-dish select{max-width:100%;min-width:0}.hub-variant-editor>small{display:block;margin-top:10px}
+
+/* Finance screens remain usable on narrow devices. */
+.hub-table-wrap{max-width:100%;overflow-x:auto}.hub-table{width:100%;border-collapse:collapse;font-size:.92rem}.hub-table th,.hub-table td{padding:.75rem;text-align:left;border-bottom:1px solid #dce3dc;vertical-align:top}.hub-table th{background:#f3f6f1}.hub-table td .hub-btn{margin-top:.5rem;white-space:normal;min-width:8rem}

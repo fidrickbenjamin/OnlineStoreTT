@@ -7,7 +7,7 @@ export const requireFullAdmin=(req,res,next)=>fullAdmin(req.user)?next():next(ne
 export function routeScope(req,res,next){
  if(fullAdmin(req.user))return next();const p=req.path,m=req.method;
  if(/^\/(mail|staff|audit)/.test(p))return requireFullAdmin(req,res,next);
- if(/^\/(business-accounts|restaurant-accounts|reconciliation|payouts)/.test(p))return requireScope('finance')(req,res,next);
+ if(/^\/(commercial|subscriptions|business-accounts|restaurant-accounts|reconciliation|payouts)/.test(p))return requireScope('finance')(req,res,next);
  if(p==='/summary'||p==='/jobs')return requireScope('operations','finance')(req,res,next);
  if(p==='/services'&&m==='GET')return requireScope('catalogue','operations')(req,res,next);
  if((p.startsWith('/marketplace-delivery')||p.startsWith('/customer-info')))return requireScope('settings')(req,res,next);

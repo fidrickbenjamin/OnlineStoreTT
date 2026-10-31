@@ -1,6 +1,7 @@
 import mongoose from "mongoose"; 
 
 const orderSchema = new mongoose.Schema({
+    commercial: {type:mongoose.Schema.Types.Mixed,select:false},
     buyerInfo: {name:String,email:String,country:String,phoneNo:String},
     shippingInfo: {
         recipientName: {type:String,maxlength:80},

@@ -1,3 +1,4 @@
+import {retailSnapshot} from '../commercial/controllers.js';
 import {activeOptions} from '../services/marketplaceDelivery.js';
 import {checkoutContacts} from "../utils/accountRules.js";
 import {quoteCart} from "../services/promotionPricing.js";
@@ -21,7 +22,7 @@ async function visibleOrder(req, includeProof = false) {
 }
 function publicOrder(order, admin = false) {
   const data = order.toObject();
-  delete data.inventoryLock; delete data.dedupeKey;
+  delete data.commercial; delete data.inventoryLock; delete data.dedupeKey;
   if (data.paymentProof) delete data.paymentProof.data;
   if (!admin) delete data.internalNotes;
   data.delivery = data.deliverySnapshot || deliveryOptions[data.shippingOption];
@@ -55,7 +56,7 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
     const {orderItems:verified,totalSavings,...totals}=quote;
     delete totals.quoteHash;delete totals.quotedAt;
     try {
-      order = await Order.create({ orderItems: verified, shippingInfo, shippingOption, ...totals, totalSavings, buyerInfo, user: req.user._id, paymentMethod, paymentInfo: { status: paymentMethod === "NBD" ? "Verifying" : online(paymentMethod) ? "Pending" : "Not Paid", provider: online(paymentMethod) ? paymentMethod : undefined }, orderStatus: "Pending", inventoryTracked: true, dedupeKey, expiresAt: new Date(Date.now()+86400000), timeline: [{ message: "Order received. Awaiting payment or store confirmation." }] });
+      order = await Order.create({ commercial:await retailSnapshot(verified), orderItems: verified, shippingInfo, shippingOption, ...totals, totalSavings, buyerInfo, user: req.user._id, paymentMethod, paymentInfo: { status: paymentMethod === "NBD" ? "Verifying" : online(paymentMethod) ? "Pending" : "Not Paid", provider: online(paymentMethod) ? paymentMethod : undefined }, orderStatus: "Pending", inventoryTracked: true, dedupeKey, expiresAt: new Date(Date.now()+86400000), timeline: [{ message: "Order received. Awaiting payment or store confirmation." }] });
     } catch (error) { if (error.code !== 11000) throw error; order = await Order.findOne({ dedupeKey }); reused = true; }
   }
   if (!order) throw new ErrorHandler("Checkout is being created. Please retry shortly.", 409);
