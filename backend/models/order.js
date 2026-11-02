@@ -1,6 +1,9 @@
 import mongoose from "mongoose"; 
 
 const orderSchema = new mongoose.Schema({
+    feeSnapshot:{type:mongoose.Schema.Types.Mixed,select:false},
+    taxSnapshot:mongoose.Schema.Types.Mixed,
+    paymentFeeSummary:mongoose.Schema.Types.Mixed,
     commercial: {type:mongoose.Schema.Types.Mixed,select:false},
     buyerInfo: {name:String,email:String,country:String,phoneNo:String},
     shippingInfo: {

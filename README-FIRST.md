@@ -1,69 +1,71 @@
-# Tactical Trends — Business-first pricing update
+# Tactical Trends — negotiated pricing and payment fees upgrade
 
-Apply this focused overlay AFTER tactical-trends-commercial-subscriptions-update.zip. This ZIP contains only the next pricing-navigation changes; it is not the full commercial/subscription release.
-
-## New workflow
-
-Admin → Hub Operations → Commercial centre → Hub → Business → Category → Item → Pricing & costs.
-
-- Food, Convenience and Hardware have quick business-selection cards plus the dropdown.
-- Categories use the sections/categories already assigned to those products. No categories or products are recreated.
-- Search matches item names, sizes and flavours within the selected scope. “Only items needing cost review” identifies missing ownership, supplier, variant, extra or regular costs. Confirmed zero costs remain valid.
-- Marketplace groups distinguish Tactical Trends-owned stock, partner suppliers, and unassigned products needing review. A product with no recorded cost/ownership is not silently classified as owned stock.
-- “All businesses” remains available for cross-business cost review. The order-margin review below remains across all businesses, independently of the item filters.
-- Restaurant/store management now includes a “Pricing & costs” shortcut that opens the selected business in Commercial Centre. This appears only to administrators with finance access.
-- Selecting an item brings its editor into view. Variants and extras show the selling price, editable purchase cost and projected gross profit per unit together.
-- Switching hubs, businesses, categories or items prompts before discarding unsaved cost/settlement edits. Drafts are retained during normal data refreshes so stale revisions can be rejected by the existing API rather than silently discarding edits.
-- Saving a marketplace product whose ownership/supplier group changed moves the pricing view to its new group.
-
-Selling prices are still edited in the original menu/product editors. Gross-profit previews exclude delivery, fees and overhead. Existing order snapshots, supplier debts, settlement history, subscription rules and payment integrations retain the previous release's behavior.
+This is an incremental source overlay for the latest commercial subscriptions and business pricing navigation releases. It is not a complete project. Back up your current source and database before installation. Use a staging copy first.
 
 ## Installation
 
-1. Back up your project. Confirm the previous commercial/subscription update is already applied.
-2. Copy the supplied backend/ and frontend/ folders over the matching folders in your OnlineStore project, keeping the directory structure.
-3. From the project root, run:
+1. Extract the backend/ and frontend/ folders into your existing project root, merging folders and replacing the supplied files.
+2. Build the frontend with `npm run build --prefix frontend` using your normal dependencies and deploy the generated frontend through your existing process.
+3. Restart the backend as well. This release needs both frontend and backend changes.
+4. Open Hub Operations > Commerce / pricing, choose the hub, business, category and item, and review the settings below before enabling customer use.
 
-```text
-npm run build --prefix frontend
-```
+No new dependencies, environment variables or manual database migration are required. Mongoose creates the added collections through the existing connection.
 
-4. Deploy the newly generated frontend build through your existing process and restart/redeploy the backend. The backend catalogue response now includes category metadata, so both sides need the update.
-5. Hard-refresh the admin page if the browser is showing an older cached frontend bundle.
+Excluded: backend/app.js (your CORS changes), all environment/config.env files, builds, dependencies and tests. PaymentMethod.jsx IS included from the latest recovered baseline because it adds the customer fee explanation. Its direct PayPal loading, retry handling and payment styling are retained. Compare this file before replacing any newer local edits.
 
-No dependency installation, database migration or environment-variable change is required for this overlay. Do not rerun the previous subscription transition utility merely because you are installing this navigation update.
+## Negotiated partner pricing
 
-## Included source files
+Each business can have its own optional negotiated percentage and agreement reference. There is no compulsory target. Blank means no target / inherit; zero is an explicit zero-percent target. Set supplier purchase costs separately: these remain the amounts owed to the business, irrespective of TT's selling price or payment fees.
 
-- backend/commercial/controllers.js
-- frontend/src/components/hubs/AdminRestaurants.jsx
-- frontend/src/components/hubs/CommercialCentre.jsx
-- frontend/src/components/hubs/CommercialCostForms.jsx
-- frontend/src/components/hubs/commercialCatalogue.mjs
-- frontend/src/components/hubs/commercialPricing.css
+Choose either:
+- Markup on cost: XCD 10 cost with 20% markup suggests XCD 12 selling price.
+- Contribution margin on selling price after merchant percentage: a different calculation that accounts for the selected payment fee profile and applicable retail tax fee base.
 
-Include all six files: CommercialCentre imports the new form, grouping and styling files.
+Item, variant and extra overrides take precedence over the business default. SKU references are searchable. Service subscriptions and Property Hub remain separate from resale pricing.
 
-## Exclusions preserved
+Saving costs or an agreement does not automatically reprice the catalogue. Review current and suggested prices, warnings and estimated contribution, enter a change reference, then explicitly publish a recommendation or a manual price. Batch review supports up to 30 selected items and reports individual conflicts; it is not an all-or-nothing transaction. Refresh conflicted items before retrying. Confirmed orders preserve their original financial snapshots.
 
-No backend/app.js, environment files or examples (.env*, .evn*, config.env*), PaymentMethod.jsx, build directories, node_modules, tests or preview fixtures are included. Your CORS configuration and payment page remain outside this update.
+Publication uses revision checks, preview tokens, idempotency protection and price history. Partner content and availability edits remain possible, but active TT negotiated / published prices cannot be bypassed through partner price edits. Existing variant and extra identities are preserved where matched.
 
-## Validation
+## ShopDM: full-order calculation
 
-- 17 targeted unit/integration checks passed, 0 failed, 0 skipped. These cover business/category isolation, owned versus supplier versus unassigned stock, zero/unknown/variant/extra costs, category metadata, finance permissions and the existing commercial/subscription safeguards.
-- CRA production build succeeded. Existing unrelated ESLint warnings remain; the changed pricing components introduced no reported warnings.
-- Local browser checks verified restaurant category filtering, the business-management shortcut, cost saving while retaining the selected business/category, and a discard prompt that preserves an unsaved draft when cancelled.
-- A 390px mobile frame verified variant/extra cost inputs and profit previews. Page width stayed within the viewport.
-- Browser presentation checks used synthetic local fixture data. API/integration checks used disposable MongoDB data. No live deployment, real payments, outgoing messages or production data changes were performed.
+The default profile reflects your confirmed 3% customer surcharge and 3% merchant deduction on the complete order base, including delivery and applicable tax.
 
-## Launch checks
+| Description | XCD |
+|---|---:|
+| Order base sent to ShopDM | 65.00 |
+| Customer surcharge added by ShopDM | 1.95 |
+| Customer pays | 66.95 |
+| Merchant deduction from the order base | 1.95 |
+| TT receives before supplier/driver costs | 63.05 |
 
-1. In Restaurants & menus, select a restaurant and click Pricing & costs. Confirm it opens that business's items.
-2. Select Dishes, Sides and Drinks in turn and check no other business's items appear.
-3. Try the Hardware and Convenience business selectors and their existing categories.
-4. In Marketplace, check owned stock, supplier stock and unassigned items separately.
-5. Edit a cost and switch category; cancel the discard prompt and confirm the draft remains. Save the cost and check the item summary refreshes.
-6. Confirm a catalogue-only staff account cannot see the finance shortcut or access Commercial Centre's API.
-7. Check a confirmed order still has its original financial snapshot after a product cost edit.
+The integration sends 65.00, never 66.95 in this example. ShopDM adds the customer charge once. TT absorbs the merchant deduction; the supplier's agreed cost is not reduced. Nearest-cent rounding is configured; reconcile actual provider receipts, which remain authoritative.
 
-The existing catalogue cap of 1,000 items per type remains. Counts and missing-cost notices refer to loaded items; this release adds grouping, not server-side catalogue pagination. The order review retains the previous cap of 500 orders per type. Service and Property Hub remain outside product purchase-cost browsing.
+Cash and Mobanking do not inherit ShopDM fees. PayPal's merchant fee is unknown until configured, rather than estimated using an invented rate. Full administrators can create versioned fee profiles with effective dates and verification references. Customer add-on fees in this release are restricted to ShopDM's provider-added model. Existing orders retain their captured profile. Legacy orders without a snapshot remain unknown.
+
+## Review retail tax before launch
+
+The existing retail checkout's hard-coded enabled 15% tax has been preserved as the legacy default, and is now configurable by a full administrator with an audit reference. Review applicability and rate before launch. This release does not determine tax registration or obligations. Food/store hub prices retain their existing inclusive handling. Retail recommendations account for merchant fees charged on applicable tax. Order fees are rounded on the full order, not independently on each item.
+
+Fixed transaction fees are recorded at order level. A per-unit margin recommendation is unavailable when it would require an unknown allocation of a fixed fee; use manual review instead.
+
+## Actual receipts, refunds and contribution
+
+Finance users can record actual merchant deductions, receipts, retail delivery costs, additional expenses, partial/full refunds and reversals, with references and revision protection. Customer payment must already be verified Paid or Refunded before reconciliation. A provider settlement reference cannot be reused for a different order.
+
+These entries record evidence: they do not transfer money, issue a provider refund, or mark a customer paid. Supplier payments and credits remain in Business accounts. Do not record the same supplier or driver cost again as an additional expense.
+
+Reports separate estimated contribution from actual completed contribution. Actual contribution needs a completed/delivered, paid order, known captured costs and settlement evidence; retail delivery cost must also be known unless collection is free. Supplier credits adjust actual completed contribution. Refund/cancel profit remains under review rather than inventing a settled profit. Contribution is not net profit: unrecorded overhead and other costs are not included.
+
+## Initial acceptance check
+
+- Pick a business, enter agreed purchase costs and a negotiated percentage, and preview each size/extra.
+- Publish a reviewed price and verify the customer sees the new price while an existing confirmed order stays unchanged.
+- Confirm the ShopDM 65.00 example against your provider agreement and receipt. Do not add its customer fee in TT again.
+- Check cash/Mobanking orders have no ShopDM surcharge; configure PayPal only from verified terms.
+- Review retail tax and administrator access permissions.
+- Record a sample settlement in staging and compare receipts, supplier balances and contribution.
+
+## Scope and practical limits
+
+No unattended repricing, provider settlement import, batch bank-payout allocation, driver payout execution or live deployment is included. Catalogue loading retains the existing 1,000-per-type cap; order reports cover the most recent 500 per type; price history shows the latest 100 changes. Use evidence and Business accounts for older or exceptional cases. This overlay adds the requested pricing and fee controls; it does not replace your unrelated hub features.

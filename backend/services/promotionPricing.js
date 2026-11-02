@@ -1,3 +1,4 @@
+import {taxSettings} from '../commercial/taxService.js';
 import {activeOptions,assertCommunity} from './marketplaceDelivery.js';
 import Promotion from "../models/promotion.js";
 import Product from "../models/product.js";
@@ -21,10 +22,10 @@ export async function quoteCart(items,shippingOption,userId,community){
  const options=await activeOptions();if(!Object.hasOwn(options,shippingOption))throw new ErrorHandler('Choose a currently available delivery option.',400);
  assertCommunity(options[shippingOption],shippingOption,community);
  const deliverySnapshot=options[shippingOption];
- let totals;try{totals=calculateTotals(orderItems,shippingOption,options);}catch(error){throw new ErrorHandler(error.message,400);}
+ const tax=await taxSettings(),taxSnapshot={revision:tax.revision,enabled:tax.enabled,rateBps:tax.rateBps};let totals;try{totals=calculateTotals(orderItems,shippingOption,options,taxSnapshot.enabled?taxSnapshot.rateBps:0);}catch(error){throw new ErrorHandler(error.message,400);}
  const totalSavings=Number(orderItems.reduce((sum,item)=>sum+item.discountPerUnit*item.quantity,0).toFixed(2));
- const quoteHash=crypto.createHash("sha256").update(JSON.stringify([String(userId),shippingOption,orderItems.map(item=>[String(item.product),item.quantity,item.price,item.promotionId||"",item.purchaseUnit,item.packContents]),totals,deliverySnapshot])).digest("hex");
- return {orderItems,...totals,deliverySnapshot,totalSavings,quoteHash,quotedAt:now};
+ const quoteHash=crypto.createHash("sha256").update(JSON.stringify([String(userId),shippingOption,orderItems.map(item=>[String(item.product),item.quantity,item.price,item.promotionId||"",item.purchaseUnit,item.packContents]),totals,deliverySnapshot,taxSnapshot])).digest("hex");
+ return {orderItems,...totals,deliverySnapshot,taxSnapshot,totalSavings,quoteHash,quotedAt:now};
 }
 // Compute effective prices in MongoDB before sorting, filtering and pagination.
 // Keep the regular price unchanged in storage. Same integer-cent rules as JS.

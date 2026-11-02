@@ -1,0 +1,5 @@
+import {FeeProfiles} from './models.js';
+import {DEFAULT_PROFILES,feeSnapshot,publicFees} from './pricingMath.js';
+export async function feeProfile(method,now=new Date()){const key=['COD','Card'].includes(method)?(method==='COD'?'CASH':'PayPal'):method;if(!DEFAULT_PROFILES[key])throw Object.assign(Error('Unsupported payment method.'),{statusCode:400});const saved=await FeeProfiles.findById('fees').lean();const row=(saved?.versions||[]).filter(p=>p.method===key&&+new Date(p.effectiveAt)<=+now).sort((a,b)=>+new Date(b.effectiveAt)-+new Date(a.effectiveAt)||+new Date(b.at)-+new Date(a.at)||String(b.version).localeCompare(String(a.version)))[0];return row?{...row}:DEFAULT_PROFILES[key];}
+export const snapshotFor=async(baseCents,method)=>feeSnapshot(baseCents,await feeProfile(method));
+export async function previewFee(req,res){const base=Number(req.query.amountCents),snapshot=await snapshotFor(base,req.query.method);res.set('Cache-Control','private, no-store').json({fees:publicFees(snapshot)});}

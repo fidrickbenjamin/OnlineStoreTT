@@ -1,3 +1,4 @@
+import PaymentFeeBreakdown from '../payments/PaymentFeeBreakdown';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import MetaData from "../layout/MetaData";
 import { useDispatch, useSelector } from "react-redux";
@@ -726,7 +727,7 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
                             </section>
 
                             <div className="tt-payment-divider">Other payment methods</div>
-                            <div className="tt-other-payments">
+                            <PaymentFeeBreakdown amountCents={checkoutQuote?Math.round(totalPrice*100):undefined} method="ShopdmPay"/><div className="tt-other-payments">
                                 <button type="button" className="tt-payment-card tt-cash-card" onClick={() => submitHandler("CASH")} disabled={loading || isShopdmLoading}>
                                     <span className="tt-method-icon"><PaymentIcon kind="cash" /></span>
                                     <span className="tt-method-copy"><span className="tt-method-name">Cash Payment</span><span className="tt-method-detail">Complete your order and arrange payment</span></span>
@@ -739,7 +740,7 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
                                 </button>
                                 <button type="button" className="tt-payment-card tt-shopdm-card" onClick={() => submitHandler("ShopdmPay")} disabled={loading || isShopdmLoading}>
                                     <span className="tt-method-icon"><PaymentIcon kind="card" /></span>
-                                    <span className="tt-method-copy"><span className="tt-method-name">ShopDM Pay</span><span className="tt-method-detail">Continue to ShopDM to complete payment</span></span>
+                                    <span className="tt-method-copy"><span className="tt-method-name">ShopDM Pay</span><span className="tt-method-detail">Includes a provider processing fee; see breakdown below</span></span>
                                     <span className="tt-method-arrow" aria-hidden="true">›</span>
                                 </button>
                             </div>

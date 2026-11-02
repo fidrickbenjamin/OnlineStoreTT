@@ -1,3 +1,5 @@
+import {moneyCents} from '../commercial/pricingMath.js';
+import {recordCataloguePriceEdit} from '../commercial/pricingAudit.js';
 import {activeCampaigns,priceProduct,priceExpression} from "../services/promotionPricing.js";
 import Product from "../models/product.js";
 import ErrorHandler from "../utils/errorHandler.js";
@@ -102,7 +104,10 @@ export const updateProduct = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Product not found", 404));
     }
 
+         if(req.body.price!==undefined&&product.listingType!=='property'&&product.category?.main!=='Property or Real Estate'){const verifiedCents=moneyCents(req.body.price);if(verifiedCents>9999999)throw new ErrorHandler('Retail price exceeds the supported limit.',400);req.body.price=verifiedCents/100;}
+         const previousPrice=product.toObject();
          product = await Product.findByIdAndUpdate(req?.params?.id, req.body, { new: true, });
+         await recordCataloguePriceEdit('product',previousPrice,product,req.user);
 
     res.status(200).json({
         product,

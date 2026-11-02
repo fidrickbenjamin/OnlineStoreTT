@@ -16,10 +16,10 @@ export function groupItems(items) {
   }
   return [...grouped].sort(([a], [b]) => a.localeCompare(b)).map(([product, quantity]) => ({ product, quantity }));
 }
-export function calculateTotals(items, option, options = deliveryOptions) {
+export function calculateTotals(items, option, options = deliveryOptions, taxBps = 1500) {
   if (!Object.hasOwn(options,option)) throw new Error("Choose a supported delivery option.");
   const itemsPrice = roundMoney(items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0));
-  const taxAmount = roundMoney(itemsPrice * .15), shippingAmount = options[option].fee;
+  const taxAmount = roundMoney(itemsPrice * taxBps / 10000), shippingAmount = options[option].fee;
   return { itemsPrice, taxAmount, shippingAmount, totalAmount: roundMoney(itemsPrice + taxAmount + shippingAmount) };
 }
 export function checkoutFingerprint(user, items, shippingInfo, shippingOption, paymentMethod) {
