@@ -1,3 +1,4 @@
+import {useHubQuery} from '../../redux/api/hubApi';
 import {useDeliveryOptionsQuery} from "../../redux/api/OrderApi";
 import MetaData from "../layout/MetaData";
 import { useSelector, useDispatch } from "react-redux";
@@ -20,10 +21,13 @@ const Cart = () => {
   const [selectedShipping, setSelectedShipping] = useState(shippingOption!=="none"?shippingOption:"");
 
   const {data:deliveryData,isLoading:deliveryLoading,error:deliveryError,refetch:reloadDelivery}=useDeliveryOptionsQuery(undefined,{refetchOnMountOrArgChange:true});
+  const {data:directory,isLoading:directoryLoading,error:directoryError,refetch:reloadDirectory}=useHubQuery('/delivery-directory',{refetchOnMountOrArgChange:true});
+  const communityMode=!!directory?.enabled;
   const deliveryOptions=deliveryData?.options||{};
+  const checkoutShipping=communityMode&&selectedShipping&&selectedShipping!=='pickup'&&!selectedShipping.startsWith('quote-')?'community':selectedShipping;
   const validShippingOptions = Object.keys(deliveryOptions);
 
-  const isShippingValid = validShippingOptions.includes(selectedShipping);
+  const isShippingValid = communityMode?Boolean(checkoutShipping==='pickup'||checkoutShipping==='community'||/^quote-[a-f\d]{24}$/.test(checkoutShipping)):validShippingOptions.includes(selectedShipping);
 
   const setItemToCart = (item, newQty) => {
     const cartItem = {
@@ -76,7 +80,7 @@ const Cart = () => {
       return;
     }
 
-    dispatch(setShippingOption(selectedShipping));
+    dispatch(setShippingOption(checkoutShipping));
 
     navigate("/shipping");
   };
@@ -187,14 +191,14 @@ const Cart = () => {
                 <p>
                   Shipping:{" "}
                   <span className="order-summary-values">
-                    <Price amount={shippingPrice} />
+                    {communityMode?(checkoutShipping==='pickup'?<Price amount={0}/>:<span>Calculated at checkout</span>):<Price amount={shippingPrice} />}
                   </span>
                 </p>
 
                 <p>
                   Tax:{" "}
                   <span className="order-summary-values">
-                     <Price amount={taxPrice} />
+                     {communityMode?<span>Calculated at checkout</span>:<Price amount={taxPrice} />}
                   </span>
                 </p>
 
@@ -203,7 +207,7 @@ const Cart = () => {
                 <p>
                   Total:{" "}
                   <span className="order-summary-values">
-                   <Price amount={totalPrice} />
+                   {communityMode?<span>Calculated at checkout</span>:<Price amount={totalPrice} />}
                   </span>
                 </p>
 
@@ -214,7 +218,7 @@ const Cart = () => {
                   <select
                     id="cart-shipping"
                     className="form-control"
-                    value={isShippingValid?selectedShipping:""}
+                    value={isShippingValid?(communityMode&&checkoutShipping!=='pickup'?'community':selectedShipping):''}
                     onChange={(e) => {
                       setSelectedShipping(e.target.value);
 
@@ -227,11 +231,12 @@ const Cart = () => {
                       Please select shipping option
                     </option>
 
-                    {Object.entries(deliveryOptions).map(([key,value])=><option key={key} value={key}>{value.label} — XCD {Number(value.fee).toFixed(2)}</option>)}
+                    {communityMode?<><option value="pickup">Collect my order — free collection</option><option value="community">Deliver to my community — price at checkout</option></>:Object.entries(deliveryOptions).map(([key,value])=><option key={key} value={key}>{value.label} — XCD {Number(value.fee).toFixed(2)}</option>)}
                   </select>
 
-                  {deliveryLoading&&<p role="status">Loading delivery coverage…</p>}{deliveryError&&<p role="alert">Delivery options could not be loaded. <button type="button" onClick={reloadDelivery}>Retry</button></p>}
-                  <p className="mt-3">{deliveryOptions[selectedShipping]?.instructions}</p><p className="text-muted">Only the communities listed for an option are covered by its fee. Delivery is confirmed after review.</p><details><summary>See covered communities</summary><ul>{Object.entries(deliveryOptions).filter(([key])=>key!=='pickup').map(([key,v])=><li key={key}>{v.label}: {v.communities?.join(', ')}</li>)}</ul></details><p className="mt-2">Your community is not listed? <Link to="/help/delivery">Ask for a delivery quote before ordering</Link>.</p>
+                  {directoryLoading&&<p role="status">Loading checkout settings…</p>}{directoryError&&<p role="alert">Checkout settings could not be loaded. <button type="button" onClick={reloadDirectory}>Retry</button></p>}{deliveryLoading&&<p role="status">Loading delivery coverage…</p>}{deliveryError&&<p role="alert">Delivery options could not be loaded. <button type="button" onClick={reloadDelivery}>Retry</button></p>}
+                  {communityMode?<p className="mt-3">{checkoutShipping==='pickup'?directory.collectionInstructions:'Choose your recipient and village on the next screen. We calculate the route fee there; unpriced destinations can request a delivery quote before payment.'}</p>:<><p className="mt-3">{deliveryOptions[selectedShipping]?.instructions}</p><p className="text-muted">Only the communities listed for an option are covered by its fee. Delivery is confirmed after review.</p><details><summary>See covered communities</summary><ul>{Object.entries(deliveryOptions).filter(([key])=>key!=='pickup').map(([key,v])=><li key={key}>{v.label}: {v.communities?.join(', ')}</li>)}</ul></details><p className="mt-2">Your community is not listed? <Link to="/help/delivery">Ask for a delivery quote before ordering</Link>.</p>
+</>}
                   {/* Shipping validation */}
                   {!selectedShipping && (
                     <p style={{ color: "red", marginTop: "8px" }}>
@@ -243,7 +248,7 @@ const Cart = () => {
                 <p>
                   Est. total:{" "}
                   <span className="order-summary-values">
-                   <Price amount={totalPrice} />
+                   {communityMode?<span>Calculated at checkout</span>:<Price amount={totalPrice} />}
                   </span>
                 </p>
 
@@ -253,7 +258,7 @@ const Cart = () => {
                   id="checkout_btn"
                   className="btn btn-primary w-100"
                   onClick={checkoutHandler}
-                  disabled={!isShippingValid||deliveryLoading||!!deliveryError}
+                  disabled={!isShippingValid||directoryLoading||!!directoryError||(!communityMode&&(deliveryLoading||!!deliveryError))}
                 >
                   Check out
                 </button>
