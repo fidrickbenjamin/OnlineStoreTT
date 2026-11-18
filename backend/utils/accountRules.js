@@ -8,7 +8,7 @@ export function deliveryAddress(body,{recipient=false}={}){
  return result;
 }
 export function checkoutContacts(user,body){
- const raw=body.shippingInfo||{},address=deliveryAddress(raw),deliveryFor=raw.deliveryFor||'self';if(!['self','other'].includes(deliveryFor))throw Error('Choose who will receive the order.');
+ const raw=body.shippingInfo||{},collection=body.shippingOption==='pickup',address=deliveryAddress(collection?{address:'Self collection',city:'Collection point',country:'Dominica',phoneNo:raw.phoneNo}:raw),deliveryFor=raw.deliveryFor||'self';if(!['self','other'].includes(deliveryFor))throw Error('Choose who will receive the order.');
  const recipientName=cleanText(raw.recipientName||(deliveryFor==='self'?user.name:''),'Recipient name',80,deliveryFor==='other');
  const contactPreference=raw.contactPreference||'recipient';if(!['buyer','recipient'].includes(contactPreference))throw Error('Choose a delivery contact.');
  if(raw.deliveryFor&&body.shippingOption!=='pickup'&&raw.deliveryArea!==body.shippingOption)throw Error('Confirm the recipient address is inside the selected delivery service area.');

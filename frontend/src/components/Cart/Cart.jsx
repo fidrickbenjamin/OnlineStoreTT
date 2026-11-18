@@ -1,34 +1,20 @@
-import {useHubQuery} from '../../redux/api/hubApi';
-import {useDeliveryOptionsQuery} from "../../redux/api/OrderApi";
 import MetaData from "../layout/MetaData";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { setCartItem, removeCartItem, setShippingOption } from "../../redux/features/cartSlice";
+import { setCartItem, removeCartItem } from "../../redux/features/cartSlice";
 import toast from "react-hot-toast";
-import React, { useState } from "react";
-import { calculateOrderCost } from "../../helpers/helpers";
+import React from "react";
 import Price from "../Price/Price";
 
 const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { cartItems, shippingOption } = useSelector((state) => state.cart);
+  const { cartItems } = useSelector((state) => state.cart);
 
   // =========================
   // SHIPPING STATE (SAFE)
   // =========================
-  const [selectedShipping, setSelectedShipping] = useState(shippingOption!=="none"?shippingOption:"");
-
-  const {data:deliveryData,isLoading:deliveryLoading,error:deliveryError,refetch:reloadDelivery}=useDeliveryOptionsQuery(undefined,{refetchOnMountOrArgChange:true});
-  const {data:directory,isLoading:directoryLoading,error:directoryError,refetch:reloadDirectory}=useHubQuery('/delivery-directory',{refetchOnMountOrArgChange:true});
-  const communityMode=!!directory?.enabled;
-  const deliveryOptions=deliveryData?.options||{};
-  const checkoutShipping=communityMode&&selectedShipping&&selectedShipping!=='pickup'&&!selectedShipping.startsWith('quote-')?'community':selectedShipping;
-  const validShippingOptions = Object.keys(deliveryOptions);
-
-  const isShippingValid = communityMode?Boolean(checkoutShipping==='pickup'||checkoutShipping==='community'||/^quote-[a-f\d]{24}$/.test(checkoutShipping)):validShippingOptions.includes(selectedShipping);
-
   const setItemToCart = (item, newQty) => {
     const cartItem = {
       ...item,
@@ -63,27 +49,8 @@ const Cart = () => {
     dispatch(removeCartItem(id));
   };
 
-  const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
-    calculateOrderCost(cartItems, selectedShipping,deliveryOptions);
-
-  // =========================
-  // CHECKOUT HANDLER (BLOCK IF INVALID)
-  // =========================
-  const checkoutHandler = () => {
-    if (!selectedShipping) {
-      toast.error("Please select a shipping option");
-      return;
-    }
-
-    if (!isShippingValid) {
-      toast.error("Invalid shipping option selected");
-      return;
-    }
-
-    dispatch(setShippingOption(checkoutShipping));
-
-    navigate("/shipping");
-  };
+  const itemsPrice=cartItems.reduce((sum,item)=>sum+Number(item.price)*item.quantity,0);
+  const checkoutHandler=()=>navigate('/shipping');
 
   return (
     <>
@@ -188,79 +155,16 @@ const Cart = () => {
                   </span>
                 </p>
 
-                <p>
-                  Shipping:{" "}
-                  <span className="order-summary-values">
-                    {communityMode?(checkoutShipping==='pickup'?<Price amount={0}/>:<span>Calculated at checkout</span>):<Price amount={shippingPrice} />}
-                  </span>
-                </p>
-
-                <p>
-                  Tax:{" "}
-                  <span className="order-summary-values">
-                     {communityMode?<span>Calculated at checkout</span>:<Price amount={taxPrice} />}
-                  </span>
-                </p>
-
-                <hr />
-
-                <p>
-                  Total:{" "}
-                  <span className="order-summary-values">
-                   {communityMode?<span>Calculated at checkout</span>:<Price amount={totalPrice} />}
-                  </span>
-                </p>
-
-                {/* ================= SHIPPING SELECT ================= */}
-                <div className="form-group mt-2">
-                  <label htmlFor="cart-shipping">Select delivery or collection</label>
-
-                  <select
-                    id="cart-shipping"
-                    className="form-control"
-                    value={isShippingValid?(communityMode&&checkoutShipping!=='pickup'?'community':selectedShipping):''}
-                    onChange={(e) => {
-                      setSelectedShipping(e.target.value);
-
-                      if (e.target.value) {
-                        dispatch(setShippingOption(e.target.value));
-                      }
-                    }}
-                  >
-                    <option value="" disabled>
-                      Please select shipping option
-                    </option>
-
-                    {communityMode?<><option value="pickup">Collect my order — free collection</option><option value="community">Deliver to my community — price at checkout</option></>:Object.entries(deliveryOptions).map(([key,value])=><option key={key} value={key}>{value.label} — XCD {Number(value.fee).toFixed(2)}</option>)}
-                  </select>
-
-                  {directoryLoading&&<p role="status">Loading checkout settings…</p>}{directoryError&&<p role="alert">Checkout settings could not be loaded. <button type="button" onClick={reloadDirectory}>Retry</button></p>}{deliveryLoading&&<p role="status">Loading delivery coverage…</p>}{deliveryError&&<p role="alert">Delivery options could not be loaded. <button type="button" onClick={reloadDelivery}>Retry</button></p>}
-                  {communityMode?<p className="mt-3">{checkoutShipping==='pickup'?directory.collectionInstructions:'Choose your recipient and village on the next screen. We calculate the route fee there; unpriced destinations can request a delivery quote before payment.'}</p>:<><p className="mt-3">{deliveryOptions[selectedShipping]?.instructions}</p><p className="text-muted">Only the communities listed for an option are covered by its fee. Delivery is confirmed after review.</p><details><summary>See covered communities</summary><ul>{Object.entries(deliveryOptions).filter(([key])=>key!=='pickup').map(([key,v])=><li key={key}>{v.label}: {v.communities?.join(', ')}</li>)}</ul></details><p className="mt-2">Your community is not listed? <Link to="/help/delivery">Ask for a delivery quote before ordering</Link>.</p>
-</>}
-                  {/* Shipping validation */}
-                  {!selectedShipping && (
-                    <p style={{ color: "red", marginTop: "8px" }}>
-                      Please select a shipping option before checkout
-                    </p>
-                  )}
-                </div>
-
-                <p>
-                  Est. total:{" "}
-                  <span className="order-summary-values">
-                   {communityMode?<span>Calculated at checkout</span>:<Price amount={totalPrice} />}
-                  </span>
-                </p>
-
+                <p className="text-muted">Delivery, applicable tax and the final total are calculated after choosing an address or self collection at checkout.</p>
                 <hr />
 
                 <button
                   id="checkout_btn"
                   className="btn btn-primary w-100"
                   onClick={checkoutHandler}
-                  disabled={!isShippingValid||directoryLoading||!!directoryError||(!communityMode&&(deliveryLoading||!!deliveryError))}
+                  disabled={!cartItems.length}
                 >
-                  Check out
+                  Continue to checkout
                 </button>
               </div>
             </div>
