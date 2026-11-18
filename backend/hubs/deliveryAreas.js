@@ -1,6 +1,7 @@
+import {normalName,seedCommunities,findCommunity} from '../services/communityDirectory.js';
 import {cents,fail,text} from './rules.js';
 export const DEFAULT_FOOD_COMMUNITIES=['Concord','Marigot','Wesley','Woodford Hill','Calibishie'];
-export function communityKey(value){let key=text(value,80).toLowerCase().replace(/\s+/g,' ');if(['calibishi','kalibishi','kalibishie','calibishie'].includes(key))key='calibishie';if(key==='woodfordhill')key='woodford hill';return key;}
+export function communityKey(value){return normalName(findCommunity(seedCommunities(),value)?.name||value);}
 export function deliveryPolicy(value){
  const v=value||{},mode=v.mode||'warn';if(!['warn','quote','block'].includes(mode))fail('Choose a valid outside-area delivery policy.');
  const source=(!v.mode&&!v.preferredCommunities?.length)?DEFAULT_FOOD_COMMUNITIES:(v.preferredCommunities??DEFAULT_FOOD_COMMUNITIES);if(!Array.isArray(source)||!source.length||source.length>60)fail('Choose between 1 and 60 preferred communities.');

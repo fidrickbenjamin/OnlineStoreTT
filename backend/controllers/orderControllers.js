@@ -42,7 +42,7 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
   const { shippingOption, paymentMethod } = req.body;
   let contacts;try{contacts=checkoutContacts(req.user,req.body);}catch(error){throw new ErrorHandler(error.message,400);}
   const {shippingInfo,buyerInfo}=contacts;
-  if (!methods.includes(paymentMethod) || !Object.hasOwn(await activeOptions(),shippingOption)) throw new ErrorHandler("Choose a supported payment and delivery method.", 400);
+  if (!methods.includes(paymentMethod) || !(typeof shippingOption==='string'&&(shippingOption==='community'||/^quote-[a-f\d]{24}$/.test(shippingOption)||Object.hasOwn(await activeOptions(),shippingOption)))) throw new ErrorHandler("Choose a supported payment and delivery method.", 400);
   for (const key of ["address", "city", "phoneNo", "zipCode", "country"]) if (!String(shippingInfo[key] || "").trim() || String(shippingInfo[key]).length > 250) throw new ErrorHandler("Complete shipping information is required.", 400);
   let grouped;
   try { grouped = groupItems(req.body.orderItems); } catch (error) { throw new ErrorHandler(error.message, 400); }
@@ -53,7 +53,7 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
   let order = await Order.findOne({ dedupeKey:{$in:keys} });
   let reused = Boolean(order);
   if (!order) {
-    const quote = await quoteCart(grouped,shippingOption,req.user._id,shippingInfo.city);
+    const quote = await quoteCart(grouped,shippingOption,req.user._id,shippingInfo.city,shippingInfo);
     if(req.body.quoteHash!==quote.quoteHash)return res.status(409).json({success:false,code:"PRICE_CHANGED",message:"Prices or offers changed, or your checkout needs reviewing. Return to Confirm Order to check the current total before paying."});
     const {orderItems:verified,totalSavings,...totals}=quote;
     delete totals.quoteHash;delete totals.quotedAt;
@@ -216,6 +216,6 @@ export const getSales = catchAsyncErrors(async (req, res) => {
 });
 
 export const quoteOrder = catchAsyncErrors(async(req,res)=>{
- const quote=await quoteCart(req.body.orderItems,req.body.shippingOption,req.user._id,req.body.community);
+ const quote=await quoteCart(req.body.orderItems,req.body.shippingOption,req.user._id,req.body.community,req.body.shippingInfo);
  res.set("Cache-Control","no-store").json({success:true,quote});
 });

@@ -1,5 +1,5 @@
 import {taxSettings} from '../commercial/taxService.js';
-import {activeOptions,assertCommunity} from './marketplaceDelivery.js';
+import {resolveCheckoutDelivery} from './communityCheckout.js';
 import Promotion from "../models/promotion.js";
 import Product from "../models/product.js";
 import ErrorHandler from "../utils/errorHandler.js";
@@ -8,7 +8,7 @@ import {groupItems,calculateTotals} from "../utils/orderRules.js";
 import {priceProduct} from "../utils/promotionRules.js";
 export const activeCampaigns = (now=new Date()) => Promotion.find({status:"enabled",startsAt:{$lte:now},endsAt:{$gt:now}}).sort({_id:1}).lean();
 export {priceProduct};
-export async function quoteCart(items,shippingOption,userId,community){
+export async function quoteCart(items,shippingOption,userId,community,shippingInfo={}){
  let grouped;try{grouped=groupItems(items);}catch(error){throw new ErrorHandler(error.message,400);}
  const now=new Date(),campaigns=await activeCampaigns(now);
  const products=await Product.find({_id:{$in:grouped.map(item=>item.product)}});
@@ -19,9 +19,7 @@ export async function quoteCart(items,shippingOption,userId,community){
   const priced=priceProduct(product,campaigns,now);
   return {product:product._id,name:product.name,purchaseUnit:product.purchaseUnit||"",packContents:product.packContents||"",quantity:item.quantity,image:product.images?.[0]?.url||"/images/default_product.png",stock:product.stock,price:priced.price.toFixed(2),regularPrice:priced.regularPrice,discountPerUnit:priced.savings,promotionId:priced.promotion?.id,promotionName:priced.promotion?.label,campaignId:priced.promotion?.campaignId};
  });
- const options=await activeOptions();if(!Object.hasOwn(options,shippingOption))throw new ErrorHandler('Choose a currently available delivery option.',400);
- assertCommunity(options[shippingOption],shippingOption,community);
- const deliverySnapshot=options[shippingOption];
+ const deliverySnapshot=await resolveCheckoutDelivery(grouped,shippingOption,userId,community,shippingInfo),options={[shippingOption]:deliverySnapshot};
  const tax=await taxSettings(),taxSnapshot={revision:tax.revision,enabled:tax.enabled,rateBps:tax.rateBps};let totals;try{totals=calculateTotals(orderItems,shippingOption,options,taxSnapshot.enabled?taxSnapshot.rateBps:0);}catch(error){throw new ErrorHandler(error.message,400);}
  const totalSavings=Number(orderItems.reduce((sum,item)=>sum+item.discountPerUnit*item.quantity,0).toFixed(2));
  const quoteHash=crypto.createHash("sha256").update(JSON.stringify([String(userId),shippingOption,orderItems.map(item=>[String(item.product),item.quantity,item.price,item.promotionId||"",item.purchaseUnit,item.packContents]),totals,deliverySnapshot,taxSnapshot])).digest("hex");

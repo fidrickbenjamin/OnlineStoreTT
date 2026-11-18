@@ -145,7 +145,7 @@ shippingAmount: {
     required: true,
 },
 
-deliverySnapshot: { label:String, fee:Number, instructions:String, estimate:String, communities:[String], enabled:Boolean },
+deliverySnapshot: mongoose.Schema.Types.Mixed,
 shippingOption: {
     type: String,
     maxlength: 60,

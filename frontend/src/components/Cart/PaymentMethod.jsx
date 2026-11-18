@@ -659,7 +659,7 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
                                 Delivery:
                             </strong>{" "}
                             {isShippingValid
-                                ? shippingOption
+                                ? (checkoutQuote?.deliverySnapshot?.label || shippingOption)
                                 : "Please select shipping option"}
                         </p>
 

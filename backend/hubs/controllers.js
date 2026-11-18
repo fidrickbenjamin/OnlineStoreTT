@@ -12,6 +12,7 @@ import {categoryFields,storeCatalogue,publicCategoryIds,productHasCategory} from
 import {BUSINESS_TYPES,isPurchase,businessKind,storeItemFields,basketDelivery} from './storeRules.js';
 import {deliveryPolicy,communityRates,communityRate,foodDeliveryEstimate,publicDeliveryEstimate,DEFAULT_FOOD_COMMUNITIES} from './deliveryAreas.js';
 import crypto from 'node:crypto';
+import {configuration as deliveryDirectory} from '../services/communityCheckout.js';
 import {weeklyHours,businessAvailability,publicBusiness} from './hours.js';
 import {Business,Menu,Driver,Job,Settings,Wallet} from './models.js';
 import {text,cents,integer,point,coordinate,image,quoteValues,payoutAmount,fail} from './rules.js';
@@ -31,7 +32,7 @@ async function credit(j){
  await Wallet.updateOne({_id:j.driver,'credits.job':{$ne:j._id}},{$inc:{availableCents:amount},$push:{credits:{job:j._id,amountCents:amount,at:new Date()}}});
  await Job.updateOne({_id:j._id},{$set:{creditPosted:true}});
 }
-export async function config(req,res){const s=await settings();const {communityRates:privateRates,...publicSettings}=s;res.json({settings:{...publicSettings,zones:s.zones||[]},communities:[...new Set([...DEFAULT_FOOD_COMMUNITIES,...(privateRates||[]).flatMap(r=>[r.from,r.to])])],hubs:hubPresentation(s),mapsKey:process.env.HUB_GEOAPIFY_BROWSER_KEY||'',mapProvider:'geoapify',routingConfigured:Boolean(process.env.HUB_GEOAPIFY_SERVER_KEY),payoutsEnabled:process.env.HUB_ENABLE_PAYOUTS==='true',payments:{paypalClientId:process.env.PAYPAL_CLIENT_ID||'',paypalAvailable:Boolean(process.env.PAYPAL_CLIENT_ID&&process.env.PAYPAL_CLIENT_SECRET),shopdmAvailable:Boolean(process.env.SHOPDM_PAY_MERCHANT_HANDLE&&process.env.SHOPDM_PAY_WEBHOOK_SECRET)}});}
+export async function config(req,res){const s=await settings();const {communityRates:privateRates,...publicSettings}=s;res.json({settings:{...publicSettings,zones:s.zones||[]},communities:[...new Set([...(await deliveryDirectory()).communities.map(c=>c.name),...DEFAULT_FOOD_COMMUNITIES,...(privateRates||[]).flatMap(r=>[r.from,r.to])])],hubs:hubPresentation(s),mapsKey:process.env.HUB_GEOAPIFY_BROWSER_KEY||'',mapProvider:'geoapify',routingConfigured:Boolean(process.env.HUB_GEOAPIFY_SERVER_KEY),payoutsEnabled:process.env.HUB_ENABLE_PAYOUTS==='true',payments:{paypalClientId:process.env.PAYPAL_CLIENT_ID||'',paypalAvailable:Boolean(process.env.PAYPAL_CLIENT_ID&&process.env.PAYPAL_CLIENT_SECRET),shopdmAvailable:Boolean(process.env.SHOPDM_PAY_MERCHANT_HANDLE&&process.env.SHOPDM_PAY_WEBHOOK_SECRET)}});}
 export async function publicBusinesses(req,res){res.json({businesses:await Business.find({status:'Approved',archived:{$ne:true}}).select('-owner -reviewNote').sort({name:1}).lean().then(rows=>rows.map(publicBusiness))});}
 export async function publicMenu(req,res){const b=await Business.findOne({_id:req.params.id,status:'Approved',archived:{$ne:true}}).select('-owner -reviewNote').lean();if(!b)fail('Business not found.',404);res.set('Cache-Control','no-store').json({business:publicBusiness(b),...await storeCatalogue(b,true)});}
 export async function myBusiness(req,res){const b=await Business.findOne({owner:req.user._id});res.json({business:b,...(b?await storeCatalogue(b):{menu:[]}),jobs:b?(await Job.find({business:b._id}).sort({createdAt:-1}).limit(200)).map(j=>publicJob(j,req)):[]});}
