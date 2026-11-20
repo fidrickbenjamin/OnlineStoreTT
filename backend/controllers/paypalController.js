@@ -1,3 +1,4 @@
+import {assertGateway} from '../services/paymentGateways.js';
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import Order from "../models/order.js";
@@ -6,6 +7,7 @@ import {paypalRequest} from '../utils/paypalApi.js';
 import {hubPayPalEvent} from '../hubs/payments.js';
 
 export const createPayPalOrder = catchAsyncErrors(async (req, res, next) => {
+  await assertGateway('PayPal',{credentials:true});
   const { orderId } = req.body;
   const order = await Order.findOne({ _id: orderId, user: req.user._id });
   if (!order) return next(new ErrorHandler("Order not found", 404));

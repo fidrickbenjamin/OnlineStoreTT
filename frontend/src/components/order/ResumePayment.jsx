@@ -1,3 +1,4 @@
+import {useHubQuery} from '../../redux/api/hubApi';
 import React, { useEffect, useState } from "react";
 import { PayPalButtons, PayPalScriptProvider, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { useCreatePayPalOrderMutation, useCapturePayPalOrderMutation, useShopdmCheckoutMutation } from "../../redux/api/OrderApi";
@@ -11,8 +12,9 @@ function ExistingPayPal({ order, onPaid, retry, attempt }) {
 }
 export default function ResumePayment({ order, onPaid }) {
  const [show,setShow]=useState(false),[attempt,setAttempt]=useState(0);const [shopdm,{isLoading}]=useShopdmCheckoutMutation();
- const clientId=(process.env.REACT_APP_PAYPAL_CLIENT_ID||"").trim();
+ const {data:gatewayData,error:gatewayError}=useHubQuery('/payment-settings',{pollingInterval:30000,refetchOnFocus:true});const clientId=(gatewayData?.payments?.paypalClientId||process.env.REACT_APP_PAYPAL_CLIENT_ID||'').trim();
  const retry=React.useCallback(()=>setAttempt(value=>value+1),[]);
  if(["Paid","Refunded"].includes(order.paymentInfo?.status)||order.orderStatus==="Cancelled"||order.cancelRequestedAt||!["PayPal","ShopdmPay"].includes(order.paymentMethod))return null;
+ if(!show&&(!gatewayData||!gatewayData.payments.available[order.paymentMethod]))return <section className="tt-box"><h2>Payment availability</h2><p>{!gatewayData?(gatewayError?'Payment settings could not load. Refresh before retrying.':'Checking payment availability…'):'This order’s payment method is temporarily paused. Contact Tactical Trends to review payment status and arrange an alternative. Do not pay twice.'}</p></section>;
  return <section className="tt-box"><h2>Continue payment</h2><p>Use this existing order. Your order number and total stay the same.</p>{order.paymentMethod==="ShopdmPay"?<button className="btn btn-success" disabled={isLoading} onClick={async()=>{try{const payment=await shopdm({orderId:order._id}).unwrap();const url=new URL(payment.checkoutUrl);if(url.protocol!=="https:")throw Error("Invalid checkout URL");window.location.assign(url.href);}catch(error){toast.error(error?.data?.message||error.message||"Could not open ShopDM.");}}}>{isLoading?"Opening ShopDM…":"Pay this order with ShopDM"}</button>:!clientId?<p className="tt-notice">PayPal is unavailable. Contact the store for help.</p>:!show?<button className="btn btn-warning" onClick={()=>setShow(true)}>Pay this order with PayPal</button>:<PayPalScriptProvider key={attempt} options={{"client-id":clientId,currency:process.env.REACT_APP_PAYPAL_CURRENCY||"USD",intent:"capture",components:"buttons"}}><ExistingPayPal order={order} onPaid={onPaid} retry={retry} attempt={attempt}/></PayPalScriptProvider>}</section>;
 }

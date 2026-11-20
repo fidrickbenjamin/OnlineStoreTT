@@ -1,66 +1,59 @@
-# Tactical Trends — address-first checkout upgrade
+# Tactical Trends — payment gateway controls
 
-Apply AFTER the community checkout update (tactical-trends-community-checkout-update.zip). This overlay supersedes the separate cart-selector follow-up: Cart.jsx is included here in its new form. It requires the preceding community directory, delivery quote and route-pricing source. Merge custom local changes rather than blindly replacing newer edits.
+Incremental source update prepared 19 November 2026. Apply after the address-checkout upgrade. Back up your current source and database, then merge the supplied backend/ and frontend/ folders into your project root. Compare any newer local edits before replacing files.
 
-## What changes
+## Initial behaviour
 
-- Cart has NO delivery dropdown or Roseau/Portsmouth selector. It shows items/subtotal and Continue to checkout. Delivery, applicable tax and the final total are determined at checkout.
-- Checkout is the single decision point: Deliver to an address or Self collection, shown as selectable cards.
-- Delivery displays only the customer's existing personal delivery address and saved recipient addresses, with duplicate address/contact entries consolidated. No stock village/service options appear in an address list.
-- Add delivery address / someone else opens the address form. The community directory appears only in that form. Overseas buyers can deliver to a recipient in Dominica.
-- Edit for this order changes the order address, not the saved account record. Use profile address management to permanently edit an existing saved address. Save as a new address is optional (the existing 12-recipient limit applies).
-- Self collection hides delivery-address fields and asks only for collector name and a Dominica contact number. The backend does not require or copy a home address for collection. Collection instructions are displayed on review and order details.
-- The duplicate delivery/collection dropdown and coverage-confirmation checkbox have been removed. A selected delivery address drives pricing automatically.
-- The admin marketplace delivery screen now shows the community-based controls rather than the old editable service-option list. Legacy stored data remains for historical compatibility, but those options no longer appear in the new customer UI.
+When no saved gateway settings exist:
+- PayPal is enabled and is the primary/recommended method.
+- ShopDM Pay is paused.
+- Cash and Mobanking remain enabled.
+
+No live configuration was changed by preparing this ZIP. This behaviour takes effect after you install and restart the updated application. No records or historical ShopDM fees are removed. Saved settings take priority over the initial defaults on subsequent deployments.
 
 ## Install
 
-1. Back up source and database. Apply the supplied backend/ and frontend/ folders to the existing project root.
-2. Build the frontend with `npm run build --prefix frontend` and deploy your generated output as usual.
-3. Restart the backend as well. Do not deploy this as a frontend-only change: collection validation and default fees need the updated backend.
-4. Follow the pricing setup below and stage the address/collection checks before public release.
+1. Apply both backend and frontend source changes.
+2. Build the frontend: `npm run build --prefix frontend` and deploy the output through your usual process.
+3. Restart the backend.
+4. Sign in as a full administrator and open **Hub Operations > Payment gateways**.
+5. Confirm PayPal enabled, ShopDM disabled and PayPal selected as Primary / recommended payment method. Review the customer notice and save.
+6. Check main checkout and a food/store/ride/delivery request in staging before release.
 
-No new dependencies, environment variables or manual database migration. Optional community fees use the existing settings document. Placed orders and financial snapshots are not recalculated.
+No new dependency, environment variable or manual database migration is required. PayPal uses your existing PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET server settings; its public client ID is made available at runtime. Existing currency/conversion handling is preserved. Never put the secret in frontend variables. If PayPal credentials are not configured, the customer UI will not offer PayPal just because its switch is on; admin shows configuration readiness.
 
-Excluded: backend/app.js / your CORS changes, PaymentMethod.jsx, all .env/.evn/config.env files, builds, dependencies, tests and QA fixtures. The latest payment page from the preceding community update remains in place.
+Excluded: backend/app.js / CORS changes, all .env/.evn/config.env files, builds, dependencies, tests and QA fixtures. **PaymentMethod.jsx is included from the latest address/community checkout baseline** because hiding paused gateways requires updating that page. Direct PayPal buttons, automatic retry handling, current totals and styling remain in place.
 
-## Default community fees
+## Admin controls
 
-Open Hub Operations > Marketplace delivery.
+The Payment gateways tab is available only to full administrators. Enable/disable PayPal, ShopDM Pay, Cash and Mobanking separately. Choose an enabled primary method and enter an optional customer-facing notice. At least one method must remain enabled. The screen distinguishes enabled settings from detected credentials: an enabled but unconfigured online gateway is not offered to customers.
 
-1. Choose the actual main stock dispatch community and enter collection location/contact instructions. Save first if changing the dispatch location.
-2. Find Default community delivery fees. Its searchable table includes the community directory. Set the customer delivery fee and separate driver payout for each destination you want to price.
-3. Import existing agreed route rates into blank defaults can copy your already-configured Store / general fees and payouts for the selected pickup community. It never replaces an existing default. Save/reload after changing the dispatch community before using this import.
-4. Review, adjust and save the table using Save community checkout settings.
-5. Enable automatic/community delivery pricing when the configuration is ready.
+Hub request forms initially select the available primary method, falling back to another available method if necessary. Customers can choose any enabled/available alternative. Main checkout keeps PayPal's direct-button experience and marks it recommended when primary. Primary does not force payment, move money or change an existing order's method.
 
-No arbitrary island-wide prices or unverified starter amounts are installed. This release provides editable per-community defaults and imports existing agreed rates. Destinations with no default may still use a valid shared route or zone; if none exists, the customer requests a quote before payment. Set a destination to quote-only or unavailable when you need an explicit override.
+Settings use revision checks and before/after history in the settings record, in addition to the existing admin action audit. Customer screens refresh gateway settings about every 30 seconds / on focus. Server checks enforce the latest setting even if a customer's page is stale.
 
-Pricing priority for each distinct pickup community:
-1. Explicit default community fee for that pickup/destination pair.
-2. Existing shared Store / general community route.
-3. Configured zone fallback.
-4. Manual quote.
+## What pausing does
 
-Quote-only and unavailable destination modes override automatic pricing. An approved manual quote remains subject to its account, basket, address and expiry checks. Existing Food/Convenience/Hardware business order pricing is not changed by main-shop defaults.
+Paused methods are hidden from new marketplace checkout and hub payment choices. New orders/requests using a paused method are rejected by the backend. New ShopDM/PayPal checkout creation is also blocked, including direct attempts against existing unpaid orders. Marketplace start guards run before inventory-readiness side effects. Resume-payment screens explain a paused provider instead of offering a new checkout button.
 
-A blank table row is a fallback, not free delivery. Enter zero explicitly for an agreed zero fee or payout. Enter both fields for each configured default; driver payout cannot exceed the customer delivery fee. Clear default removes only that override and exposes the shared route/zone/quote fallback again. Fees are directional and tied to the pickup community: changing your dispatch location does not reuse the old origin's default fees.
+Webhooks and existing PayPal capture endpoints are intentionally not disabled. A customer may already have approved or completed a provider payment when a gateway is paused; those confirmations must still be reconciled. Paid/refunded orders, totals, supplier liabilities, payment records and financial snapshots are not rewritten. Recording actual historical payment evidence remains possible, including service subscription evidence and admin reconciliation.
 
-Other stock pickup groups retain the earlier community checkout workflow. Multiple distinct pickup communities produce separate delivery legs; exceptional loads/multiple business stops may still need a manual quote. Default driver payouts do not create an automatic driver dispatch, earnings credit or money transfer.
+## Existing unpaid ShopDM orders
 
-## Disabled delivery pricing
+They retain ShopDM as their recorded method. They are NOT silently converted into new PayPal orders. Contact the customer, verify ShopDM/provider activity and reconcile any in-flight or completed transaction before arranging an alternative. The customer sees a contact-store message. This release does not provide automatic gateway switching for existing orders, automatic refunds or migration of payment sessions. Do not collect a second payment until the first payment status is established.
 
-The old three-option selector is NOT restored when delivery pricing is disabled. New checkout allows self collection and explains that delivery setup is pending. Configure and enable community-based pricing in admin for automatic delivery and quote requests. Existing placed/unpaid orders keep their stored delivery/payment flow.
+The new controls cover the four supported marketplace/hub customer methods. Dormant legacy Stripe/Fiserv integrations are not added to the admin control panel or newly exposed on customer screens.
 
-## Staging acceptance checks
+## Re-enable ShopDM later
 
-- Cart: no service dropdown; Continue to checkout works.
-- Account with a personal address and saved recipients: only those addresses appear. Select another saved address and confirm the destination/fee changes.
-- Account with no saved address: add a complete recipient/address, price delivery, and optionally save it.
-- Change a saved address for this order; verify the saved account entry stays unchanged.
-- Choose Self collection: delivery fields disappear; collector details, collection instructions and zero fee are shown. Review order and create a staging cash order without entering a home address.
-- Enter/import a default community fee and verify it overrides a lower shared route for the main marketplace, while the partner hub's own rate remains unchanged.
-- Verify unpriced and unavailable destinations, and the existing request/approve/select quote path.
-- Check mobile radio/address cards, scrollable admin fee table, keyboard navigation and validation messages.
+Complete the provider setup using your existing server configuration. In Payment gateways, confirm configuration readiness, enable ShopDM, choose the desired primary method, update/remove the temporary notice and save. Its existing integration and fee settings are preserved. Validate the provider integration in staging before making it available to customers. Disabling/re-enabling does not change its 3% fee profile or any past order.
 
-See VALIDATION.md. No live deployment, production-data writes, real payment or outgoing notification was performed.
+Business pricing recommendation fee profiles are separate from gateway visibility: review those independently if switching your margin estimates to verified PayPal merchant fees. This update does not invent PayPal fees or change negotiated partner prices.
+
+## Validation and staging checklist
+
+49 automated checks passed, with 0 failures or skips. These include the existing commerce/checkout/banner suite plus new checks for initial ShopDM pause/PayPal primary defaults, full-admin permissions, stale settings writes, invalid primary/all-off configurations, private-secret exclusion, blocked shop/hub starts and order creation, reachable capture handling, and re-enabling without changing stored order totals. A disposable MongoDB database and synthetic accounts were used; no real provider transaction or email was made.
+
+Production frontend build and backend syntax checks passed. Existing unrelated build warnings remain. New controls were not visually browser-tested in this revision; the earlier local preview had an access limitation. Before release, verify on desktop/mobile: default PayPal availability; no ShopDM button or ShopDM fee breakdown; cash/bank alternatives; admin toggle persistence; blocked direct retry on an old ShopDM order; and a completed provider callback in your provider's test environment.
+
+No live deployment or production payment-setting mutation was performed.

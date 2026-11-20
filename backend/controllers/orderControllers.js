@@ -1,3 +1,4 @@
+import {assertGateway} from '../services/paymentGateways.js';
 import {snapshotFor} from '../commercial/feeService.js';
 import {publicFees} from '../commercial/pricingMath.js';
 import {retailSnapshot} from '../commercial/controllers.js';
@@ -53,6 +54,7 @@ export const newOrder = catchAsyncErrors(async (req, res) => {
   let order = await Order.findOne({ dedupeKey:{$in:keys} });
   let reused = Boolean(order);
   if (!order) {
+    await assertGateway(paymentMethod);
     const quote = await quoteCart(grouped,shippingOption,req.user._id,shippingInfo.city,shippingInfo);
     if(req.body.quoteHash!==quote.quoteHash)return res.status(409).json({success:false,code:"PRICE_CHANGED",message:"Prices or offers changed, or your checkout needs reviewing. Return to Confirm Order to check the current total before paying."});
     const {orderItems:verified,totalSavings,...totals}=quote;

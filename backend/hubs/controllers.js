@@ -13,6 +13,7 @@ import {BUSINESS_TYPES,isPurchase,businessKind,storeItemFields,basketDelivery} f
 import {deliveryPolicy,communityRates,communityRate,foodDeliveryEstimate,publicDeliveryEstimate,DEFAULT_FOOD_COMMUNITIES} from './deliveryAreas.js';
 import crypto from 'node:crypto';
 import {configuration as deliveryDirectory} from '../services/communityCheckout.js';
+import {assertGateway,publicGateways} from '../services/paymentGateways.js';
 import {weeklyHours,businessAvailability,publicBusiness} from './hours.js';
 import {Business,Menu,Driver,Job,Settings,Wallet} from './models.js';
 import {text,cents,integer,point,coordinate,image,quoteValues,payoutAmount,fail} from './rules.js';
@@ -32,7 +33,7 @@ async function credit(j){
  await Wallet.updateOne({_id:j.driver,'credits.job':{$ne:j._id}},{$inc:{availableCents:amount},$push:{credits:{job:j._id,amountCents:amount,at:new Date()}}});
  await Job.updateOne({_id:j._id},{$set:{creditPosted:true}});
 }
-export async function config(req,res){const s=await settings();const {communityRates:privateRates,...publicSettings}=s;res.json({settings:{...publicSettings,zones:s.zones||[]},communities:[...new Set([...(await deliveryDirectory()).communities.map(c=>c.name),...DEFAULT_FOOD_COMMUNITIES,...(privateRates||[]).flatMap(r=>[r.from,r.to])])],hubs:hubPresentation(s),mapsKey:process.env.HUB_GEOAPIFY_BROWSER_KEY||'',mapProvider:'geoapify',routingConfigured:Boolean(process.env.HUB_GEOAPIFY_SERVER_KEY),payoutsEnabled:process.env.HUB_ENABLE_PAYOUTS==='true',payments:{paypalClientId:process.env.PAYPAL_CLIENT_ID||'',paypalAvailable:Boolean(process.env.PAYPAL_CLIENT_ID&&process.env.PAYPAL_CLIENT_SECRET),shopdmAvailable:Boolean(process.env.SHOPDM_PAY_MERCHANT_HANDLE&&process.env.SHOPDM_PAY_WEBHOOK_SECRET)}});}
+export async function config(req,res){const s=await settings();const {communityRates:privateRates,...publicSettings}=s;res.json({settings:{...publicSettings,zones:s.zones||[]},communities:[...new Set([...(await deliveryDirectory()).communities.map(c=>c.name),...DEFAULT_FOOD_COMMUNITIES,...(privateRates||[]).flatMap(r=>[r.from,r.to])])],hubs:hubPresentation(s),mapsKey:process.env.HUB_GEOAPIFY_BROWSER_KEY||'',mapProvider:'geoapify',routingConfigured:Boolean(process.env.HUB_GEOAPIFY_SERVER_KEY),payoutsEnabled:process.env.HUB_ENABLE_PAYOUTS==='true',gatewaySettings:await publicGateways(),payments:{paypalClientId:process.env.PAYPAL_CLIENT_ID||'',paypalAvailable:Boolean(process.env.PAYPAL_CLIENT_ID&&process.env.PAYPAL_CLIENT_SECRET),shopdmAvailable:Boolean(process.env.SHOPDM_PAY_MERCHANT_HANDLE&&process.env.SHOPDM_PAY_WEBHOOK_SECRET)}});}
 export async function publicBusinesses(req,res){res.json({businesses:await Business.find({status:'Approved',archived:{$ne:true}}).select('-owner -reviewNote').sort({name:1}).lean().then(rows=>rows.map(publicBusiness))});}
 export async function publicMenu(req,res){const b=await Business.findOne({_id:req.params.id,status:'Approved',archived:{$ne:true}}).select('-owner -reviewNote').lean();if(!b)fail('Business not found.',404);res.set('Cache-Control','no-store').json({business:publicBusiness(b),...await storeCatalogue(b,true)});}
 export async function myBusiness(req,res){const b=await Business.findOne({owner:req.user._id});res.json({business:b,...(b?await storeCatalogue(b):{menu:[]}),jobs:b?(await Job.find({business:b._id}).sort({createdAt:-1}).limit(200)).map(j=>publicJob(j,req)):[]});}
@@ -42,6 +43,7 @@ export async function saveMenu(req,res){const b=req.params.id&&isAdmin(req)?awai
 export async function routeEstimate(req,res){if(!['ride','delivery','food','convenience','hardware'].includes(req.body.kind))fail('Choose a service.');const value=await estimate(isPurchase(req.body.kind)&&req.body.kind!=='food'?'delivery':req.body.kind,req.body.pickup,req.body.dropoff);res.json({estimate:publicDeliveryEstimate(value)});}
 export async function createJob(req,res){
  await Job.init();
+ await assertGateway(req.body.paymentMethod);
  const v=req.body;if(!['ride','delivery','food','convenience','hardware'].includes(v.kind)||!['CASH','NBD','PayPal','ShopdmPay'].includes(v.paymentMethod))fail('Choose a supported service and payment method.');if(!/^[a-zA-Z0-9-]{12,80}$/.test(v.requestKey||''))fail('Refresh the request form and retry.');
  const requestHash=crypto.createHash('sha256').update(JSON.stringify({...v,revision:undefined})).digest('hex');
  const old=await Job.findOne({user:req.user._id,requestKey:v.requestKey});if(old){if(old.requestHash!==requestHash)fail('Request key was already used for different details.',409);return res.json({job:publicJob(old,req),reused:true});}

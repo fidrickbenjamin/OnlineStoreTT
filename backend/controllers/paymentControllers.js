@@ -1,3 +1,4 @@
+import {assertGateway} from '../services/paymentGateways.js';
 import catchAsyncErrors from "../middlewares/catchAsyncErrors.js";
 import Order from "../models/order.js";
 import Stripe from "stripe";
@@ -16,6 +17,7 @@ import {hubShopdmWebhook} from "../hubs/payments.js";
 
 export const createShopdmPayCheckout = catchAsyncErrors(
     async (req, res) => {
+        await assertGateway('ShopdmPay',{credentials:true});
 
         const {
             totalAmount,

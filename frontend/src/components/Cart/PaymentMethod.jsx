@@ -1,3 +1,4 @@
+import {useHubQuery} from '../../redux/api/hubApi';
 import PaymentFeeBreakdown from '../payments/PaymentFeeBreakdown';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import MetaData from "../layout/MetaData";
@@ -19,7 +20,8 @@ import { PayPalButtons, PayPalScriptProvider, usePayPalScriptReducer } from "@pa
 import { useCreatePayPalOrderMutation, useCapturePayPalOrderMutation } from "../../redux/api/OrderApi";
 
 const PaymentMethod = () => {
-    const paypalClientId = (process.env.REACT_APP_PAYPAL_CLIENT_ID || "").trim();
+    const {data:gatewayData,error:gatewayError,refetch:refreshGateways}=useHubQuery('/payment-settings',{pollingInterval:30000,refetchOnFocus:true});
+    const paypalClientId = gatewayData?.payments?.available.PayPal?(gatewayData.payments.paypalClientId||process.env.REACT_APP_PAYPAL_CLIENT_ID||'').trim():'';
     const [retry, setRetry] = useState({ key: 0, automatic: 0 });
     const onPayPalRetry = useCallback(() => {
         setRetry((previous) => ({ key: previous.key + 1, automatic: 0 }));
@@ -27,6 +29,7 @@ const PaymentMethod = () => {
     const onAutoRetry = useCallback(() => {
         setRetry((previous) => previous.automatic >= 2 ? previous : ({ key: previous.key + 1, automatic: previous.automatic + 1 }));
     }, []);
+    if(!gatewayData)return <p role="status">{gatewayError?'Payment settings could not load.':'Loading payment options…'} <button type="button" onClick={refreshGateways}>Retry</button></p>;
     return <PaymentMethodShell key={retry.key} paypalClientId={paypalClientId} onPayPalRetry={onPayPalRetry} onAutoRetry={onAutoRetry} automaticRetries={retry.automatic} />;
 };
 
@@ -108,6 +111,7 @@ const PaymentIcon = ({ kind }) => (
 );
 
 const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFailed = false, paypalSlow = false, onPayPalRetry, onAutoRetry, automaticRetries = 0 }) => {
+    const {data:gatewayData}=useHubQuery('/payment-settings',{pollingInterval:30000,refetchOnFocus:true});const gateways=gatewayData?.payments;const allowed=key=>!!gateways?.available?.[key];
     const [loading, setLoading] = useState(false);
     const [showBankingModal, setShowBankingModal] = useState(false);
     const paypalCheckout = useRef(null);
@@ -228,7 +232,7 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
     const submitHandler = async (
         selectedMethod
     ) => {
-
+        if(!allowed(selectedMethod)){toast.error('This payment method is unavailable. Choose another method.');if(selectedMethod==='PayPal')throw Error('PayPal is unavailable');return;}
         // ------------------------------------------
         // CHECK CART
         // ------------------------------------------
@@ -700,8 +704,8 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
 
                         <p className="text-center tt-payment-note">Choose how you would like to pay for your order.</p>
                         <div className="tt-payment-options">
-                            <section className="tt-paypal-panel" aria-labelledby="tt-paypal-title">
-                                <h3 id="tt-paypal-title" className="tt-paypal-title">PayPal</h3>
+                            {allowed('PayPal')&&<section className="tt-paypal-panel" aria-labelledby="tt-paypal-title">
+                                <h3 id="tt-paypal-title" className="tt-paypal-title">PayPal{gateways?.primary==='PayPal'?' · Recommended':''}</h3>
                                 <p className="tt-payment-note">Pay securely with the options available through PayPal.</p>
                                 {!paypalClientId ? (
                                     <p role="status" className="mb-0 tt-payment-note">PayPal is currently unavailable. Please choose another payment method.</p>
@@ -724,25 +728,26 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
                                         automaticRetries={automaticRetries}
                                     />
                                 )}
-                            </section>
-
+                            </section>}
+                            {gateways?.notice&&<p className="tt-payment-note">{gateways.notice}</p>}
+                            {!Object.values(gateways?.available||{}).some(Boolean)&&<p role="alert">No payment methods are currently available. Contact the store.</p>}
                             <div className="tt-payment-divider">Other payment methods</div>
-                            <PaymentFeeBreakdown amountCents={checkoutQuote?Math.round(totalPrice*100):undefined} method="ShopdmPay"/><div className="tt-other-payments">
-                                <button type="button" className="tt-payment-card tt-cash-card" onClick={() => submitHandler("CASH")} disabled={loading || isShopdmLoading}>
+                            {allowed('ShopdmPay')&&<PaymentFeeBreakdown amountCents={checkoutQuote?Math.round(totalPrice*100):undefined} method="ShopdmPay"/>}<div className="tt-other-payments">
+                                {allowed('CASH')&&<button type="button" className="tt-payment-card tt-cash-card" onClick={() => submitHandler("CASH")} disabled={loading || isShopdmLoading}>
                                     <span className="tt-method-icon"><PaymentIcon kind="cash" /></span>
                                     <span className="tt-method-copy"><span className="tt-method-name">Cash Payment</span><span className="tt-method-detail">Complete your order and arrange payment</span></span>
                                     <span className="tt-method-arrow" aria-hidden="true">›</span>
-                                </button>
-                                <button type="button" className="tt-payment-card tt-nbd-card" onClick={handleMobankingSelection} disabled={loading || isShopdmLoading}>
+                                </button>}
+                                {allowed('NBD')&&<button type="button" className="tt-payment-card tt-nbd-card" onClick={handleMobankingSelection} disabled={loading || isShopdmLoading}>
                                     <span className="tt-method-icon"><PaymentIcon kind="bank" /></span>
                                     <span className="tt-method-copy"><span className="tt-method-name">Mobanking <span className="tt-method-badge">NBD</span></span><span className="tt-method-detail">National Bank of Dominica · Bank transfer</span></span>
                                     <span className="tt-method-arrow" aria-hidden="true">›</span>
-                                </button>
-                                <button type="button" className="tt-payment-card tt-shopdm-card" onClick={() => submitHandler("ShopdmPay")} disabled={loading || isShopdmLoading}>
+                                </button>}
+                                {allowed('ShopdmPay')&&<button type="button" className="tt-payment-card tt-shopdm-card" onClick={() => submitHandler("ShopdmPay")} disabled={loading || isShopdmLoading}>
                                     <span className="tt-method-icon"><PaymentIcon kind="card" /></span>
                                     <span className="tt-method-copy"><span className="tt-method-name">ShopDM Pay</span><span className="tt-method-detail">Includes a provider processing fee; see breakdown below</span></span>
                                     <span className="tt-method-arrow" aria-hidden="true">›</span>
-                                </button>
+                                </button>}
                             </div>
                         </div>
 
