@@ -1,3 +1,4 @@
+import PayPalAmount from '../payments/PayPalAmount';
 import {useHubQuery} from '../../redux/api/hubApi';
 import PaymentFeeBreakdown from '../payments/PaymentFeeBreakdown';
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -36,7 +37,7 @@ const PaymentMethod = () => {
 const PaymentMethodShell = ({ paypalClientId, ...retryProps }) => {
     if (!paypalClientId) return <PaymentMethodContent paypalClientId="" />;
     return (
-        <PayPalScriptProvider options={{ "client-id": paypalClientId, currency: process.env.REACT_APP_PAYPAL_CURRENCY || "USD", intent: "capture", components: "buttons" }}>
+        <PayPalScriptProvider options={{ "client-id": paypalClientId, currency: "USD", intent: "capture", components: "buttons" }}>
             <PayPalReadyContent paypalClientId={paypalClientId} {...retryProps} />
         </PayPalScriptProvider>
     );
@@ -55,7 +56,7 @@ const PayPalReadyContent = (props) => {
 
 // Script loading and button rendering are separate steps. Keep a visible status
 // until the SDK initializes the real button; never leave an empty payment panel.
-const DirectPayPalButtons = ({ busy, createOrder, onApprove, onCancel, onRetry, onAutoRetry, automaticRetries }) => {
+const DirectPayPalButtons = ({ busy, createOrder, onApprove, onCancel, onPaymentError, onRetry, onAutoRetry, automaticRetries }) => {
     const checkoutStarted = useRef(false);
     const [initialized, setInitialized] = useState(false);
     const [buttonError, setButtonError] = useState("");
@@ -87,6 +88,7 @@ const DirectPayPalButtons = ({ busy, createOrder, onApprove, onCancel, onRetry, 
                 onInit={() => { setInitialized(true); setRenderSlow(false); setButtonError(""); }}
                 onError={(error) => {
                     console.error("PayPal button/checkout error:", error);
+                    if(checkoutStarted.current)onPaymentError?.();
                     setButtonError("PayPal could not complete loading or checkout. Please check My Orders before trying again.");
                     toast.error(error?.data?.message || error?.message || "PayPal checkout could not be completed.");
                 }}
@@ -424,9 +426,13 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
             }
 
             if (selectedMethod === "PayPal") {
+                paypalCheckout.current = {orderId};
+                sessionStorage.setItem("paypalPendingOrderId", orderId);
+                sessionStorage.setItem("paypalPendingCart", JSON.stringify(cartItems));
                 const paypal = await createPayPalOrder({ orderId }).unwrap();
                 if (!paypal?.id) throw new Error("PayPal did not return an order reference.");
                 sessionStorage.setItem("paypalPendingOrderId", orderId);
+                sessionStorage.setItem("paypalPendingCart", JSON.stringify(cartItems));
                 paypalCheckout.current = { orderId, paypalOrderId: paypal.id };
                 return paypal.id;
             }
@@ -463,12 +469,11 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
             const orderId = paypalCheckout.current?.orderId;
             if (!orderId) throw new Error("Your pending order could not be found. Please check My Orders before retrying.");
             await capturePayPalOrder({ orderId, paypalOrderId: data.orderID }).unwrap();
-            sessionStorage.removeItem("paypalPendingOrderId");
-            dispatch(clearCart());
-            toast.success("PayPal payment completed.");
-            navigate(`/me/order/${orderId}`);
+            navigate(`/payment/paypal/retail/${orderId}`);
         } catch (err) {
-            toast.error(err?.data?.message || err?.message || "PayPal could not confirm payment.");
+            const pending=paypalCheckout.current?.orderId||sessionStorage.getItem('paypalPendingOrderId');
+            if(pending)navigate(`/payment/paypal/retail/${pending}`);
+            else toast.error('Could not locate this payment. Check My Orders before paying again.');
         } finally {
             setLoading(false);
         }
@@ -706,7 +711,7 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
                         <div className="tt-payment-options">
                             {allowed('PayPal')&&<section className="tt-paypal-panel" aria-labelledby="tt-paypal-title">
                                 <h3 id="tt-paypal-title" className="tt-paypal-title">PayPal{gateways?.primary==='PayPal'?' · Recommended':''}</h3>
-                                <p className="tt-payment-note">Pay securely with the options available through PayPal.</p>
+                                <PayPalAmount xcd={totalPrice}/>
                                 {!paypalClientId ? (
                                     <p role="status" className="mb-0 tt-payment-note">PayPal is currently unavailable. Please choose another payment method.</p>
                                 ) : paypalFailed || paypalSlow ? (
@@ -722,7 +727,8 @@ const PaymentMethodContent = ({ paypalClientId, paypalReady = false, paypalFaile
                                         busy={loading || isShopdmLoading || !cartItems.length}
                                         createOrder={() => submitHandler("PayPal")}
                                         onApprove={onPayPalApprove}
-                                        onCancel={() => toast("PayPal checkout cancelled. Your pending order remains in My Orders.")}
+                                        onCancel={() => {const id=paypalCheckout.current?.orderId;if(id)navigate(`/payment/paypal/retail/${id}?cancelled=true`);}}
+                                        onPaymentError={() => {const id=paypalCheckout.current?.orderId;if(id)navigate(`/payment/paypal/retail/${id}`);}}
                                         onRetry={onPayPalRetry}
                                         onAutoRetry={onAutoRetry}
                                         automaticRetries={automaticRetries}

@@ -1,0 +1,75 @@
+{
+  "base": "Latest payment-gateway-controls update",
+  "files": [
+    {
+      "path": "backend/controllers/paypalController.js",
+      "sha256": "345697636fdd2ef1e58840cbff7f95b9f89051f08face4be3e78f29c827c9e03"
+    },
+    {
+      "path": "backend/controllers/paypalAdmin.js",
+      "sha256": "2248aa28fb7c60dbeb7a3a684c5c0dd8ac42ecdd8bb3854aa7eff154bb8269d8"
+    },
+    {
+      "path": "backend/services/paypalCheckout.js",
+      "sha256": "935bbd0974eb2044a6b25d89afaad0e767fbe0520489abcec59aef6757dd9d5b"
+    },
+    {
+      "path": "backend/utils/paypalApi.js",
+      "sha256": "634967100ce763c633aad930e063e43a5bc26518c3ac0f6d9db734f224ccb881"
+    },
+    {
+      "path": "backend/routes/payment.js",
+      "sha256": "f296018bac7053b070688c6054382cf769b2c9b3f348845153441ecee64f8b87"
+    },
+    {
+      "path": "backend/hubs/payments.js",
+      "sha256": "28af4ad1c071e35605027b4033f5d2269e38fe8d284f170a23d35f9166668b06"
+    },
+    {
+      "path": "backend/hubs/routes.js",
+      "sha256": "a22b2f1fcf977716fc23f3bbc8b0faa35630b7a27d31480ebf43978a73f5d8d5"
+    },
+    {
+      "path": "frontend/src/components/Cart/PaymentMethod.jsx",
+      "sha256": "d745d919d65a3ec8c9bc24477542cca1d50e109d8dfbf39285832d4edddfff4b"
+    },
+    {
+      "path": "frontend/src/components/order/ResumePayment.jsx",
+      "sha256": "4c2c81d8433224b59300d5cb86a0c0b8ad2ddd26181d760888adafe945379b12"
+    },
+    {
+      "path": "frontend/src/components/hubs/HubPayments.jsx",
+      "sha256": "6f28c357ecb7056596fa31f98ac60fbc2917c8fe86446e2334d0ad4705048b01"
+    },
+    {
+      "path": "frontend/src/components/routes/userRoutes.jsx",
+      "sha256": "5bad3544067d046da966f05dc78a7a0a8ff2cf5b0edcd114cc1030ea49d34e24"
+    },
+    {
+      "path": "frontend/src/components/payments/GatewaySettings.jsx",
+      "sha256": "f6575ecd59cbf392dba2f2c834dbe4f064f586846826929a62b7560d12460320"
+    },
+    {
+      "path": "frontend/src/components/payments/PayPalAmount.jsx",
+      "sha256": "52562d5575fd0ac6d476ebbcfefbffd429006f97f050afcad3963b90ad61dab4"
+    },
+    {
+      "path": "frontend/src/components/payments/PayPalResult.jsx",
+      "sha256": "ee271ff9feb2c34c716acdd3908172ea072653b052b87cc8ca38848b407d8787"
+    },
+    {
+      "path": "frontend/src/components/payments/PayPalResult.css",
+      "sha256": "4a1fd0b02cf4af3d642eb17840f9641e308e0bfdac657af6ea8bd373f7afc8c9"
+    },
+    {
+      "path": "frontend/src/components/payments/PayPalChecks.jsx",
+      "sha256": "cfbe0433882473c6eb5e518309abf3d0e0a6f5c067ff350948133f112af4e3d5"
+    }
+  ],
+  "validation": {
+    "backend_and_regression_checks": 74,
+    "frontend_component_checks": 8,
+    "production_build": "passed with existing unrelated warnings",
+    "real_paypal_transactions": "not performed"
+  }
+}

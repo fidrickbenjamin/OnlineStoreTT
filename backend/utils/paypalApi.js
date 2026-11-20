@@ -6,6 +6,7 @@ async function getAccessToken() {
   const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
   if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) throw new Error("PayPal server credentials are not configured");
   const response = await fetch(`${paypalBase()}/v1/oauth2/token`, {
+    signal: AbortSignal.timeout(20000),
     method: "POST",
     headers: { Authorization: `Basic ${Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64")}`, "Content-Type": "application/x-www-form-urlencoded" },
     body: "grant_type=client_credentials",
@@ -18,6 +19,7 @@ async function getAccessToken() {
 export async function paypalRequest(path, { method = "GET", body, requestId } = {}) {
   const token = await getAccessToken();
   const response = await fetch(`${paypalBase()}${path}`, {
+    signal: AbortSignal.timeout(20000),
     method,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...(requestId ? { "PayPal-Request-Id": requestId } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),

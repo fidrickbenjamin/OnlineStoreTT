@@ -1,3 +1,4 @@
+import * as paypalAdmin from '../controllers/paypalAdmin.js';
 import {saveTax} from '../commercial/taxService.js';
 import * as pricing from '../commercial/pricingController.js';
 import * as settlements from '../commercial/settlementController.js';
@@ -56,6 +57,7 @@ router.post('/maps/route',limit('map-route',20,60000),catchAsync(maps.routePrevi
 router.post('/estimate',limit('routes',20,60000),run('routeEstimate'));
 router.get('/business/account',catchAsync(accounts.partnerAccount));
 router.get('/business',run('myBusiness'));router.post('/business',run('applyBusiness'));router.put('/business',run('editBusiness'));router.post('/business/menu',run('saveMenu'));router.post('/business/menu/archive',catchAsync(catalogue.archiveItem));
+router.post('/jobs/:id/paypal/status',limit('hub-paypal-status',30,60000),catchAsync(pay.checkPayPal));
 router.post('/jobs/:id/paypal',limit('hub-payments',12,60000),catchAsync(pay.startPayPal));router.post('/jobs/:id/paypal/capture',limit('hub-payments',12,60000),catchAsync(pay.capturePayPal));router.post('/jobs/:id/shopdm',limit('hub-payments',12,60000),catchAsync(pay.startShopdm));
 router.get('/jobs',run('myJobs'));router.post('/jobs',limit('requests',25,3600000),run('createJob'));router.get('/jobs/:id',run('jobDetails'));
 router.post('/jobs/:id/accept',run('acceptQuote'));router.post('/jobs/:id/cancel',run('cancelJob'));router.post('/jobs/:id/business',run('businessAction'));router.post('/jobs/:id/receipt',run('uploadReceipt'));router.get('/jobs/:id/receipt',run('receipt'));router.post('/jobs/:id/take',run('takeJob'));router.post('/jobs/:id/decline',run('declineJob'));router.post('/jobs/:id/progress',limit('completion',12,60000),run('jobProgress'));router.post('/jobs/:id/location',limit('location',60,60000),run('location'));
@@ -70,6 +72,8 @@ router.get('/admin/marketplace-delivery/community',catchAsync(communityCheckout.
 router.put('/admin/marketplace-delivery/community',catchAsync(communityCheckout.saveConfig));
 router.get('/admin/marketplace-delivery/quotes',catchAsync(communityCheckout.adminQuotes));
 router.post('/admin/marketplace-delivery/quotes/:id',catchAsync(communityCheckout.reviewQuote));
+router.get('/admin/payment-gateways/paypal-checks',requireFullAdmin,catchAsync(paypalAdmin.checks));
+router.post('/admin/payment-gateways/paypal-checks',requireFullAdmin,catchAsync(paypalAdmin.refresh));
 router.get('/admin/payment-gateways',requireFullAdmin,catchAsync(gateways.adminGet));
 router.put('/admin/payment-gateways',requireFullAdmin,catchAsync(gateways.adminSave));
 router.get('/admin/marketplace-delivery',catchAsync(marketplaceDelivery.adminGet));

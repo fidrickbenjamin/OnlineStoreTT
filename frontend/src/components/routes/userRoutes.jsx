@@ -4,6 +4,7 @@ import { Route, Navigate} from "react-router-dom";
 import Home from "../Home";
 import ProtectedRoute from "../auth/ProtectedRoute";
 
+const PayPalResult=React.lazy(()=>import("../payments/PayPalResult"));
 const Deals = React.lazy(() => import("../promotions/Deals"));
 const ProductDetails = React.lazy(() => import("../product/ProductDetails"));
 const Login = React.lazy(() => import("../auth/Login"));
@@ -82,6 +83,7 @@ const userRoutes = () => {
       <Route path="/cart" element={<Cart />} />
       <Route path="/shipping" element={<ProtectedRoute> <Shipping /> </ProtectedRoute>} />
       <Route path="/confirm_order" element={<ProtectedRoute> <ConfirmOrder /> </ProtectedRoute>} />
+      <Route path="/payment/paypal/:scope/:id" element={<ProtectedRoute><PayPalResult/></ProtectedRoute>}/>
       <Route path="/payment_method" element={<ProtectedRoute> <PaymentMethod /> </ProtectedRoute>} />
       <Route path="/me/orders" element={<ProtectedRoute> <MyOrders /> </ProtectedRoute>} />
       <Route path="/me/order/:id" element={<ProtectedRoute> <OrderDetails /> </ProtectedRoute>} />
